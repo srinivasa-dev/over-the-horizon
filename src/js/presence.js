@@ -47,7 +47,7 @@ export class PresenceTracker {
     }
 
     // 4. Production Cloudflare Worker default endpoint
-    return 'wss://overthehorizon-presence.sriyadav98.workers.dev';
+    return 'wss://overthehorizon-presence.srinivasa-yadav-b.workers.dev';
   }
 
   connect() {
