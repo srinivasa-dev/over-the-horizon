@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [2.5.2] - 2026-10-18
+
+### Changed
+- **Responsive Mobile Presence Pill Polish**:
+  - Implemented compact `[● N]` mobile pill for the planetary carousel menu, reducing horizontal footprint to ~37px to prevent crowding with audio and guide action buttons.
+  - Aligned in-game HUD presence pill to the far right of the top header bar on the exact same row as `OVER THE HORIZON` (`.title-card`), preserving full text display across screen sizes.
+- **Cloudflare Durable Object Free-Tier SQLite Migration**:
+  - Configured `new_sqlite_classes = ["PresenceRoom"]` in `wrangler.toml` complying with Cloudflare's Durable Objects free tier architecture.
+  - Linked client production presence gateway to `wss://overthehorizon-presence.srinivasa-yadav-b.workers.dev`.
+
+---
+
 ## [2.5.1] - 2026-10-18
 
 ### Added
