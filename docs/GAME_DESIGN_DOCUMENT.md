@@ -99,21 +99,27 @@ flowchart TD
 * **Atmosphere Dial:** Players can dynamically scrub the 24-hour diurnal cycle (Dawn, Midday, Sunset, Midnight) and toggle weather states (Clear Sun, Rain, Snow, Dust).
 
 ### Mode 2: Celestial Cascade
-* **Core Philosophy:** Dynamic sky hazard survival and precision evasion.
+* **Core Philosophy:** Dynamic sky hazard survival, wave evasion, and high-altitude celestial storm navigation.
 * **Mechanics:**
-  * **T3 Intercept Vectors:** Incoming celestial bodies calculate predictive intercept angles targeting vehicle trajectory.
-  * **Ground Astrolabe Reticles:** Geometric rotating gold astrolabe rings project onto terrain 2.5s before impact.
-  * **Near-Miss Surge:** Passing within 1.35m–3.2m of an impact triggers a +150 point bonus and refills 22% of the nitro energy reserve.
-  * **Stardust Shards:** Impacts scatter collectible stardust shards (+50 pts) that extend combo timers.
-  * **Stationary Lock-on Sentry:** Idling for >1.0s triggers an audible siren and focuses direct impacts onto the vehicle.
+  * **Dynamic Salvo & Wave Director:** Attacks are choreographed in varied, non-linear waves rather than predictable single drops:
+    * *Twin Pincer:* Flanking pair targeting outer lane margins, leaving an open 5.6m center escape lane.
+    * *Staggered Leapfrog:* Sequential 2-meteor wave (near-center followed by delayed far-flank) testing acceleration and braking.
+    * *3-Meteor Slalom Course:* Staggered trio (Left, Right, Center) forming an organic rally slalom course with cascading detonations.
+    * *Precision Scout:* High-velocity single strike for quick reflexes with generous stardust drop.
+    * *Pinch Flank & Wide Split:* Asymmetric pairs that punish straight-line coasting and reward decisive swerves.
+  * **Precision Vehicle Footprint Collision Geometry:** Collision tests against the vehicle's true oriented bounding ground footprint ($[-1.45, +1.50]\text{m}$ along length, $\pm 0.98\text{m}$ along width). Touching any part of the vehicle bumper, hood, wheels, or sides with the 1.65m blast radius registers a direct hit, eliminating center-point-only anomalies.
+  * **Near-Miss Surge:** Passing within $1.65\text{m}$–$3.4\text{m}$ of the impact circle edge awards a +150 point bonus and refills 22% of the nitro energy reserve.
+  * **Stardust Shards:** Impacts scatter collectible stardust shards (+50 pts) that extend combo timers and scale multipliers up to 5x.
+  * **Stationary Lock-on Sentry:** Idling or stopping ($<4\text{ km/h}$) for >1.0s triggers an audible siren and focuses rapid, relentless direct strikes onto the vehicle until moving.
   * **Shield Matrix:** Vehicles possess 3 holographic shield charges before experiencing a mission failure.
 
 ### Mode 3: Crossy Odyssey
-* **Core Philosophy:** Reflex-driven traffic slalom and boulder avoidance.
+* **Core Philosophy:** Reflex-driven traffic slalom and mountain avalanche navigation.
 * **Mechanics:**
-  * **Crossing Convoys:** Multi-lane transport vehicles traverse key intersections across the planet.
-  * **Rolling Boulders:** Giant faceted boulders detach from mountain peaks and roll across trails under spherical gravity.
-  * **Clean Weaves:** Threading through convoy gaps triggers escalating combo multipliers (up to 5x).
+  * **Crossing Convoys:** Multi-lane transport crawlers and wagons traverse intersections across the planet, with collision resolution respecting the full vehicle body and cart footprint.
+  * **Rolling Boulders:** Giant faceted boulders detach from mountain peaks and tumble down natural elevation chutes across trails under spherical gravity.
+  * **Sprinting Wildlife & Drones:** Rapid animal crossings (Bighorn Ram on Oakhaven, Skitter Drones on alien worlds) that cross the roadway at acute angles.
+  * **Clean Weaves:** Threading through convoy gaps or dodging boulders within $2.6\text{m}$–$2.8\text{m}$ of the vehicle perimeter triggers escalating combo multipliers (up to 5x).
 
 ---
 
@@ -121,17 +127,27 @@ flowchart TD
 
 * **Radial Spherical Gravity:** Gravity pulls continuously toward the planet's mathematical center `(0, 0, 0)`.
 * **4-Wheel Independent Suspension:** Spring-damper raycasting maintains ground contact and prevents clipping through terrain polygons.
+* **Continuous Planetary Roadbeds & Safety Corridors:** Every world features an 8.4m wide, leveled asphalt or compacted dirt roadbed (`smoothstep(distRoad, 0.065, 0.145)`). Roadside landmarks, research domes, and energy pylons observe a strict 7.5m+ exclusion corridor, preventing road obstructions.
+* **Autopilot 2.0 (Predictive ADAS):** Pressing `P` (or mobile `AUTO` button) activates intelligent road-following assistance featuring 4.5m forward predictive curve lookahead, obstacle proximity radar steering repulsion, barrier glance deflection without throttle cuts, and an auto-unstuck watchdog that reverses and pivots if stalled.
 * **Steering & Drift:** Ackermann geometry with dynamic high-speed stability damping. Nitro boosts deliver instant acceleration surges with procedural exhaust particles.
+* **Camera Modes & 360° Orbital Gesture Control:**
+  - **Mode 0 (Chase POV):** High-speed cinematic chase cam with dynamic portrait scaling, 360° pointer-driven orbital yaw, multi-touch pinch / wheel zoom ($0.6\times$ to $2.5\times$), double-click/tap re-centering, and automated terrain ground-clearance altitude clamping ($R_{\text{terrain}} + 2.0\text{m}$).
+  - **Mode 1 (Smart Diorama):** Elevated isometric tracking view showcasing miniature spherical globe curvature and upcoming bends.
+  - **Mode 2 (Cockpit / Windshield POV):** First-person driver perspective placed above the dashboard. Horizontal glance is strictly constrained to a natural wide-angle driver field of view ($\pm 75^\circ$ / $\pm 1.30\text{ rad}$), covering the driver's side mirror and passenger mirror while preventing backwards seat rotation. Vertical pitch bounded to $[-0.35, +0.45]\text{ rad}$ with 2.5s auto-recenter timeout.
+  - **Mode 3 (Drone Track):** Autonomous orbital tracking fly-by camera circling the vehicle.
 * **Control Schemes:**
-  - **Keyboard:** `W/A/S/D` or Arrow Keys (Drive & Steer), `SPACE` (Nitro Boost), `S` (Brake), `C` (Camera), `P` (Autopilot Cruise), `H` (Horn), `M` (Solar System Menu).
-  - **Mobile:** On-screen virtual directional steering pads and tactile Nitro / Brake / Gas action buttons.
+  - **Keyboard:** `W/A/S/D` or Arrow Keys (Drive & Steer), `SPACE` (Nitro Boost), `S` (Brake), `C` (Camera Cycle), `P` (Autopilot Cruise), `H` (Horn), `M` (Solar System Menu), `Drag` (Orbit Camera).
+  - **Mobile:** On-screen virtual directional steering pads, dedicated `AUTO` cruise button, on-button `NITRO` progress meter, `BRAKE` pedal, and single-finger / pinch camera gestures.
 
 ---
 
 ## 5. User Interface & Presentation Standards
 
 1. **Tactile Mechanical Keycaps:** Controls guide uses beveled 3D mechanical keys with top highlights and bottom shadow bevels.
-2. **Digital Speedometer Cluster:** Large tabular numeral speed indicator with cyan glow, segmented nitro energy bar, and autopilot indicator.
+2. **Digital Speedometer Cluster:** Large tabular numeral speed indicator with cyan glow, segmented nitro energy bar, and autopilot indicator, docked to bottom-left on mobile for ergonomic thumb control.
 3. **Diurnal Atmosphere Console:** Celestial gradient scrubber with glowing sun bead thumb and bespoke SVG weather capsules (Sun, Rain, 6-point dendritic Snowflake, Dust).
-4. **Interactive 3D Solar System Orrery:** Central faceted golden Sun, 9 concentric orbital ellipses, leader lines, and live scenic docket previews.
-5. **Zero-Emoji Mandate:** 100% of telemetry, headers, rankings, and notification toasts utilize bespoke SVG vectors or typography.
+4. **Diegetic 3D Planetary Carousel Menu:** Pure 3D diorama screen where the selected low-poly planetary globe is the primary interactive hero object, complete with tactile mode capsules and candy amber launch button.
+5. **Expedition Manual & Dev Dossier Handbook:** Dual-tab parchment binder providing gameplay rules, vehicle chassis blueprints, creator story, and live project telemetry.
+6. **Menu Sound Calibration Drawer:** Tactile audio popover configuring master volume, procedural music, and SFX with instant audio feedback.
+7. **Session Analytics & Diagnostics:** Integrated Microsoft Clarity analytics (Project ID `yznpugasgn`) for non-intrusive heatmaps, session diagnostics, and interaction insights.
+8. **Zero-Emoji Mandate:** 100% of telemetry, headers, rankings, and notification toasts utilize bespoke SVG vectors or typography.

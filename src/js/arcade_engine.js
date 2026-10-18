@@ -18,6 +18,21 @@ import {
   buildRepairWrench
 } from './models.js';
 
+// Safe Storage Helpers to prevent SecurityError exceptions in Chrome on iOS / private browsing
+function safeGetHighScore() {
+  try {
+    return parseInt(localStorage.getItem('oth_arcade_highscore') || '0', 10);
+  } catch (e) {
+    return 0;
+  }
+}
+
+function safeSetHighScore(val) {
+  try {
+    localStorage.setItem('oth_arcade_highscore', val.toString());
+  } catch (e) {}
+}
+
 export class ArcadeEngine {
   constructor(scene, planet, vehiclePhysics, audio, hud) {
     this.scene = scene;
@@ -35,7 +50,7 @@ export class ArcadeEngine {
     this.hearts = 3;
     this.maxHearts = 3;
     this.score = 0;
-    this.highScore = parseInt(localStorage.getItem('oth_arcade_highscore') || '0', 10);
+    this.highScore = safeGetHighScore();
     this.comboMultiplier = 1;
     this.comboCount = 0;
     this.comboTimer = 0.0;
@@ -67,9 +82,15 @@ export class ArcadeEngine {
     this.stationaryTimer = 0.0;
     this.lockonWarning = false;
     this.stationaryAlertCooldown = 0.0;
+    this.stationaryStrikeTimer = 0.4;
 
-    // Celestial Spawn timer
-    this.meteorSpawnTimer = 0.0;
+    // Celestial Cascade: Dynamic Salvo & Multi-Meteor Wave Director
+    this.celestialQueue = [];
+    this.celestialPatternTimer = 0.8;
+    this.celestialPatternIndex = 0;
+    this.celestialPatterns = ["pincer", "stagger_chase", "scout", "slalom", "pinch_flank", "leapfrog"];
+
+    // Universal Repair Wrench cooldown
     this.wrenchCooldownTimer = 8.0;
 
     // Crossy Odyssey 2.5: Orchestrated Highway Encounter Director
@@ -102,8 +123,12 @@ export class ArcadeEngine {
     this.stationaryTimer = 0.0;
     this.lockonWarning = false;
     this.stationaryAlertCooldown = 0.0;
+    this.stationaryStrikeTimer = 0.4;
 
-    this.meteorSpawnTimer = 0.8;
+    // Celestial Cascade Salvo Reset
+    this.celestialQueue = [];
+    this.celestialPatternTimer = 0.8;
+    this.celestialPatternIndex = 0;
     this.wrenchCooldownTimer = 10.0;
 
     // Crossy Odyssey Director Reset
@@ -138,6 +163,7 @@ export class ArcadeEngine {
     this.isGameOver = false;
     this.lockonWarning = false;
     this.stationaryTimer = 0.0;
+    this.celestialQueue = [];
 
     // Remove and cleanup all active meteors
     for (const m of this.meteors) {
@@ -309,50 +335,50 @@ export class ArcadeEngine {
   }
 
   // ---------------------------------------------------------------
-  // 3. CELESTIAL CASCADE: T3-AIM & STATIONARY PUNISHER
+  // 2b. PRECISION VEHICLE FOOTPRINT COLLISION GEOMETRY
   // ---------------------------------------------------------------
-  _spawnMeteor() {
-    const planetType = this.planet.type || "Oakhaven";
+  _getDistanceToVehicle(hazardPos) {
+    if (!this.vehiclePhysics) {
+      return { surfaceDist: 999.0, isDirectOverlap: false, projFwd: 0, projRight: 0 };
+    }
+
     const carPos = this.vehiclePhysics.position;
     const carFwd = this.vehiclePhysics.forward;
     const carRight = this.vehiclePhysics.right;
-    const carSpeed = this.vehiclePhysics.getSpeedKmh();
+    const carUp = this.vehiclePhysics.radialUp;
 
-    let targetPos;
+    const diff = hazardPos.clone().sub(carPos);
+    const projFwd = diff.dot(carFwd);
+    const projRight = diff.dot(carRight);
+    const projUp = diff.dot(carUp);
 
-    // STATIONARY PUNISHER vs DYNAMIC INTERCEPT
-    if (carSpeed < 4.0) {
-      // Vehicle is stationary or idling! Lock on directly on top of the car!
-      const campSpread = 0.35 + Math.random() * 0.7;
-      const angle = Math.random() * Math.PI * 2;
-      targetPos = carPos.clone()
-        .add(carFwd.clone().multiplyScalar(Math.cos(angle) * campSpread))
-        .add(carRight.clone().multiplyScalar(Math.sin(angle) * campSpread));
-    } else {
-      // Dynamic moving vehicle: 3 smart tactical variants based on velocity vector
-      const leadTime = 1.25; // Matching celestial descent duration
-      const speedMs = carSpeed / 3.6;
-      const baseLeadDist = Math.max(5.0, speedMs * leadTime); // Exact kinematic intercept
+    // Vehicle ground footprint extents:
+    // Front bumper: +1.50m, Rear bumper/spare: -1.45m
+    // Half-width (wheels/fenders): +/-0.98m
+    const clampedFwd = THREE.MathUtils.clamp(projFwd, -1.45, 1.50);
+    const clampedRight = THREE.MathUtils.clamp(projRight, -0.98, 0.98);
 
-      const tacticRoll = Math.random();
-      if (tacticRoll < 0.42) {
-        // Direct Intercept: Directly on car's expected position in 1.25s (+/- 0.8m)
-        targetPos = carPos.clone()
-          .add(carFwd.clone().multiplyScalar(baseLeadDist + (Math.random() - 0.5) * 1.6))
-          .add(carRight.clone().multiplyScalar((Math.random() - 0.5) * 1.4));
-      } else if (tacticRoll < 0.75) {
-        // Flank Cut-Off: Cut off lateral cornering space (+/- 3.5m to 6.5m to left or right)
-        const flankSide = Math.random() < 0.5 ? -1.0 : 1.0;
-        targetPos = carPos.clone()
-          .add(carFwd.clone().multiplyScalar(baseLeadDist * 0.85))
-          .add(carRight.clone().multiplyScalar(flankSide * (3.5 + Math.random() * 3.0)));
-      } else {
-        // Trailing Chaser: Punish sudden emergency braking
-        targetPos = carPos.clone()
-          .add(carFwd.clone().multiplyScalar(baseLeadDist * 0.35 + (Math.random() - 0.5) * 1.5))
-          .add(carRight.clone().multiplyScalar((Math.random() - 0.5) * 1.8));
-      }
-    }
+    const deltaFwd = projFwd - clampedFwd;
+    const deltaRight = projRight - clampedRight;
+
+    // Tangential ground-plane distance from hazard center to nearest point of car body
+    const surfaceDist = Math.hypot(deltaFwd, deltaRight);
+    const isDirectOverlap = (surfaceDist < 0.001);
+
+    return {
+      surfaceDist,
+      isDirectOverlap,
+      projFwd,
+      projRight,
+      projUp
+    };
+  }
+
+  // ---------------------------------------------------------------
+  // 3. CELESTIAL CASCADE: DYNAMIC MULTI-METEOR SALVO & WAVE DIRECTOR
+  // ---------------------------------------------------------------
+  _spawnMeteorAt(targetPos, fallDuration = 1.25, playAlertSound = true) {
+    const planetType = this.planet.type || "Oakhaven";
 
     // Clamp target to exact planet surface
     const targetDir = targetPos.clone().normalize();
@@ -367,7 +393,7 @@ export class ArcadeEngine {
     // Create 3D Radiant Celestial Astral Mesh (Fiery Meteor)
     const meteorMesh = buildStardustCelestial(planetType);
     meteorMesh.position.copy(startPos);
-    
+
     // Orient fiery tail backwards along descent path toward surface
     const descentDir = targetPos.clone().sub(startPos).normalize();
     meteorMesh.quaternion.setFromUnitVectors(new THREE.Vector3(0, 0, -1), descentDir);
@@ -386,8 +412,6 @@ export class ArcadeEngine {
     beamMesh.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), targetNormal);
     this.arcadeGroup.add(beamMesh);
 
-    const fallDuration = 1.25; // 1.25s warning reticle countdown
-
     this.meteors.push({
       mesh: meteorMesh,
       reticle: reticleMesh,
@@ -399,12 +423,168 @@ export class ArcadeEngine {
       elapsed: 0.0
     });
 
-    // Resonant crystalline glass harmonica glissando incoming alert
-    if (this.audio && this.audio.playCelestialGlissando) {
-      this.audio.playCelestialGlissando();
-    } else {
-      this.audio.playMeteorWarningSound();
+    if (playAlertSound) {
+      if (this.audio && this.audio.playCelestialGlissando) {
+        this.audio.playCelestialGlissando();
+      } else {
+        this.audio.playMeteorWarningSound();
+      }
     }
+  }
+
+  _enqueueMeteor(targetPos, fallDuration = 1.25, delay = 0.0, playAlertSound = true) {
+    if (delay <= 0.001) {
+      this._spawnMeteorAt(targetPos, fallDuration, playAlertSound);
+    } else {
+      this.celestialQueue.push({
+        targetPos,
+        fallDuration,
+        delay,
+        playAlertSound
+      });
+    }
+  }
+
+  _spawnMeteor(targetPos = null, fallDuration = 1.25) {
+    if (!targetPos) {
+      const carPos = this.vehiclePhysics.position;
+      const carFwd = this.vehiclePhysics.forward;
+      const carRight = this.vehiclePhysics.right;
+      const carSpeed = this.vehiclePhysics.getSpeedKmh();
+      const speedMs = Math.max(3.5, carSpeed / 3.6);
+      const lead = Math.max(7.5, speedMs * fallDuration);
+      targetPos = carPos.clone()
+        .add(carFwd.clone().multiplyScalar(lead))
+        .add(carRight.clone().multiplyScalar((Math.random() - 0.5) * 1.5));
+    }
+    this._spawnMeteorAt(targetPos, fallDuration, true);
+  }
+
+  _triggerCelestialPattern() {
+    const carPos = this.vehiclePhysics.position;
+    const carFwd = this.vehiclePhysics.forward;
+    const carRight = this.vehiclePhysics.right;
+    const carSpeed = this.vehiclePhysics.getSpeedKmh();
+    const speedMs = Math.max(3.5, carSpeed / 3.6);
+    const difficulty = Math.min(1.0, this.score / 6000.0);
+
+    // Dynamic base lead distance matching vehicle speed (minimum 8m)
+    const baseLead = Math.max(8.0, speedMs * 1.35);
+
+    const pattern = this.celestialPatterns[this.celestialPatternIndex % this.celestialPatterns.length];
+    this.celestialPatternIndex++;
+
+    let recoveryTime = 2.4;
+
+    switch (pattern) {
+      case "pincer": {
+        // Dual Flank Pinch: 2 meteors drop ahead on left & right margins
+        // Leaves a generous 5.6m center lane for the player to drive straight through!
+        const lateralOffset = 2.8 + Math.random() * 0.4;
+        const targetL = carPos.clone()
+          .add(carFwd.clone().multiplyScalar(baseLead + (Math.random() - 0.5) * 1.2))
+          .add(carRight.clone().multiplyScalar(-lateralOffset));
+        const targetR = carPos.clone()
+          .add(carFwd.clone().multiplyScalar(baseLead + 1.2 + (Math.random() - 0.5) * 1.2))
+          .add(carRight.clone().multiplyScalar(lateralOffset));
+
+        this._enqueueMeteor(targetL, 1.30, 0.0, true);
+        this._enqueueMeteor(targetR, 1.30, 0.22, true);
+        recoveryTime = 2.4 - difficulty * 0.6;
+        break;
+      }
+
+      case "stagger_chase": {
+        // Leapfrog: 2 meteors in sequence along travel vector
+        // Meteor 1 is near-center (closer), Meteor 2 is farther and offset to one side
+        const side = Math.random() < 0.5 ? -1.0 : 1.0;
+        const target1 = carPos.clone()
+          .add(carFwd.clone().multiplyScalar(baseLead * 0.72))
+          .add(carRight.clone().multiplyScalar((Math.random() - 0.5) * 1.0));
+        const target2 = carPos.clone()
+          .add(carFwd.clone().multiplyScalar(baseLead * 1.38))
+          .add(carRight.clone().multiplyScalar(side * (2.2 + Math.random() * 1.0)));
+
+        this._enqueueMeteor(target1, 1.20, 0.0, true);
+        this._enqueueMeteor(target2, 1.35, 0.38, true);
+        recoveryTime = 2.6 - difficulty * 0.7;
+        break;
+      }
+
+      case "scout": {
+        // Precision Intercept: 1 high-warning shot with generous stardust drop
+        const target = carPos.clone()
+          .add(carFwd.clone().multiplyScalar(baseLead + (Math.random() - 0.5) * 1.8))
+          .add(carRight.clone().multiplyScalar((Math.random() - 0.5) * 1.6));
+
+        this._enqueueMeteor(target, 1.25, 0.0, true);
+        recoveryTime = 2.1 - difficulty * 0.5;
+        break;
+      }
+
+      case "slalom": {
+        // 3-Meteor Slalom Corridor: Staggered Left, Right, Center
+        // Highly engaging, rhythmic, leaves clear weaving arcs
+        const target1 = carPos.clone()
+          .add(carFwd.clone().multiplyScalar(baseLead * 0.70))
+          .add(carRight.clone().multiplyScalar(-2.6));
+        const target2 = carPos.clone()
+          .add(carFwd.clone().multiplyScalar(baseLead * 1.10))
+          .add(carRight.clone().multiplyScalar(2.6));
+        const target3 = carPos.clone()
+          .add(carFwd.clone().multiplyScalar(baseLead * 1.48))
+          .add(carRight.clone().multiplyScalar(-0.8));
+
+        this._enqueueMeteor(target1, 1.35, 0.0, true);
+        this._enqueueMeteor(target2, 1.35, 0.32, false);
+        this._enqueueMeteor(target3, 1.35, 0.64, false);
+        recoveryTime = 3.2 - difficulty * 0.8;
+        break;
+      }
+
+      case "pinch_flank": {
+        // Cut-off: One ahead in path, one trailing on flank
+        const side = Math.random() < 0.5 ? -1.0 : 1.0;
+        const targetAhead = carPos.clone()
+          .add(carFwd.clone().multiplyScalar(baseLead * 1.05))
+          .add(carRight.clone().multiplyScalar((Math.random() - 0.5) * 1.2));
+        const targetFlank = carPos.clone()
+          .add(carFwd.clone().multiplyScalar(baseLead * 0.50))
+          .add(carRight.clone().multiplyScalar(side * (3.0 + Math.random() * 1.2)));
+
+        this._enqueueMeteor(targetAhead, 1.25, 0.0, true);
+        this._enqueueMeteor(targetFlank, 1.30, 0.30, true);
+        recoveryTime = 2.5 - difficulty * 0.6;
+        break;
+      }
+
+      case "leapfrog": {
+        // Asymmetric pair: Forces a decisive steer or throttle tap
+        const side = Math.random() < 0.5 ? -1.0 : 1.0;
+        const target1 = carPos.clone()
+          .add(carFwd.clone().multiplyScalar(baseLead * 0.85))
+          .add(carRight.clone().multiplyScalar(side * 2.0));
+        const target2 = carPos.clone()
+          .add(carFwd.clone().multiplyScalar(baseLead * 1.30))
+          .add(carRight.clone().multiplyScalar(-side * 2.4));
+
+        this._enqueueMeteor(target1, 1.25, 0.0, true);
+        this._enqueueMeteor(target2, 1.30, 0.28, true);
+        recoveryTime = 2.5 - difficulty * 0.6;
+        break;
+      }
+
+      default: {
+        const target = carPos.clone()
+          .add(carFwd.clone().multiplyScalar(baseLead))
+          .add(carRight.clone().multiplyScalar((Math.random() - 0.5) * 1.5));
+        this._enqueueMeteor(target, 1.25, 0.0, true);
+        recoveryTime = 2.2;
+        break;
+      }
+    }
+
+    this.celestialPatternTimer = Math.max(1.5, recoveryTime);
   }
 
   _updateMeteors(dt, carPos) {
@@ -494,15 +674,17 @@ export class ArcadeEngine {
     }
     this.cameraShake = Math.max(this.cameraShake, 0.55);
 
-    // Distance check to vehicle with precision hitboxes
-    const distToCar = carPos.distanceTo(impactPos);
+    // Precision vehicle footprint distance check
+    const vehDist = this._getDistanceToVehicle(impactPos);
 
-    if (distToCar < 1.35) {
+    // Astrolabe reticle blast radius is ~1.55m-1.65m.
+    // If ANY part of the vehicle body/bumper is inside the blast radius:
+    if (vehDist.surfaceDist <= 1.65) {
       // Direct Hit!
       this.takeDamage("CELESTIAL IMPACT!");
-    } else if (distToCar >= 1.35 && distToCar <= 3.2) {
+    } else if (vehDist.surfaceDist > 1.65 && vehDist.surfaceDist <= 3.40) {
       // Near Miss / Close Call! High skill reward!
-      this.triggerNearMiss(distToCar);
+      this.triggerNearMiss(vehDist.surfaceDist);
     }
 
     // Scatter 2 to 3 Stardust Shards around impact crater
@@ -512,9 +694,6 @@ export class ArcadeEngine {
     }
   }
 
-  // ---------------------------------------------------------------
-  // 4. COLLECTIBLE STARDUST SHARDS
-  // ---------------------------------------------------------------
   // ---------------------------------------------------------------
   // 4. COLLECTIBLE STARDUST SHARDS
   // ---------------------------------------------------------------
@@ -568,9 +747,9 @@ export class ArcadeEngine {
       const bob = Math.sin(Date.now() * 0.005 + s.bobOffset) * 0.18;
       s.mesh.position.copy(s.basePos).add(s.normal.clone().multiplyScalar(bob));
 
-      // Player pickup check
-      const dist = carPos.distanceTo(s.mesh.position);
-      if (dist < 2.0) {
+      // Player pickup check with vehicle footprint
+      const vehDist = this._getDistanceToVehicle(s.mesh.position);
+      if (vehDist.surfaceDist <= 1.25) {
         this.collectShard(s);
         this.arcadeGroup.remove(s.mesh);
         this.shards.splice(i, 1);
@@ -601,7 +780,7 @@ export class ArcadeEngine {
 
     if (this.score > this.highScore) {
       this.highScore = this.score;
-      localStorage.setItem('oth_arcade_highscore', this.highScore.toString());
+      safeSetHighScore(this.highScore);
     }
   }
 
@@ -782,11 +961,11 @@ export class ArcadeEngine {
         }
       }
 
-      // Precision collision check
-      const dist = carPos.distanceTo(c.pos);
-      if (dist < 1.45) {
+      // Precision vehicle footprint collision check
+      const vehDist = this._getDistanceToVehicle(c.pos);
+      if (vehDist.surfaceDist <= 1.25) {
         this.takeDamage("CONVOY COLLISION!");
-      } else if (!c.hasDodged && dist < 2.9) {
+      } else if (!c.hasDodged && vehDist.surfaceDist <= 2.80) {
         c.hasDodged = true;
         this.triggerCleanCross("CONVOY WEAVE! +120", 120);
       }
@@ -920,11 +1099,11 @@ export class ArcadeEngine {
       const rollAxis = new THREE.Vector3().crossVectors(b.rollDir, placement.normal).normalize();
       b.mesh.rotateOnWorldAxis(rollAxis, b.speed * dt * 0.95);
 
-      // Precision collision check with car
-      const dist = carPos.distanceTo(b.pos);
-      if (dist < 1.35) {
-        this.takeDamage("BOULDER CRUNCH! 🪨");
-      } else if (!b.hasDodged && dist < 2.8) {
+      // Precision vehicle footprint collision check with car
+      const vehDist = this._getDistanceToVehicle(b.pos);
+      if (vehDist.surfaceDist <= 1.15) {
+        this.takeDamage("BOULDER CRUNCH!");
+      } else if (!b.hasDodged && vehDist.surfaceDist <= 2.65) {
         b.hasDodged = true;
         this.triggerCleanCross("BOULDER WEAVE! +100", 100);
       }
@@ -1020,12 +1199,12 @@ export class ArcadeEngine {
         w.mesh.legs[3].rotation.x = Math.sin(legPhase) * 0.45;
       }
 
-      // Precision collision check
-      const dist = carPos.distanceTo(w.pos);
-      if (dist < 1.35) {
+      // Precision vehicle footprint collision check
+      const vehDist = this._getDistanceToVehicle(w.pos);
+      if (vehDist.surfaceDist <= 0.85) {
         const hazardName = isEarth ? "BIGHORN RAM IMPACT!" : "SKITTER DRONE IMPACT!";
         this.takeDamage(hazardName);
-      } else if (!w.hasDodged && dist < 2.9) {
+      } else if (!w.hasDodged && vehDist.surfaceDist <= 2.50) {
         w.hasDodged = true;
         const dodgeName = isEarth ? "WILDLIFE SLALOM! +150" : "DRONE SLALOM! +150";
         this.triggerCleanCross(dodgeName, 150);
@@ -1083,9 +1262,9 @@ export class ArcadeEngine {
       this.activeWrench.mesh.tool.position.y = 0.95 + Math.sin(Date.now() * 0.006) * 0.12;
     }
 
-    // Pickup check
-    const dist = carPos.distanceTo(this.activeWrench.pos);
-    if (dist < 2.0) {
+    // Pickup check with vehicle footprint
+    const vehDist = this._getDistanceToVehicle(this.activeWrench.pos);
+    if (vehDist.surfaceDist <= 1.35) {
       this.hearts = Math.min(this.maxHearts, this.hearts + 1);
       this.score += 200;
       this.audio.playHeartRestoredSound();
@@ -1113,9 +1292,10 @@ export class ArcadeEngine {
     this.audio.playHeartLostSound();
     this.addToast(cause, "-1 SHIELD CHARGE!", "#EF4444");
 
-    // Spin vehicle physics slightly on collision impact
+    // Spin vehicle physics slightly on collision impact & reduce speed
     if (this.vehiclePhysics) {
-      this.vehiclePhysics.speed *= 0.45;
+      this.vehiclePhysics.velocityForward *= 0.45;
+      this.vehiclePhysics.velocityLateral *= 0.45;
       this.vehiclePhysics.yawRate += (Math.random() - 0.5) * 1.8;
     }
 
@@ -1139,7 +1319,7 @@ export class ArcadeEngine {
 
     if (this.score > this.highScore) {
       this.highScore = this.score;
-      localStorage.setItem('oth_arcade_highscore', this.highScore.toString());
+      safeSetHighScore(this.highScore);
     }
   }
 
@@ -1153,7 +1333,7 @@ export class ArcadeEngine {
 
     if (this.score > this.highScore) {
       this.highScore = this.score;
-      localStorage.setItem('oth_arcade_highscore', this.highScore.toString());
+      safeSetHighScore(this.highScore);
     }
   }
 
@@ -1168,7 +1348,7 @@ export class ArcadeEngine {
 
     if (this.score > this.highScore) {
       this.highScore = this.score;
-      localStorage.setItem('oth_arcade_highscore', this.highScore.toString());
+      safeSetHighScore(this.highScore);
     }
   }
 
@@ -1259,7 +1439,17 @@ export class ArcadeEngine {
 
     // MODE 2: Celestial Cascade logic
     if (this.activeMode === "cascade") {
-      // Stationary punisher monitoring
+      // 1. Process enqueued staggered salvo meteors
+      for (let i = this.celestialQueue.length - 1; i >= 0; i--) {
+        const item = this.celestialQueue[i];
+        item.delay -= dt;
+        if (item.delay <= 0.0) {
+          this._spawnMeteorAt(item.targetPos, item.fallDuration, item.playAlertSound);
+          this.celestialQueue.splice(i, 1);
+        }
+      }
+
+      // 2. Stationary punisher monitoring
       if (carSpeed < 4.0) {
         this.stationaryTimer += dt;
         if (this.stationaryTimer >= 1.0) {
@@ -1270,19 +1460,32 @@ export class ArcadeEngine {
             this.addToast("IMMOBILE VEHICLE DETECTED!", "STATIONARY LOCK-ON ACTIVE! MOVE NOW!", "#EF4444");
             this.stationaryAlertCooldown = 1.4;
           }
+
+          // Immobile bombardment: drop directly on car every 1.1s
+          this.stationaryStrikeTimer -= dt;
+          if (this.stationaryStrikeTimer <= 0.0) {
+            const campSpread = 0.35 + Math.random() * 0.6;
+            const angle = Math.random() * Math.PI * 2;
+            const targetPos = carPos.clone()
+              .add(this.vehiclePhysics.forward.clone().multiplyScalar(Math.cos(angle) * campSpread))
+              .add(this.vehiclePhysics.right.clone().multiplyScalar(Math.sin(angle) * campSpread));
+            this._spawnMeteorAt(targetPos, 1.15, true);
+            this.stationaryStrikeTimer = 1.1;
+          }
         }
       } else {
         this.stationaryTimer = 0.0;
         this.lockonWarning = false;
         this.stationaryAlertCooldown = 0.0;
+        this.stationaryStrikeTimer = 0.4;
       }
 
-      this.meteorSpawnTimer -= dt;
-      if (this.meteorSpawnTimer <= 0.0) {
-        this._spawnMeteor();
-        // Scale spawn frequency with score (1.5s down to 0.85s)
-        const difficulty = Math.min(1.0, this.score / 6000.0);
-        this.meteorSpawnTimer = 1.5 - difficulty * 0.65;
+      // 3. Dynamic Salvo & Multi-Meteor Wave Director (when moving)
+      if (!this.lockonWarning) {
+        this.celestialPatternTimer -= dt;
+        if (this.celestialPatternTimer <= 0.0 && this.celestialQueue.length === 0) {
+          this._triggerCelestialPattern();
+        }
       }
 
       this._updateMeteors(dt, carPos);
@@ -1307,7 +1510,7 @@ export class ArcadeEngine {
         }
 
         const difficulty = Math.min(1.0, this.score / 6000.0);
-        this.crossyEncounterTimer = 5.2 - difficulty * 1.6;
+        this.crossyEncounterTimer = (4.8 - difficulty * 1.5) + (Math.random() - 0.5) * 1.2;
       }
 
       this._updateAdvanceRockfalls(dt, carPos);

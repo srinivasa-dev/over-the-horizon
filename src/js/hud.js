@@ -168,7 +168,7 @@ export class HUDController {
       let touchStartX = 0;
       let touchStartY = 0;
       swipeSurface.addEventListener('touchstart', (e) => {
-        if (e.target.closest('button')) return;
+        if (e.target.closest('button, input, textarea, select, #carousel-audio-popover, .carousel-audio-popover, #carousel-volume-container, #about-modal')) return;
         if (e.touches && e.touches.length > 0) {
           touchStartX = e.touches[0].clientX;
           touchStartY = e.touches[0].clientY;
@@ -176,7 +176,7 @@ export class HUDController {
       }, { passive: true });
 
       swipeSurface.addEventListener('touchend', (e) => {
-        if (e.target.closest('button')) return;
+        if (e.target.closest('button, input, textarea, select, #carousel-audio-popover, .carousel-audio-popover, #carousel-volume-container, #about-modal')) return;
         if (e.changedTouches && e.changedTouches.length > 0) {
           const diffX = e.changedTouches[0].clientX - touchStartX;
           const diffY = e.changedTouches[0].clientY - touchStartY;
@@ -192,6 +192,10 @@ export class HUDController {
       }, { passive: true });
     }
 
+    // 4A. Menu Audio & Volume Calibration Controls (Menu Screen Only)
+    this._bindMenuVolumeControls();
+
+    // 4B. Expedition Field Guide & Creator Dev Dossier Modal
     attachButton('btn-open-about', () => {
       this.aboutModal?.classList.remove('hidden');
     });
@@ -199,6 +203,45 @@ export class HUDController {
     attachButton('btn-close-about', () => {
       this.aboutModal?.classList.add('hidden');
     });
+
+    attachButton('btn-close-about-2', () => {
+      this.aboutModal?.classList.add('hidden');
+    });
+
+    const tabGuide = document.getElementById('tab-btn-guide');
+    const tabDev = document.getElementById('tab-btn-dev');
+    const panelGuide = document.getElementById('panel-handbook-guide');
+    const panelDev = document.getElementById('panel-handbook-dev');
+
+    if (tabGuide && tabDev && panelGuide && panelDev) {
+      tabGuide.addEventListener('click', () => {
+        tabGuide.classList.add('active');
+        tabGuide.setAttribute('aria-selected', 'true');
+        tabDev.classList.remove('active');
+        tabDev.setAttribute('aria-selected', 'false');
+        panelGuide.classList.remove('hidden');
+        panelDev.classList.add('hidden');
+      });
+
+      tabDev.addEventListener('click', () => {
+        tabDev.classList.add('active');
+        tabDev.setAttribute('aria-selected', 'true');
+        tabGuide.classList.remove('active');
+        tabGuide.setAttribute('aria-selected', 'false');
+        panelDev.classList.remove('hidden');
+        panelGuide.classList.add('hidden');
+      });
+    }
+
+    // In-Game Title Card opens About & Dev Dossier
+    const inGameTitleCard = document.querySelector('.top-bar .title-card');
+    if (inGameTitleCard) {
+      inGameTitleCard.style.cursor = 'pointer';
+      inGameTitleCard.setAttribute('title', 'Explore Creator Dossier & Expedition Field Guide');
+      inGameTitleCard.addEventListener('click', () => {
+        this.aboutModal?.classList.remove('hidden');
+      });
+    }
 
     // 5. Game Over Modal Controls
     attachButton('btn-retry-arcade', () => {
@@ -239,11 +282,29 @@ export class HUDController {
       });
     };
 
-    bindTouch(touchLeft,  () => this.app.vehiclePhysics.inputs.left = true,     () => this.app.vehiclePhysics.inputs.left = false, 8);
-    bindTouch(touchRight, () => this.app.vehiclePhysics.inputs.right = true,    () => this.app.vehiclePhysics.inputs.right = false, 8);
-    bindTouch(touchGas,   () => this.app.vehiclePhysics.inputs.forward = true,  () => this.app.vehiclePhysics.inputs.forward = false, 12);
-    bindTouch(touchBrake, () => this.app.vehiclePhysics.inputs.backward = true, () => this.app.vehiclePhysics.inputs.backward = false, 15);
+    const cancelAutopilot = () => {
+      if (this.app.vehiclePhysics && this.app.vehiclePhysics.autopilotActive) {
+        this.app.vehiclePhysics.autopilotActive = false;
+        this.setAutopilotStatus(false);
+      }
+    };
+
+    bindTouch(touchLeft,  () => { cancelAutopilot(); this.app.vehiclePhysics.inputs.left = true; },     () => this.app.vehiclePhysics.inputs.left = false, 8);
+    bindTouch(touchRight, () => { cancelAutopilot(); this.app.vehiclePhysics.inputs.right = true; },    () => this.app.vehiclePhysics.inputs.right = false, 8);
+    bindTouch(touchGas,   () => { cancelAutopilot(); this.app.vehiclePhysics.inputs.forward = true; },  () => this.app.vehiclePhysics.inputs.forward = false, 12);
+    bindTouch(touchBrake, () => { cancelAutopilot(); this.app.vehiclePhysics.inputs.backward = true; }, () => this.app.vehiclePhysics.inputs.backward = false, 15);
     bindTouch(touchBoost, () => this.app.vehiclePhysics.inputs.boost = true,    () => this.app.vehiclePhysics.inputs.boost = false, 25);
+
+    // Mobile Virtual Autopilot Button
+    const toggleAutopilot = () => {
+      if (!this.app.vehiclePhysics) return;
+      const isAuto = this.app.vehiclePhysics.toggleAutopilot();
+      this.setAutopilotStatus(isAuto);
+      this.showBanner("AUTOPILOT", isAuto ? "Autonomous Road Cruise Active" : "Manual Control Restored");
+      if (navigator.vibrate) navigator.vibrate(20);
+    };
+
+    attachButton('btn-touch-auto-drive', toggleAutopilot);
 
     // Mobile Quick Actions Bar (CAM POV, MAP Menu, Climate/Time Drawer)
     attachButton('btn-touch-cam', () => this.app.cycleCameraMode());
@@ -404,8 +465,9 @@ export class HUDController {
   }
 
   updateNitroGauge(percent, isLockedOut = false) {
+    const clamped = Math.max(0, Math.min(100, percent));
     if (this.nitroFill) {
-      this.nitroFill.style.width = `${Math.max(0, Math.min(100, percent))}%`;
+      this.nitroFill.style.width = `${clamped}%`;
       this.nitroFill.classList.toggle('lockout', isLockedOut);
     }
     const nitroLabel = document.querySelector('.nitro-label');
@@ -421,14 +483,154 @@ export class HUDController {
         if (nitroHint) nitroHint.style.display = '';
       }
     }
+
+    // Depict nitro progress directly on the mobile touch button
+    const touchMeter = document.getElementById('touch-nitro-meter');
+    if (touchMeter) {
+      touchMeter.style.width = `${clamped}%`;
+    }
+
     const touchBoost = document.getElementById('btn-touch-boost');
     if (touchBoost) {
       touchBoost.classList.toggle('lockout', isLockedOut);
-      const span = touchBoost.querySelector('span');
+      const span = document.getElementById('label-touch-nitro') || touchBoost.querySelector('span');
       if (span) {
         span.textContent = isLockedOut ? `${percent}%` : 'NITRO';
       }
     }
+  }
+
+  _bindMenuVolumeControls() {
+    const btnMenuMute = document.getElementById('btn-menu-mute');
+    const audioPopover = document.getElementById('carousel-audio-popover');
+    const sliderMaster = document.getElementById('slider-master-volume');
+    const sliderMusic = document.getElementById('slider-music-volume');
+    const sliderSfx = document.getElementById('slider-sfx-volume');
+    const valMaster = document.getElementById('val-master-volume');
+    const valMusic = document.getElementById('val-music-volume');
+    const valSfx = document.getElementById('val-sfx-volume');
+    const menuVolText = document.getElementById('menu-vol-btn-text');
+    const iconHigh = document.getElementById('menu-vol-icon-high');
+    const iconMuted = document.getElementById('menu-vol-icon-muted');
+    const btnPopoverMute = document.getElementById('btn-popover-mute');
+
+    // Stop touch/pointer events from bubbling to carousel swipe
+    const stopPropagation = (e) => {
+      e.stopPropagation();
+    };
+    [audioPopover, btnMenuMute].forEach(el => {
+      if (!el) return;
+      ['touchstart', 'touchmove', 'touchend', 'pointerdown', 'pointermove', 'pointerup'].forEach(evt => {
+        el.addEventListener(evt, stopPropagation, { passive: true });
+      });
+    });
+
+    this._updateMenuAudioUI = () => {
+      const audio = this.app.audio;
+      const masterPct = Math.round((Number.isFinite(audio?.masterVolume) ? audio.masterVolume : 0.85) * 100);
+      const musicPct = Math.round((Number.isFinite(audio?.musicVolume) ? audio.musicVolume : 0.75) * 100);
+      const sfxPct = Math.round((Number.isFinite(audio?.sfxVolume) ? audio.sfxVolume : 0.70) * 100);
+      const isMuted = audio ? audio.isMuted : false;
+
+      if (sliderMaster) sliderMaster.value = masterPct;
+      if (sliderMusic) sliderMusic.value = musicPct;
+      if (sliderSfx) sliderSfx.value = sfxPct;
+
+      if (valMaster) valMaster.textContent = `${masterPct}%`;
+      if (valMusic) valMusic.textContent = `${musicPct}%`;
+      if (valSfx) valSfx.textContent = `${sfxPct}%`;
+
+      if (menuVolText) {
+        menuVolText.textContent = isMuted ? 'MUTED' : `${masterPct}%`;
+      }
+
+      if (iconHigh && iconMuted) {
+        if (isMuted) {
+          iconHigh.classList.add('hidden');
+          iconMuted.classList.remove('hidden');
+          btnMenuMute?.classList.add('is-muted');
+          if (btnPopoverMute) {
+            btnPopoverMute.textContent = 'UNMUTE';
+            btnPopoverMute.classList.add('active');
+          }
+        } else {
+          iconHigh.classList.remove('hidden');
+          iconMuted.classList.add('hidden');
+          btnMenuMute?.classList.remove('is-muted');
+          if (btnPopoverMute) {
+            btnPopoverMute.textContent = 'MUTE';
+            btnPopoverMute.classList.remove('active');
+          }
+        }
+      }
+    };
+
+    // Toggle popover on button click
+    if (btnMenuMute) {
+      btnMenuMute.addEventListener('click', (e) => {
+        e.stopPropagation();
+        this.app.audio?.init();
+        audioPopover?.classList.toggle('hidden');
+        btnMenuMute.classList.toggle('active', !audioPopover?.classList.contains('hidden'));
+        this._updateMenuAudioUI();
+      });
+    }
+
+    // Close popover when clicking outside
+    document.addEventListener('click', (e) => {
+      if (audioPopover && !audioPopover.classList.contains('hidden')) {
+        if (!audioPopover.contains(e.target) && !btnMenuMute?.contains(e.target)) {
+          audioPopover.classList.add('hidden');
+          btnMenuMute?.classList.remove('active');
+        }
+      }
+    });
+
+    // Mute toggle inside popover
+    if (btnPopoverMute) {
+      btnPopoverMute.addEventListener('click', (e) => {
+        e.stopPropagation();
+        this.app.audio?.init();
+        this.app.audio?.toggleMute();
+        this._updateMenuAudioUI();
+      });
+    }
+
+    // Generic slider binder with full mobile touch, pointer, and input support
+    const bindSlider = (slider, setter, type) => {
+      if (!slider) return;
+      const onMove = (e) => {
+        this.app.audio?.init();
+        const raw = parseInt(e.target.value, 10);
+        const val = Number.isFinite(raw) ? raw : (type === 'master' ? 85 : (type === 'music' ? 75 : 70));
+        setter(val / 100);
+        if (type === 'master' && this.app.audio?.isMuted && val > 0) {
+          this.app.audio?.setMuted(false);
+        }
+        this._updateMenuAudioUI();
+      };
+
+      slider.addEventListener('input', onMove);
+      slider.addEventListener('change', (e) => {
+        onMove(e);
+        this.app.audio?.playCalibrationBlip(type);
+      });
+      slider.addEventListener('pointerdown', (e) => {
+        e.stopPropagation();
+        this.app.audio?.init();
+      });
+      slider.addEventListener('touchstart', (e) => {
+        e.stopPropagation();
+        this.app.audio?.init();
+      }, { passive: true });
+    };
+
+    bindSlider(sliderMaster, (v) => this.app.audio?.setMasterVolume(v), 'master');
+    bindSlider(sliderMusic, (v) => this.app.audio?.setMusicVolume(v), 'music');
+    bindSlider(sliderSfx, (v) => this.app.audio?.setSfxVolume(v), 'sfx');
+
+    // Initialize UI values
+    this._updateMenuAudioUI();
   }
 
   showWelcomeModal() {
@@ -436,12 +638,15 @@ export class HUDController {
     document.getElementById('hud-layer')?.classList.add('hidden');
     document.getElementById('mobile-controls')?.classList.add('hidden');
     document.getElementById('banner-notification')?.classList.remove('visible');
+    this._updateMenuAudioUI?.();
   }
 
   hideWelcomeModal() {
     if (this.welcomeModal) this.welcomeModal.classList.add('hidden');
     document.getElementById('hud-layer')?.classList.remove('hidden');
     document.getElementById('mobile-controls')?.classList.remove('hidden');
+    document.getElementById('carousel-audio-popover')?.classList.add('hidden');
+    document.getElementById('btn-menu-mute')?.classList.remove('active');
   }
 
   toggleWelcomeModal() {
@@ -478,6 +683,11 @@ export class HUDController {
         this.autopilotPill.textContent = "MANUAL DRIVING";
         this.autopilotPill.classList.remove('active');
       }
+    }
+
+    const btnAutoDrive = document.getElementById('btn-touch-auto-drive');
+    if (btnAutoDrive) {
+      btnAutoDrive.classList.toggle('active', !!isActive);
     }
   }
 

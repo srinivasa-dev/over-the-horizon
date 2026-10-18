@@ -17,6 +17,12 @@
   --accent-green: #34D399;
   --accent-red: #EF4444;
   --font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+
+  /* iOS Safe-Area Design Tokens (Defaults to 0px on standard desktop browsers) */
+  --sat: env(safe-area-inset-top, 0px);
+  --sab: env(safe-area-inset-bottom, 0px);
+  --sal: env(safe-area-inset-left, 0px);
+  --sar: env(safe-area-inset-right, 0px);
 }
 
 * {
@@ -30,8 +36,10 @@
 html, body {
   width: 100%;
   height: 100%;
-  height: 100dvh;
-  min-height: -webkit-fill-available;
+  position: fixed;
+  inset: 0;
+  margin: 0;
+  padding: 0;
   overflow: hidden;
   background-color: #0A0D14;
   font-family: var(--font-family);
@@ -49,25 +57,34 @@ html, body {
   height: 100dvh;
   display: block;
   z-index: 1;
+  cursor: grab;
+}
+
+body.camera-dragging,
+body.camera-dragging * {
+  cursor: grabbing !important;
+  user-select: none !important;
+  -webkit-user-select: none !important;
 }
 
 /* -----------------------------------------------------------------
-   Glassmorphic UI Overlay Layer
+   Glassmorphic UI Overlay Layer (Safe-Area HUD Scaffold)
    ----------------------------------------------------------------- */
 .hud-layer {
-  position: absolute;
-  top: 0;
-  left: 0;
+  position: fixed;
+  inset: 0;
   width: 100%;
   height: 100%;
-  width: 100dvw;
-  height: 100dvh;
   z-index: 10;
   pointer-events: none;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  padding: 20px;
+  box-sizing: border-box;
+  padding-top: max(20px, calc(var(--sat) + 8px));
+  padding-bottom: max(20px, calc(var(--sab) + 8px));
+  padding-left: max(20px, calc(var(--sal) + 8px));
+  padding-right: max(20px, calc(var(--sar) + 8px));
 }
 
 .hud-interactive {
@@ -212,10 +229,10 @@ html, body {
   font-variant-numeric: tabular-nums;
 }
 
-/* Banner Notification */
+/* Banner Notification (Safe-Area Aware Toast) */
 .banner-container {
   position: absolute;
-  top: 24px;
+  top: max(24px, calc(var(--sat) + 12px));
   left: 50%;
   transform: translateX(-50%);
   padding: 10px 28px;
@@ -590,7 +607,11 @@ html, body {
   display: flex;
   justify-content: center;
   align-items: center;
-  padding: 20px;
+  box-sizing: border-box;
+  padding-top: max(20px, calc(var(--sat) + 10px));
+  padding-bottom: max(20px, calc(var(--sab) + 10px));
+  padding-left: max(20px, calc(var(--sal) + 10px));
+  padding-right: max(20px, calc(var(--sar) + 10px));
   transition: opacity 0.3s ease;
   pointer-events: auto !important;
 }
@@ -726,7 +747,11 @@ html, body {
 
 @media (max-width: 768px), (max-height: 520px), (pointer: coarse) {
   .hud-layer {
-    padding: 10px 12px;
+    box-sizing: border-box;
+    padding-top: max(10px, calc(var(--sat) + 6px));
+    padding-bottom: 0 !important; /* Avoid double-padding safe area on bottom controls */
+    padding-left: max(12px, calc(var(--sal) + 6px));
+    padding-right: max(12px, calc(var(--sar) + 6px));
   }
 
   /* 1. Unified Mobile Top App Bar */
@@ -812,15 +837,15 @@ html, body {
     justify-content: center;
   }
 
-  /* Row 2: Centered Floating Objective Chip */
+  /* Row 2: Left-Aligned Floating Objective & Odometer Chip (Mobile View) */
   .mission-card {
     pointer-events: auto;
-    align-self: center;
-    margin: 0 auto;
+    align-self: flex-start;
+    margin: 0;
     display: flex;
     flex-direction: row;
     align-items: center;
-    justify-content: center;
+    justify-content: flex-start;
     gap: 8px;
     padding: 4px 14px;
     border-radius: 9999px;
@@ -864,8 +889,8 @@ html, body {
 
   .arcade-card {
     pointer-events: auto;
-    align-self: center;
-    margin: 0 auto;
+    align-self: flex-start;
+    margin: 0;
     padding: 5px 14px;
     border-radius: 9999px;
     min-width: 0;
@@ -967,28 +992,29 @@ html, body {
     border-radius: 10px;
   }
 
-  /* 3. Center Elevated Speedometer Pill (Zero Pedal / Thumb Collision) */
+  /* 3. Center Elevated Speedometer Pill (Minimal Speed-Only Capsule on Mobile) */
   .bottom-bar {
     position: absolute;
     left: 0;
     right: 0;
     width: 100%;
-    bottom: max(16px, calc(env(safe-area-inset-bottom) + 8px));
+    bottom: 0 !important;
     display: flex;
-    justify-content: center;
+    justify-content: flex-start;
     pointer-events: none;
     z-index: 20;
   }
 
+  /* Dock Speedometer to Left Thumb Zone (Cleanly Stacked Above Steering Controls) */
   .speedometer-box {
-    position: absolute;
-    bottom: clamp(108px, 16vh, 136px); /* cleanly elevated above touch pedals */
-    left: 50%;
-    transform: translateX(-50%);
+    position: fixed !important;
+    left: max(14px, calc(var(--sal) + 6px)) !important;
+    bottom: calc(var(--sab) + 72px) !important;
+    transform: none !important;
     pointer-events: auto;
-    padding: 4px 12px;
+    padding: 3px 12px;
     border-radius: 9999px;
-    background: rgba(8, 20, 28, 0.92);
+    background: rgba(8, 20, 28, 0.90);
     border: 1.5px solid rgba(0, 240, 255, 0.45);
     box-shadow: 0 4px 16px rgba(0, 0, 0, 0.65), 0 0 12px rgba(0, 240, 255, 0.2);
     min-width: 0;
@@ -996,13 +1022,14 @@ html, body {
     display: flex;
     align-items: center;
     justify-content: center;
+    z-index: 35 !important;
   }
 
   .speedometer-cluster {
     display: flex;
     flex-direction: row;
     align-items: center;
-    gap: 8px;
+    gap: 4px;
   }
 
   .speed-num-row {
@@ -1024,33 +1051,29 @@ html, body {
     color: #38BDF8;
   }
 
+  /* Depicted directly on touch nitro button; hide separate gauge in speedometer on mobile */
   .nitro-gauge-container {
-    margin: 0;
-    width: 62px;
+    display: none !important;
   }
 
-  .nitro-label {
-    display: none;
-  }
-
-  .nitro-bar {
-    height: 5px;
-    margin-top: 0;
-    border-radius: 3px;
+  /* Manual driving is default/understood; hide in speedometer on mobile */
+  .pill-autopilot,
+  #autopilot-pill {
+    display: none !important;
   }
 
   .speedometer-status-strip {
     display: none;
   }
 
-  /* 4. Ergonomic Virtual Controls Cluster (Spacious Safe-Area Inset) */
+  /* 4. Ergonomic Virtual Controls Cluster (Fixed to Physical Viewport with Safe-Area Clearance) */
   .mobile-controls {
     display: flex !important;
-    position: absolute;
-    bottom: max(16px, calc(env(safe-area-inset-bottom) + 8px));
-    left: max(14px, env(safe-area-inset-left));
-    right: max(14px, env(safe-area-inset-right));
-    width: calc(100% - max(28px, calc(env(safe-area-inset-left) + env(safe-area-inset-right))));
+    position: fixed !important;
+    bottom: calc(var(--sab) + 12px) !important;
+    left: max(14px, calc(var(--sal) + 6px)) !important;
+    right: max(14px, calc(var(--sar) + 6px)) !important;
+    width: calc(100% - max(28px, calc(var(--sal) + var(--sar) + 12px))) !important;
     justify-content: space-between;
     align-items: flex-end;
     pointer-events: none;
@@ -1059,7 +1082,7 @@ html, body {
 
   .mobile-steer-zone {
     display: flex;
-    gap: 8px;
+    gap: 16px; /* comfortable separation between left and right steer buttons */
     pointer-events: auto;
   }
 
@@ -1090,42 +1113,111 @@ html, body {
     display: flex;
     flex-direction: column;
     align-items: flex-end;
-    gap: 7px;
+    gap: 16px; /* comfortable vertical clearance between upper controls and pedals */
     pointer-events: auto;
   }
 
-  .touch-nitro-btn {
-    width: 70px;
-    height: 32px;
-    border-radius: 16px;
-    background: rgba(0, 240, 255, 0.35);
-    border: 1.8px solid #00F0FF;
-    color: #FFF;
-    font-size: 10px;
+  .mobile-action-subrow {
+    display: flex;
+    align-items: center;
+    gap: 14px; /* comfortable horizontal clearance between AUTO and NITRO */
+    margin-right: 4px;
+  }
+
+  .touch-auto-btn {
+    width: 68px;
+    height: 34px;
+    border-radius: 17px;
+    background: rgba(16, 185, 129, 0.22);
+    border: 1.8px solid rgba(16, 185, 129, 0.65);
+    color: #A7F3D0;
+    font-size: 9.5px;
     font-weight: 900;
     letter-spacing: 0.8px;
     display: flex;
     justify-content: center;
     align-items: center;
+    gap: 4px;
+    touch-action: none;
+    backdrop-filter: blur(8px);
+    box-shadow: 0 4px 14px rgba(16, 185, 129, 0.25);
+    user-select: none;
+    -webkit-user-select: none;
+    cursor: pointer;
+    transition: all 0.15s ease;
+  }
+
+  .touch-auto-btn:active {
+    transform: scale(0.92);
+  }
+
+  .touch-auto-btn.active {
+    background: rgba(16, 185, 129, 0.6);
+    border-color: #10B981;
+    color: #FFFFFF;
+    box-shadow: 0 4px 16px rgba(16, 185, 129, 0.55), 0 0 14px rgba(16, 185, 129, 0.45);
+  }
+
+  /* NITRO Button with Dynamic On-Button Progress Meter */
+  .touch-nitro-btn {
+    position: relative;
+    overflow: hidden;
+    width: 76px;
+    height: 34px;
+    border-radius: 17px;
+    background: rgba(7, 21, 29, 0.90);
+    border: 1.8px solid #00F0FF;
     touch-action: none;
     backdrop-filter: blur(8px);
     box-shadow: 0 4px 14px rgba(0, 240, 255, 0.35);
     user-select: none;
     -webkit-user-select: none;
-    margin-right: 2px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform 0.1s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+  }
+
+  .touch-nitro-meter {
+    position: absolute;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    height: 100%;
+    width: 100%;
+    background: linear-gradient(90deg, rgba(0, 240, 255, 0.35), rgba(0, 240, 255, 0.75));
+    border-radius: inherit;
+    pointer-events: none;
+    transition: width 0.08s linear, background 0.2s ease;
+    z-index: 1;
+  }
+
+  .touch-nitro-content {
+    position: relative;
+    z-index: 2;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 3px;
+    font-size: 10px;
+    font-weight: 900;
+    letter-spacing: 0.8px;
+    color: #FFFFFF;
+    pointer-events: none;
   }
 
   .touch-nitro-btn:active {
-    background: rgba(0, 240, 255, 0.7);
     transform: scale(0.92);
   }
 
   .touch-nitro-btn.lockout {
-    background: rgba(245, 158, 11, 0.22);
     border-color: #F59E0B;
-    color: #FDE047;
     box-shadow: 0 4px 14px rgba(245, 158, 11, 0.35);
-    opacity: 0.9;
+  }
+
+  .touch-nitro-btn.lockout .touch-nitro-meter {
+    background: linear-gradient(90deg, rgba(245, 158, 11, 0.25), rgba(245, 158, 11, 0.65));
   }
 
   .touch-nitro-btn.lockout svg {
@@ -1135,7 +1227,7 @@ html, body {
   .mobile-pedal-row {
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 16px; /* comfortable clearance between Brake and Gas */
   }
 
   .touch-brake-btn {
@@ -1480,7 +1572,7 @@ body:has(#welcome-modal:not(.hidden)) #mobile-controls {
   flex-direction: column;
   justify-content: space-between;
   box-sizing: border-box;
-  padding: max(20px, env(safe-area-inset-top)) 28px max(24px, calc(env(safe-area-inset-bottom) + 12px)) 28px;
+  padding: max(20px, calc(var(--sat) + 8px)) max(28px, calc(var(--sar) + 12px)) max(24px, calc(var(--sab) + 12px)) max(28px, calc(var(--sal) + 12px));
 }
 
 /* 1. Top Bar: Clean Brand Pill & Guide Action */
@@ -1553,6 +1645,195 @@ body:has(#welcome-modal:not(.hidden)) #mobile-controls {
   transform: translateY(-50%);
   display: flex;
   align-items: center;
+  gap: 8px;
+  z-index: 30;
+}
+
+/* Audio Volume Controller Pill & Calibration Popover */
+.carousel-volume-container {
+  position: relative;
+}
+
+.btn-carousel-volume {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(10, 20, 28, 0.68);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  color: #CBD5E1;
+  border-radius: 9999px;
+  padding: 6px 12px;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  outline: none;
+  pointer-events: auto;
+}
+
+.btn-carousel-volume:hover,
+.btn-carousel-volume.active {
+  background: rgba(245, 158, 11, 0.22);
+  border-color: #F59E0B;
+  color: #FBBF24;
+  transform: translateY(-1px);
+}
+
+.btn-carousel-volume.is-muted {
+  border-color: rgba(239, 68, 68, 0.6);
+  color: #F87171;
+  background: rgba(239, 68, 68, 0.15);
+}
+
+/* Sound Calibration Popover Drawer */
+.carousel-audio-popover {
+  position: absolute;
+  top: calc(100% + 10px);
+  right: 0;
+  width: 250px;
+  background: rgba(10, 16, 26, 0.94);
+  border: 1.5px solid rgba(245, 158, 11, 0.45);
+  border-radius: 14px;
+  padding: 16px;
+  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.8), 0 0 20px rgba(245, 158, 11, 0.15);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  z-index: 50;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  touch-action: none;
+  -webkit-touch-callout: none;
+  animation: audioPopoverFadeIn 0.2s ease-out;
+}
+
+.carousel-audio-popover.hidden {
+  display: none !important;
+}
+
+@keyframes audioPopoverFadeIn {
+  from { opacity: 0; transform: translateY(-6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.audio-popover-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  padding-bottom: 8px;
+}
+
+.audio-popover-title {
+  font-size: 10.5px;
+  font-weight: 900;
+  letter-spacing: 1.2px;
+  color: #F59E0B;
+  text-transform: uppercase;
+}
+
+.audio-popover-mute-btn {
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: #CBD5E1;
+  border-radius: 6px;
+  padding: 3px 8px;
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 0.8px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.audio-popover-mute-btn:hover {
+  background: rgba(239, 68, 68, 0.25);
+  border-color: #EF4444;
+  color: #F87171;
+}
+
+.audio-popover-mute-btn.active {
+  background: rgba(239, 68, 68, 0.35);
+  border-color: #EF4444;
+  color: #FFF;
+}
+
+.audio-slider-row {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.audio-slider-label-wrap {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.audio-slider-label {
+  color: #E2E8F0;
+}
+
+.audio-slider-val {
+  color: #38BDF8;
+  font-family: monospace;
+  font-weight: 800;
+}
+
+.audio-range-slider {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 8px;
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.16);
+  outline: none;
+  cursor: pointer;
+  touch-action: none;
+  -webkit-touch-callout: none;
+  margin: 6px 0;
+}
+
+.audio-range-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: #F59E0B;
+  border: 2px solid #FFFFFF;
+  box-shadow: 0 0 10px rgba(245, 158, 11, 0.6);
+  cursor: pointer;
+  transition: transform 0.1s ease;
+  touch-action: none;
+}
+
+.audio-range-slider::-webkit-slider-thumb:active {
+  transform: scale(1.25);
+}
+
+.audio-range-slider::-moz-range-thumb {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: #F59E0B;
+  border: 2px solid #FFFFFF;
+  box-shadow: 0 0 10px rgba(245, 158, 11, 0.6);
+  cursor: pointer;
+  touch-action: none;
+}
+
+.audio-popover-footer {
+  font-size: 8px;
+  color: #64748B;
+  text-align: center;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  padding-top: 6px;
+  letter-spacing: 0.5px;
 }
 
 .btn-carousel-guide {
@@ -1895,22 +2176,34 @@ body:has(#welcome-modal:not(.hidden)) #mobile-controls {
    ----------------------------------------------------------------- */
 @media (max-width: 768px) {
   .planetary-carousel-menu {
-    padding: max(12px, env(safe-area-inset-top)) 14px max(18px, calc(env(safe-area-inset-bottom) + 8px)) 14px;
+    padding: max(12px, calc(var(--sat) + 6px)) max(14px, calc(var(--sar) + 6px)) max(18px, calc(var(--sab) + 8px)) max(14px, calc(var(--sal) + 6px));
+  }
+
+  .carousel-top-bar {
+    justify-content: space-between;
+    width: 100%;
   }
 
   .carousel-brand-pill {
-    padding: 5px 14px;
-    gap: 7px;
+    padding: 5px 10px;
+    gap: 6px;
+    margin: 0;
   }
 
   .carousel-main-title {
-    font-size: 11.5px;
-    letter-spacing: 1.5px;
+    font-size: 11px;
+    letter-spacing: 1.2px;
   }
 
   .carousel-sub-title {
-    font-size: 7.5px;
-    letter-spacing: 0.8px;
+    display: none;
+  }
+
+  .carousel-top-actions {
+    position: static;
+    transform: none;
+    gap: 6px;
+    flex-shrink: 0;
   }
 
   .btn-carousel-guide {
@@ -1920,6 +2213,19 @@ body:has(#welcome-modal:not(.hidden)) #mobile-controls {
 
   .btn-carousel-guide .guide-btn-label {
     display: none;
+  }
+
+  .btn-carousel-volume {
+    padding: 5px 8px;
+    font-size: 9px;
+  }
+
+  .carousel-audio-popover {
+    position: fixed;
+    top: max(56px, calc(var(--sat) + 48px));
+    right: max(14px, var(--sar));
+    width: min(260px, calc(100vw - 28px));
+    max-width: 280px;
   }
 
   /* Side Chevrons on Mobile: 44px touch targets */
@@ -2095,7 +2401,7 @@ body:has(#welcome-modal:not(.hidden)) #mobile-controls {
     align-items: center !important;
     justify-content: space-between !important;
     width: 100% !important;
-    padding: 0 max(8px, env(safe-area-inset-right)) 0 max(8px, env(safe-area-inset-left)) !important;
+    padding: 0 max(12px, var(--sar)) 0 max(12px, var(--sal)) !important;
     gap: 8px !important;
   }
 
@@ -2129,33 +2435,30 @@ body:has(#welcome-modal:not(.hidden)) #mobile-controls {
 
   /* Dock Speedometer to bottom-left next to steer buttons, leaving center wide open */
   .speedometer-box {
-    position: absolute !important;
-    left: calc(max(14px, env(safe-area-inset-left)) + 116px) !important;
-    bottom: max(10px, env(safe-area-inset-bottom)) !important;
+    position: fixed !important;
+    left: calc(max(16px, var(--sal)) + 116px) !important;
+    bottom: calc(var(--sab) + 8px) !important;
     transform: none !important;
     padding: 3px 10px !important;
     border-radius: 9999px !important;
-    z-index: 25 !important;
+    z-index: 35 !important;
   }
 
   .speedometer-cluster {
-    gap: 6px !important;
+    gap: 4px !important;
   }
 
   .speed-value {
     font-size: 19px !important;
   }
 
-  .nitro-gauge-container {
-    width: 52px !important;
-  }
-
   /* Compact controls in landscape */
   .mobile-controls {
-    bottom: max(10px, env(safe-area-inset-bottom)) !important;
-    left: max(14px, env(safe-area-inset-left)) !important;
-    right: max(14px, env(safe-area-inset-right)) !important;
-    width: calc(100% - max(28px, calc(env(safe-area-inset-left) + env(safe-area-inset-right)))) !important;
+    position: fixed !important;
+    bottom: calc(var(--sab) + 8px) !important;
+    left: max(16px, var(--sal)) !important;
+    right: max(16px, var(--sar)) !important;
+    width: calc(100% - max(32px, calc(var(--sal) + var(--sar)))) !important;
   }
 
   .touch-steer-btn {
@@ -2164,7 +2467,19 @@ body:has(#welcome-modal:not(.hidden)) #mobile-controls {
   }
 
   .mobile-steer-zone {
-    gap: 6px !important;
+    gap: 12px !important;
+  }
+
+  .mobile-action-zone {
+    gap: 10px !important;
+  }
+
+  .mobile-action-subrow {
+    gap: 10px !important;
+  }
+
+  .mobile-pedal-row {
+    gap: 14px !important;
   }
 
   .touch-gas-btn {
@@ -2178,15 +2493,21 @@ body:has(#welcome-modal:not(.hidden)) #mobile-controls {
   }
 
   .touch-nitro-btn {
-    width: 62px !important;
-    height: 26px !important;
+    width: 68px !important;
+    height: 28px !important;
     font-size: 9px !important;
+  }
+
+  .touch-auto-btn {
+    width: 60px !important;
+    height: 28px !important;
+    font-size: 8.5px !important;
   }
 
   /* Landscape Menu Deck: 2-column layout */
   .solar-system-deck,
   .oakhaven-menu-deck {
-    padding: max(6px, env(safe-area-inset-top)) max(16px, env(safe-area-inset-right)) max(10px, env(safe-area-inset-bottom)) max(16px, env(safe-area-inset-left)) !important;
+    padding: max(6px, var(--sat)) max(16px, var(--sar)) max(10px, var(--sab)) max(16px, var(--sal)) !important;
     display: grid !important;
     grid-template-columns: 1.15fr 0.85fr !important;
     grid-template-rows: auto 1fr !important;
@@ -2287,6 +2608,52 @@ body:has(#welcome-modal:not(.hidden)) #mobile-controls {
   max-height: 90vh;
   overflow-y: auto;
   position: relative;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Handbook & Dev Dossier Tabs */
+.handbook-tabs-nav {
+  display: flex;
+  gap: 8px;
+  margin-bottom: -3px;
+  position: relative;
+  z-index: 10;
+  padding-left: 14px;
+}
+
+.handbook-tab-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  background: #E8DECA;
+  border: 2px solid #8C531B;
+  border-bottom: none;
+  border-radius: 12px 12px 0 0;
+  padding: 8px 16px;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.8px;
+  color: #4A3018;
+  cursor: pointer;
+  box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.15);
+  transition: all 0.15s ease;
+  touch-action: manipulation;
+  outline: none;
+}
+
+.handbook-tab-btn:hover {
+  background: #F3EBDD;
+  color: #1B3629;
+}
+
+.handbook-tab-btn.active {
+  background: #FAF6EE;
+  color: #1B3629;
+  border-color: #8C531B;
+  padding-top: 10px;
+  margin-top: -2px;
+  box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.22);
 }
 
 .handbook-binder {
@@ -2301,11 +2668,272 @@ body:has(#welcome-modal:not(.hidden)) #mobile-controls {
   box-shadow: 0 25px 70px rgba(10, 22, 16, 0.8), inset 0 0 30px rgba(140, 83, 27, 0.08);
 }
 
+.dev-binder {
+  background: linear-gradient(175deg, #FAF6EE 0%, #F4ECE0 100%);
+}
+
+.dev-stamp {
+  border-color: #C07A2B;
+  background: rgba(192, 122, 43, 0.12);
+}
+
+.dev-author-card {
+  background: #FFFFFF;
+  border: 1.5px solid rgba(140, 83, 27, 0.25);
+  border-radius: 10px;
+  padding: 10px 14px;
+  box-shadow: 0 2px 8px rgba(27, 54, 41, 0.05);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.dev-author-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.dev-label {
+  font-size: 8px;
+  font-weight: 800;
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+  color: #8C531B;
+}
+
+.dev-author-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  text-decoration: none;
+  color: #1B3629;
+  font-size: 15px;
+  font-weight: 900;
+  transition: color 0.15s ease;
+}
+
+.dev-author-link:hover {
+  color: #C07A2B;
+}
+
+.dev-site-pill {
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.5px;
+  color: #2563EB;
+  background: rgba(37, 99, 235, 0.10);
+  border: 1px solid rgba(37, 99, 235, 0.25);
+  border-radius: 9999px;
+  padding: 1px 8px;
+}
+
+.dev-badge-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.dev-tech-badge {
+  font-size: 8.5px;
+  font-weight: 800;
+  letter-spacing: 0.6px;
+  text-transform: uppercase;
+  padding: 2px 7px;
+  border-radius: 9999px;
+  background: rgba(27, 54, 41, 0.08);
+  color: #1B3629;
+  border: 1px solid rgba(27, 54, 41, 0.15);
+}
+
+.dev-tech-badge.highlight {
+  background: rgba(245, 158, 11, 0.15);
+  color: #B45309;
+  border-color: rgba(245, 158, 11, 0.35);
+}
+
+.dev-story-box {
+  background: #FFFFFF;
+  border: 1px solid rgba(27, 54, 41, 0.14);
+  border-radius: 8px;
+  padding: 10px 12px;
+  font-size: 10.5px;
+  line-height: 1.45;
+  color: #2D3748;
+  box-shadow: 0 1px 4px rgba(27, 54, 41, 0.04);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.dev-story-lead {
+  font-size: 12px;
+  font-weight: 800;
+  color: #1B3629;
+  margin: 0;
+}
+
+.dev-antigravity-badge {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: #FFFFFF;
+  border: 1.5px solid #F59E0B;
+  border-radius: 10px;
+  padding: 8px 12px;
+  box-shadow: 0 2px 8px rgba(245, 158, 11, 0.15);
+}
+
+.antigravity-crest {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: rgba(245, 158, 11, 0.12);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.antigravity-meta {
+  display: flex;
+  flex-direction: column;
+  font-size: 11px;
+  color: #1B3629;
+  line-height: 1.25;
+}
+
+.antigravity-meta span {
+  font-size: 9.5px;
+  color: #64748B;
+}
+
+
+
+.dev-telemetry-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+}
+
+.telemetry-card {
+  background: #FFFFFF;
+  border: 1px solid rgba(27, 54, 41, 0.15);
+  border-radius: 8px;
+  padding: 8px 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  box-shadow: 0 1px 3px rgba(27, 54, 41, 0.04);
+}
+
+.telemetry-val {
+  font-size: 16px;
+  font-weight: 900;
+  color: #1B3629;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.1;
+}
+
+.telemetry-lbl {
+  font-size: 8px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  color: #8C531B;
+}
+
+.telemetry-card.highlight-token .telemetry-val {
+  color: #D97706;
+}
+
+.telemetry-card.highlight-cost .telemetry-val {
+  color: #16A34A;
+}
+
+.dev-arch-box {
+  background: #FFFFFF;
+  border: 1px solid rgba(27, 54, 41, 0.14);
+  border-radius: 8px;
+  padding: 8px 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 9.5px;
+  line-height: 1.35;
+  color: #334155;
+  box-shadow: 0 1px 4px rgba(27, 54, 41, 0.04);
+}
+
+.arch-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+}
+
+.arch-dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: #C07A2B;
+  margin-top: 4px;
+  flex-shrink: 0;
+}
+
+.dev-actions-cluster {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-top: 6px;
+}
+
+.btn-dev-action {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 8px 12px;
+  border-radius: 8px;
+  font-size: 10.5px;
+  font-weight: 800;
+  letter-spacing: 0.6px;
+  text-decoration: none;
+  transition: all 0.15s ease;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+}
+
+.btn-dev-portfolio {
+  background: #1B3629;
+  color: #FAF6EE;
+  border: 1.5px solid #1B3629;
+}
+
+.btn-dev-portfolio:hover {
+  background: #234E38;
+  color: #FFFFFF;
+  transform: translateY(-1px);
+}
+
+.btn-dev-github {
+  background: #24292F;
+  color: #FFFFFF;
+  border: 1.5px solid #24292F;
+}
+
+.btn-dev-github:hover {
+  background: #000000;
+  transform: translateY(-1px);
+}
+
 @media (max-width: 720px) {
   .handbook-binder {
     grid-template-columns: 1fr;
     gap: 14px;
     padding: 16px;
+  }
+
+  .dev-telemetry-grid {
+    grid-template-columns: 1fr 1fr;
   }
 }
 
@@ -2471,6 +3099,56 @@ body:has(#welcome-modal:not(.hidden)) #mobile-controls {
 
 .handbook-page-footer {
   margin-top: auto;
+}
+
+/* Tactile Vibrant Return Action Button (Field Handbook & Dev Dossier) */
+.btn-timber-action {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  margin-top: 10px;
+  min-height: 48px;
+  padding: 11px 22px;
+  background: linear-gradient(135deg, #F59E0B 0%, #D97706 100%);
+  color: #07151D;
+  border: 1.5px solid #FDE68A;
+  border-radius: 10px;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 900;
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+  cursor: pointer;
+  box-shadow: 0 4px 16px rgba(217, 119, 6, 0.38), inset 0 1px 0 rgba(255, 255, 255, 0.55);
+  transition: all 0.16s cubic-bezier(0.16, 1, 0.3, 1);
+  outline: none;
+  user-select: none;
+  -webkit-user-select: none;
+  touch-action: manipulation;
+}
+
+.btn-timber-action svg {
+  stroke: #07151D;
+  transition: transform 0.16s ease;
+  flex-shrink: 0;
+}
+
+.btn-timber-action:hover {
+  background: linear-gradient(135deg, #FBBF24 0%, #EA580C 100%);
+  color: #000000;
+  transform: translateY(-1.5px);
+  box-shadow: 0 6px 22px rgba(217, 119, 6, 0.55), inset 0 1px 0 rgba(255, 255, 255, 0.7);
+}
+
+.btn-timber-action:hover svg {
+  transform: translateX(-3px);
+}
+
+.btn-timber-action:active {
+  transform: translateY(1px);
+  box-shadow: 0 2px 8px rgba(217, 119, 6, 0.3);
 }
 
 /* General SVG Icon Sizing */

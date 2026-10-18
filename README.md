@@ -43,14 +43,20 @@ graph LR
 ## Key Features
 
 - **True Spherical Gravity Physics**: Vehicles traverse 360° spherical globes under continuous center-point radial gravity, featuring 4-wheel independent spring-damper suspension, terrain-normal raycast alignment, and Ackermann steering.
+- **Continuous Planetary Road Networks & 7.5m+ Safety Corridors**: Every planet features an analytically curved, continuous two-lane driving highway leveled with an 8.4m flat roadbed and 10m shoulder blend. All architectural landmarks, research domes, energy pylons, and verification markers are mathematically positioned outside a 7.5m safety exclusion zone using true 3D surface-orthogonal vectors (`_getRoadRight`).
+- **Autopilot 2.0 with ADAS Guidance**: Smart autonomous road-following powered by 4.5m forward predictive lookahead, obstacle proximity radar steering repulsion, collision deflection resilience without throttle cut, and an automatic reverse-and-pivot unstuck watchdog.
 - **9-Planet Solar System**: A complete interplanetary roster featuring scorched volcanic basalt, golden sulfuric smog, alpine pine forests, crimson dunes, gas giant bands, low-poly 3D rings, methane ice, deep oceanic swells, and nitrogen spires.
 - **Unique Vehicle for Every World**: Drive 9 tailored exploration machines—from the rugged vintage *TrailScout 4x4 Rig* and heavy *Obsidian Lava Crawler* to the agile *Cryo-Glider Half-Track* and amphibious *Aquanaut Sub-Rover*.
 - **Tri-Mode Gameplay**:
   - **Cosy Cruise**: Freeform scenic exploration, cargo delivery outposts, and relaxing time-of-day scrubbing with zero pressure.
   - **Celestial Cascade**: T3 Intercept sky hazards, ground astrolabe reticles, near-miss nitro surges, collectible stardust shards, and stationary lock-on sentries.
   - **Crossy Odyssey**: Reflex-driven traffic slaloms, rolling mountain boulders, and clean crossing combo multipliers.
-- **Interactive 3D Solar System Orrery Menu**: An interactive cosmic interface with a central faceted golden Sun, 9 concentric orbital ellipses, live 3D planetary mesh viewpoints, leader lines, and scenic docket previews.
-- **Tactile Modern In-Game HUD**: 3D beveled mechanical keycaps, digital speedometer cluster with segmented cyan nitro core, astronomical diurnal atmosphere console, vector weather capsules, and holographic shield matrix.
+- **Diegetic 3D Planetary Carousel Menu**: Direct, unobstructed view of the low-poly 3D globe as the central interactive object, featuring quick-swipe planet switching, sound calibration drawer, and tactile candy amber launch button.
+- **Interactive 360° Camera & Cockpit POV**: Full touch and mouse orbit drag with smooth inertial momentum, ground-clipping protection, and restricted wide-angle driver cockpit view ($\pm 75^\circ$ azimuth).
+- **Edge-to-Edge Mobile & PWA Scaffold**: Fully responsive layout with left-docked speedometer thumb zone, notch/Dynamic Island safe area padding, and zero top blur.
+- **Expedition Manual & Dev Dossier (`#about-modal`)**: In-game dual-tab handbook covering gameplay mechanics, vehicle chassis blueprints, creator journey, and live project telemetry.
+- **Procedural Web Audio Engine**: 100% mathematical real-time audio synthesis (0KB downloads, zero external audio assets) with vehicle RPM-frequency tracking, procedural tire noise, and 9 modal planetary soundtracks.
+- **Microsoft Clarity Session Analytics**: Integrated user journey tracking, heatmaps, and session diagnostics (Project ID `yznpugasgn`).
 - **100% Emoji-Free User Interface**: All telemetry, headers, rankings, weather toggles, and notification toasts utilize crisp, bespoke SVG vectors.
 - **Zero-Build, Pure WebGL / Three.js**: Runs directly in any modern browser via native HTML5 Import Maps and ES modules—no node build steps, bundlers, or compilation required.
 
@@ -160,8 +166,11 @@ over-the-horizon/
 │   ├── audio.js             # Procedural Web Audio synthesizer (engine, nitro, chime)
 │   ├── hud.js               # Telemetry cluster, solar orrery menu, & modal coordinator
 │   ├── icons.js             # Crisp vector SVG icon library (zero emojis)
-│   ├── planet.js            # Spherical terrain generator, 9 biomes, & prop scattering
-│   └── vehicle.js           # 4-wheel raycast suspension & vehicle model builders
+│   ├── models.js            # 3D low-poly vehicle models & assembly builders
+│   ├── physics.js           # 4-wheel raycast suspension, spherical kinematics, & Autopilot 2.0
+│   ├── planet.js            # Spherical terrain generator, 9 biomes, bespoke road curves, & props
+│   ├── postprocessing.js    # Cinematic bloom, vignette, & depth color grading
+│   └── weather.js           # Dynamic diurnal cycle, particle weather, & lighting
 ├── styles/
 │   └── main.css             # Low-poly tactile HUD, keycaps, and solar orrery styling
 ├── index.html               # Main entrypoint & HTML5 import map
@@ -182,6 +191,9 @@ For an in-depth breakdown of the spherical gravity equations, raycast suspension
 The repository includes automated headless Chrome DevTools Protocol (CDP) test scripts to verify visual fidelity, physics response, and UI standards:
 
 ```bash
+# Verify continuous multi-planet road navigation and Autopilot 2.0 cruise
+node scratch/verify_roads_and_autopilot.js
+
 # Verify the in-game HUD telemetry, keycaps, and zero-emoji compliance
 node scratch/test_ingame_hud.js
 

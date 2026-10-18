@@ -119,6 +119,10 @@ export class VehiclePhysics {
     // Autopilot state
     this.autopilotActive = false;
     this.cruiseSpeed = 9.5; // Smooth cruising speed
+    this.autopilotStallTimer = 0.0;
+    this.autopilotLaunchGrace = 3.0;
+    this.unstuckTimer = 0.0;
+    this.unstuckSteer = 0.0;
 
     // Nitro Boost state
     this.nitroEnergy = 100.0;
@@ -314,29 +318,15 @@ export class VehiclePhysics {
   teleportToRoad(roadAngle = 0.24) {
     // Position vehicle on the open planet road
     const theta = roadAngle;
-    const roadLat = 0.22 * Math.sin(theta * 4.0 + 0.35) + 0.07 * Math.cos(theta * 2.0);
-
-    const x = Math.cos(roadLat) * Math.cos(theta);
-    const y = Math.sin(roadLat);
-    const z = Math.cos(roadLat) * Math.sin(theta);
-
-    this.radialUp.set(x, y, z).normalize();
+    const roadDir = this.planet._getRoadDir(theta);
+    this.radialUp.copy(roadDir).normalize();
     const groundR = this.planet.getTerrainRadiusAt(this.radialUp);
     this.altitude = groundR + this.suspensionRestLength;
     this.position.copy(this.radialUp).multiplyScalar(this.altitude);
 
     // Analytical forward tangent along road
-    const dLatDTheta = 0.22 * 4.0 * Math.cos(theta * 4.0 + 0.35) - 0.07 * 2.0 * Math.sin(theta * 2.0);
-    const cosLat = Math.cos(roadLat);
-    const sinLat = Math.sin(roadLat);
-    const cosTh = Math.cos(theta);
-    const sinTh = Math.sin(theta);
-
-    const dx = -sinLat * cosTh * dLatDTheta - cosLat * sinTh;
-    const dy = cosLat * dLatDTheta;
-    const dz = -sinLat * sinTh * dLatDTheta + cosLat * cosTh;
-
-    this.forward.set(dx, dy, dz).normalize();
+    const roadTangent = this.planet._getRoadTangent(theta);
+    this.forward.copy(roadTangent).normalize();
     this.right.crossVectors(this.forward, this.radialUp).normalize();
     this.forward.crossVectors(this.radialUp, this.right).normalize();
 
@@ -346,6 +336,9 @@ export class VehiclePhysics {
     this.driftSlipRatio = 0.0;
     this.verticalVelocity = 0.0;
     this.steerAngle = 0.0;
+    this.autopilotStallTimer = 0.0;
+    this.autopilotLaunchGrace = 3.0;
+    this.unstuckTimer = 0.0;
     this._updateTransformMatrix();
   }
 
@@ -436,32 +429,73 @@ export class VehiclePhysics {
     // Current position spherical angles
     const u = this.position.clone().normalize();
     const theta = Math.atan2(u.z, u.x);
-    const roadLat = 0.22 * Math.sin(theta * 4.0 + 0.35) + 0.07 * Math.cos(theta * 2.0);
     const currentLat = Math.asin(u.y);
-
-    // Tangent road direction
-    const dLatDTheta = 0.22 * 4.0 * Math.cos(theta * 4.0 + 0.35) - 0.07 * 2.0 * Math.sin(theta * 2.0);
-    const cosLat = Math.cos(roadLat);
-    const sinLat = Math.sin(roadLat);
-    const cosTh = Math.cos(theta);
-    const sinTh = Math.sin(theta);
-
-    const dx = -sinLat * cosTh * dLatDTheta - cosLat * sinTh;
-    const dy = cosLat * dLatDTheta;
-    const dz = -sinLat * sinTh * dLatDTheta + cosLat * cosTh;
-    const roadTangent = new THREE.Vector3(dx, dy, dz).normalize();
+    const roadLat = this.planet.getRoadLat(theta);
 
     // Cross-track error (how far from center of road)
     const latError = roadLat - currentLat;
 
-    // Desired heading blends tangent with correction towards road center
-    const correction = this.right.clone().multiplyScalar(latError * 4.5);
-    const targetHeading = roadTangent.clone().add(correction).normalize();
+    // Unstuck Watchdog: detect stall or obstacle pin
+    if (this.unstuckTimer && this.unstuckTimer > 0) {
+      this.unstuckTimer -= dt;
+      // Reverse and lock steer in opposite direction to pivot away
+      this.velocityForward = THREE.MathUtils.lerp(this.velocityForward, -4.5, 6.0 * dt);
+      this.steerAngle = this.unstuckSteer || this.maxSteerAngle;
+      this.yawRate = (this.velocityForward / 2.8) * Math.tan(this.steerAngle);
+      return;
+    }
+
+    if (this.autopilotLaunchGrace > 0) {
+      this.autopilotLaunchGrace -= dt;
+      this.autopilotStallTimer = 0;
+    } else if (Math.abs(this.velocityForward) < 1.5) {
+      this.autopilotStallTimer = (this.autopilotStallTimer || 0) + dt;
+      if (this.autopilotStallTimer > 1.8) {
+        // Trigger 0.75s reversing maneuver with opposite steer
+        this.unstuckTimer = 0.75;
+        this.autopilotStallTimer = 0;
+        this.unstuckSteer = (latError >= 0 ? -1 : 1) * this.maxSteerAngle;
+        return;
+      }
+    } else {
+      this.autopilotStallTimer = 0;
+    }
+
+    // Predictive lookahead: evaluate target tangent ahead of the vehicle
+    const planetR = this.planet.baseRadius || 65.0;
+    const lookaheadArc = 4.5 / planetR;
+    const thetaLookahead = theta + lookaheadArc;
+    const lookaheadTangent = this.planet._getRoadTangent(thetaLookahead);
+
+    // Desired heading blends predictive tangent with correction towards road center
+    const correction = this.right.clone().multiplyScalar(latError * 5.0);
+    const targetHeading = lookaheadTangent.clone().add(correction);
+
+    // Obstacle Proximity Radar: scan for upcoming roadside obstacles in vehicle's path
+    if (this.planet.colliders && this.planet.colliders.length > 0) {
+      for (let i = 0; i < this.planet.colliders.length; i++) {
+        const obs = this.planet.colliders[i];
+        const toObs = (obs.pos || obs.position).clone().sub(this.position);
+        const forwardDist = toObs.dot(this.forward);
+        // Only consider obstacles ahead within 14m
+        if (forwardDist > 0.5 && forwardDist < 14.0) {
+          const latDist = toObs.dot(this.right);
+          const safeMargin = obs.radius + 1.8;
+          if (Math.abs(latDist) < safeMargin) {
+            // Apply steering bias away from the obstacle
+            const avoidDir = latDist > 0 ? -1.0 : 1.0;
+            const urgency = (1.0 - forwardDist / 14.0) * (1.0 - Math.abs(latDist) / safeMargin);
+            targetHeading.addScaledVector(this.right, avoidDir * urgency * 3.5);
+          }
+        }
+      }
+    }
+    targetHeading.normalize();
 
     // Compute steer angle required to align forward with targetHeading
     const steerSide = this.right.dot(targetHeading);
-    const desiredSteer = THREE.MathUtils.clamp(-steerSide * 2.2, -this.maxSteerAngle, this.maxSteerAngle);
-    this.steerAngle = THREE.MathUtils.lerp(this.steerAngle, desiredSteer, 5.0 * dt);
+    const desiredSteer = THREE.MathUtils.clamp(-steerSide * 2.4, -this.maxSteerAngle, this.maxSteerAngle);
+    this.steerAngle = THREE.MathUtils.lerp(this.steerAngle, desiredSteer, 6.0 * dt);
 
     // Dynamic cruise speed: normal 13.5 m/s (~50 km/h), cataclysm/boost 22-26 m/s (~80-95 km/h)
     let targetCruise = 13.5;
@@ -713,7 +747,6 @@ export class VehiclePhysics {
                 if (Math.abs(normalVel) > 2.0 && iter === 0) {
                   this.app?.audio?.playCrashSound();
                   this.app?.hud?.showBanner("DEFLECTION!", `Glanced off ${obs.name}`, 1200);
-                  this.autopilotActive = false;
                 }
               }
             }

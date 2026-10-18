@@ -2,11 +2,43 @@
 // OVER THE HORIZON: Procedural Web Audio Engine & Adaptive Soundtracks
 // =================================================================
 
+// Safe Storage Helpers for Volume Settings
+function safeGetAudioSetting(key, defaultVal) {
+  try {
+    const raw = localStorage.getItem(key);
+    if (!raw || raw === 'undefined' || raw === 'NaN' || raw === 'null') {
+      return defaultVal;
+    }
+    const val = parseFloat(raw);
+    return Number.isFinite(val) ? Math.max(0.0, Math.min(1.0, val)) : defaultVal;
+  } catch (e) {
+    return defaultVal;
+  }
+}
+
+function safeSetAudioSetting(key, val) {
+  try {
+    const num = parseFloat(val);
+    if (Number.isFinite(num)) {
+      localStorage.setItem(key, num.toString());
+    } else {
+      localStorage.removeItem(key);
+    }
+  } catch (e) {}
+}
+
 export class AudioManager {
   constructor() {
     this.ctx = null;
-    this.isMuted = false;
-    this.masterVolume = 0.5;
+    this.isMuted = safeGetAudioSetting('oth_audio_muted', 0) === 1;
+    this.masterVolume = safeGetAudioSetting('oth_master_volume', 0.85); // Boosted from 0.50
+    this.musicVolume = safeGetAudioSetting('oth_music_volume', 0.75);   // Boosted from 0.48
+    this.sfxVolume = safeGetAudioSetting('oth_sfx_volume', 0.70);       // Boosted from 0.40
+
+    // Guard against any lingering non-finite stored values
+    if (!Number.isFinite(this.masterVolume)) this.masterVolume = 0.85;
+    if (!Number.isFinite(this.musicVolume)) this.musicVolume = 0.75;
+    if (!Number.isFinite(this.sfxVolume)) this.sfxVolume = 0.70;
 
     // Track active nodes
     this.musicGain = null;
@@ -31,8 +63,8 @@ export class AudioManager {
   // ---------------------------------------------------------------
   init() {
     if (this.ctx) {
-      if (this.ctx.state === 'suspended') {
-        this.ctx.resume();
+      if (this.ctx.state === 'suspended' || this.ctx.state === 'interrupted') {
+        this.ctx.resume().catch(() => {});
       }
       return;
     }
@@ -43,20 +75,37 @@ export class AudioManager {
       return;
     }
 
-    this.ctx = new AudioContext();
+    try {
+      this.ctx = new AudioContext();
+    } catch (err) {
+      console.warn("Failed to create AudioContext:", err);
+      return;
+    }
+
+    // Unlock iOS WebKit audio hardware with silent buffer
+    try {
+      const buffer = this.ctx.createBuffer(1, 1, 22050);
+      const source = this.ctx.createBufferSource();
+      source.buffer = buffer;
+      source.connect(this.ctx.destination);
+      source.start(0);
+    } catch (e) {}
 
     // Master bus
     this.masterGain = this.ctx.createGain();
-    this.masterGain.gain.setValueAtTime(this.masterVolume, this.ctx.currentTime);
+    const safeMaster = (this.isMuted || !Number.isFinite(this.masterVolume)) ? 0.0 : this.masterVolume;
+    this.masterGain.gain.setValueAtTime(safeMaster, this.ctx.currentTime);
     this.masterGain.connect(this.ctx.destination);
 
     // Sub-buses
     this.musicGain = this.ctx.createGain();
-    this.musicGain.gain.setValueAtTime(0.48, this.ctx.currentTime); // Boosted for rich background sound presence
+    const safeMusic = Number.isFinite(this.musicVolume) ? this.musicVolume : 0.75;
+    this.musicGain.gain.setValueAtTime(safeMusic, this.ctx.currentTime);
     this.musicGain.connect(this.masterGain);
 
     this.sfxGain = this.ctx.createGain();
-    this.sfxGain.gain.setValueAtTime(0.40, this.ctx.currentTime);
+    const safeSfx = Number.isFinite(this.sfxVolume) ? this.sfxVolume : 0.70;
+    this.sfxGain.gain.setValueAtTime(safeSfx, this.ctx.currentTime);
     this.sfxGain.connect(this.masterGain);
 
     this.engineGain = this.ctx.createGain();
@@ -160,10 +209,10 @@ export class AudioManager {
     }
 
     if (absSpeed < 0.5 && !isAccelerating) {
-      // Idle purr (subtle and mellow)
+      // Idle purr (warm, audible baseline)
       this.smoothedEngineFreq += (38.0 - this.smoothedEngineFreq) * 0.10;
-      this.smoothedEngineGain += (0.022 - this.smoothedEngineGain) * 0.10;
-      this.engineFilter.frequency.value = 150.0;
+      this.smoothedEngineGain += (0.038 - this.smoothedEngineGain) * 0.10; // Boosted from 0.022
+      this.engineFilter.frequency.value = 160.0;
       if (this.roadNoiseGain) this.roadNoiseGain.gain.value = 0.0;
     } else {
       // Dynamic combustion micro-jitter & cruising throttle breath (prevents stuck monotone sound)
@@ -171,8 +220,8 @@ export class AudioManager {
       const jitter = Math.sin(t * 32.0) * 1.0 + (Math.sin(t * 7.5) * 1.4);
       const throttleBreath = isAccelerating ? (Math.sin(t * 4.0) * 1.8) : 0.0;
 
-      // Softened vehicle engine levels so ambient soundscapes remain clear and immersive
-      const targetGain = isAccelerating ? 0.095 : 0.055;
+      // Rich vehicle engine levels (boosted from 0.095/0.055)
+      const targetGain = isAccelerating ? 0.17 : 0.095;
       const targetFreq = gearBase + (isAccelerating ? 8.0 : 0.0) + jitter + throttleBreath;
       const targetCutoff = 200.0 + (absSpeed / 65.0) * 520.0 + (isAccelerating ? 160.0 : 0.0);
 
@@ -182,7 +231,7 @@ export class AudioManager {
 
       // Update tire road rumble noise layer (mellow background texture)
       if (this.roadNoiseGain && this.roadNoiseFilter) {
-        this.roadNoiseGain.gain.value = Math.min(0.05, (absSpeed / 65.0) * 0.045);
+        this.roadNoiseGain.gain.value = Math.min(0.08, (absSpeed / 65.0) * 0.07);
         this.roadNoiseFilter.frequency.value = 120.0 + (absSpeed / 65.0) * 320.0;
       }
     }
@@ -1414,11 +1463,70 @@ export class AudioManager {
   // ---------------------------------------------------------------
   // 7. TOGGLE MUTE & VOLUME CONTROLS
   // ---------------------------------------------------------------
-  toggleMute() {
-    this.isMuted = !this.isMuted;
+  setMasterVolume(val) {
+    const num = parseFloat(val);
+    this.masterVolume = Number.isFinite(num) ? Math.max(0.0, Math.min(1.0, num)) : 0.85;
+    safeSetAudioSetting('oth_master_volume', this.masterVolume);
+    if (this.masterGain && this.ctx && !this.isMuted) {
+      try {
+        this.masterGain.gain.setValueAtTime(this.masterVolume, this.ctx.currentTime);
+      } catch (e) {}
+    }
+  }
+
+  setMusicVolume(val) {
+    const num = parseFloat(val);
+    this.musicVolume = Number.isFinite(num) ? Math.max(0.0, Math.min(1.0, num)) : 0.75;
+    safeSetAudioSetting('oth_music_volume', this.musicVolume);
+    if (this.musicGain && this.ctx) {
+      try {
+        this.musicGain.gain.setValueAtTime(this.musicVolume, this.ctx.currentTime);
+      } catch (e) {}
+    }
+  }
+
+  setSfxVolume(val) {
+    const num = parseFloat(val);
+    this.sfxVolume = Number.isFinite(num) ? Math.max(0.0, Math.min(1.0, num)) : 0.70;
+    safeSetAudioSetting('oth_sfx_volume', this.sfxVolume);
+    if (this.sfxGain && this.ctx) {
+      try {
+        this.sfxGain.gain.setValueAtTime(this.sfxVolume, this.ctx.currentTime);
+      } catch (e) {}
+    }
+  }
+
+  setMuted(muted) {
+    this.isMuted = !!muted;
+    safeSetAudioSetting('oth_audio_muted', this.isMuted ? 1 : 0);
     if (this.masterGain && this.ctx) {
-      this.masterGain.gain.setValueAtTime(this.isMuted ? 0.0 : this.masterVolume, this.ctx.currentTime);
+      try {
+        this.masterGain.gain.setValueAtTime(this.isMuted ? 0.0 : this.masterVolume, this.ctx.currentTime);
+      } catch (e) {}
     }
     return this.isMuted;
+  }
+
+  toggleMute() {
+    return this.setMuted(!this.isMuted);
+  }
+
+  playCalibrationBlip(type = 'sfx') {
+    if (!this.ctx || this.isMuted) return;
+    try {
+      const t = this.ctx.currentTime;
+      const osc = this.ctx.createOscillator();
+      const gain = this.ctx.createGain();
+      const freq = type === 'music' ? 659.25 : (type === 'master' ? 523.25 : 880.0);
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(freq, t);
+      gain.gain.setValueAtTime(0.0, t);
+      gain.gain.linearRampToValueAtTime(0.12, t + 0.01);
+      gain.gain.exponentialRampToValueAtTime(0.001, t + 0.15);
+      osc.connect(gain);
+      gain.connect(this.masterGain);
+      osc.start(t);
+      osc.stop(t + 0.16);
+    } catch (e) {}
   }
 }

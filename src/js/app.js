@@ -27,6 +27,18 @@ class App {
     this.isGameStarted = false;
     this.menuOrbitAngle = 0;
 
+    // Interactive Camera Orbit & Drag State (mouse & touch drag around vehicle)
+    this.cameraOrbitYaw = 0;        // horizontal orbit angle around car in radians
+    this.cameraOrbitPitch = 0;      // vertical elevation angle in radians
+    this.cameraOrbitDistMult = 1.0; // distance / zoom multiplier
+    this.cameraOrbitYawVel = 0;     // inertia velocity
+    this.cameraOrbitPitchVel = 0;
+    this.isDraggingCamera = false;
+    this.lastCameraDragTime = 0;
+    this.activeCameraPointers = new Map();
+    this.initialPinchDist = null;
+    this.initialPinchDistMult = 1.0;
+
     this.clock = new THREE.Clock();
 
     // 1. Initialize Core Systems
@@ -51,6 +63,7 @@ class App {
     this.arcadeEngine.hud = this.hud;
     this._bindKeyboardEvents();
     this._bindResizeObserver();
+    this._initCameraOrbitDrag();
 
     // 6. Start Render Loop
     this.animate = this.animate.bind(this);
@@ -65,14 +78,58 @@ class App {
   // 1. WEBGL RENDERER SETUP
   // ---------------------------------------------------------------
   _initRenderer() {
-    this.renderer = new THREE.WebGLRenderer({
-      canvas: this.canvas,
-      antialias: true,
-      powerPreference: "high-performance",
-      stencil: false
-    });
+    const canvas = this.canvas;
+
+    // Resilient context-loss listeners for iOS mobile backgrounding/tab-switching
+    canvas.addEventListener('webglcontextlost', (e) => {
+      e.preventDefault();
+      console.warn('WebGL context lost. Rendering paused.');
+    }, false);
+
+    canvas.addEventListener('webglcontextrestored', () => {
+      console.warn('WebGL context restored. Rebuilding rendering pipeline...');
+      this._initScene();
+      this._initLighting();
+      this._initWorld();
+    }, false);
+
+    // Multi-tier WebGL context initialization (handles mobile Chrome/WebKit restrictions)
+    let renderer = null;
+
+    // Tier 1: High performance with antialiasing
+    try {
+      renderer = new THREE.WebGLRenderer({
+        canvas: canvas,
+        antialias: true,
+        powerPreference: "high-performance",
+        stencil: false
+      });
+    } catch (err) {
+      console.warn('Tier 1 WebGL init failed:', err);
+    }
+
+    // Tier 2: Standard mobile WebKit fallback (default power preference, no antialias)
+    if (!renderer) {
+      try {
+        renderer = new THREE.WebGLRenderer({
+          canvas: canvas,
+          antialias: false,
+          powerPreference: "default",
+          stencil: false
+        });
+      } catch (err) {
+        console.warn('Tier 2 WebGL init failed:', err);
+      }
+    }
+
+    // Tier 3: Minimal fallback
+    if (!renderer) {
+      renderer = new THREE.WebGLRenderer({ canvas: canvas });
+    }
+
+    this.renderer = renderer;
     this.renderer.setSize(window.innerWidth, window.innerHeight);
-    this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    this.renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
     this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
     this.renderer.toneMappingExposure = 1.05;
   }
@@ -485,6 +542,7 @@ class App {
   setCameraMode(mode) {
     this.currentCameraMode = mode;
     this.orbitControls.enabled = false;
+    this.resetCameraOrbit(true);
     if (mode === 1) {
       const vehPos = this.vehiclePhysics.position;
       const vehNorm = vehPos.clone().normalize();
@@ -513,6 +571,137 @@ class App {
       "Drone Track (Cinematic Orbit)"
     ];
     this.hud.showBanner("CAMERA MODE", names[this.currentCameraMode]);
+  }
+
+  // ---------------------------------------------------------------
+  // 4B. INTERACTIVE 360° CAMERA ORBIT DRAG SYSTEM (MOUSE & TOUCH)
+  // ---------------------------------------------------------------
+  _initCameraOrbitDrag() {
+    this.activeCameraPointers = new Map();
+
+    const onPointerDown = (e) => {
+      // Do not drag camera if start menu or other modal is open
+      const isModalOpen = !this.isGameStarted ||
+        (this.hud?.welcomeModal && !this.hud.welcomeModal.classList.contains('hidden')) ||
+        (this.hud?.aboutModal && !this.hud.aboutModal.classList.contains('hidden')) ||
+        (this.hud?.gameOverModal && !this.hud.gameOverModal.classList.contains('hidden'));
+      if (isModalOpen) return;
+
+      // Do not drag camera if touch/click is on an interactive UI control
+      if (e.target && e.target.closest && e.target.closest('.touch-btn, .mobile-action-pill, .hud-interactive, button, input, a, .time-slider, .btn-weather, .btn-close-atmo')) {
+        return;
+      }
+
+      this.activeCameraPointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
+
+      if (this.activeCameraPointers.size === 1) {
+        this.isDraggingCamera = true;
+        this.lastCameraDragX = e.clientX;
+        this.lastCameraDragY = e.clientY;
+        this.cameraOrbitYawVel = 0;
+        this.cameraOrbitPitchVel = 0;
+        this.lastCameraDragTime = performance.now();
+        document.body.classList.add('camera-dragging');
+      } else if (this.activeCameraPointers.size === 2) {
+        const pts = Array.from(this.activeCameraPointers.values());
+        this.initialPinchDist = Math.hypot(pts[0].x - pts[1].x, pts[0].y - pts[1].y);
+        this.initialPinchDistMult = this.cameraOrbitDistMult || 1.0;
+      }
+    };
+
+    const onPointerMove = (e) => {
+      if (!this.activeCameraPointers.has(e.pointerId)) return;
+      this.activeCameraPointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
+
+      if (this.activeCameraPointers.size === 1 && this.isDraggingCamera) {
+        const dx = e.clientX - this.lastCameraDragX;
+        const dy = e.clientY - this.lastCameraDragY;
+        this.lastCameraDragX = e.clientX;
+        this.lastCameraDragY = e.clientY;
+
+        const sensitivityX = 0.0065;
+        const sensitivityY = 0.0050;
+
+        this.cameraOrbitYaw += dx * sensitivityX;
+        this.cameraOrbitPitch -= dy * sensitivityY;
+
+        if (this.currentCameraMode === 2) {
+          // Cockpit POV: Restrict rotation to natural wide-angle driver FOV (+/- 75 deg)
+          this.cameraOrbitYaw = Math.max(-1.30, Math.min(1.30, this.cameraOrbitYaw));
+          this.cameraOrbitPitch = Math.max(-0.35, Math.min(0.45, this.cameraOrbitPitch));
+        } else {
+          // Chase / Diorama / Drone POV: Full orbital yaw, clamp pitch floor to prevent clipping terrain
+          this.cameraOrbitPitch = Math.max(-0.06, Math.min(1.05, this.cameraOrbitPitch));
+        }
+
+        this.cameraOrbitYawVel = dx * sensitivityX * 0.22;
+        this.cameraOrbitPitchVel = -dy * sensitivityY * 0.22;
+        this.lastCameraDragTime = performance.now();
+        this.targetCameraOrbitYaw = undefined;
+      } else if (this.activeCameraPointers.size === 2 && this.initialPinchDist) {
+        const pts = Array.from(this.activeCameraPointers.values());
+        const currentDist = Math.hypot(pts[0].x - pts[1].x, pts[0].y - pts[1].y);
+        if (currentDist > 10) {
+          const factor = this.initialPinchDist / currentDist;
+          this.cameraOrbitDistMult = Math.max(0.60, Math.min(2.50, (this.initialPinchDistMult || 1.0) * factor));
+          this.lastCameraDragTime = performance.now();
+        }
+      }
+    };
+
+    const onPointerUp = (e) => {
+      this.activeCameraPointers.delete(e.pointerId);
+      if (this.activeCameraPointers.size === 0) {
+        this.isDraggingCamera = false;
+        this.initialPinchDist = null;
+        document.body.classList.remove('camera-dragging');
+      } else if (this.activeCameraPointers.size === 1) {
+        const pt = Array.from(this.activeCameraPointers.values())[0];
+        this.lastCameraDragX = pt.x;
+        this.lastCameraDragY = pt.y;
+        this.initialPinchDist = null;
+      }
+    };
+
+    window.addEventListener('pointerdown', onPointerDown, { passive: true });
+    window.addEventListener('pointermove', onPointerMove, { passive: true });
+    window.addEventListener('pointerup', onPointerUp, { passive: true });
+    window.addEventListener('pointercancel', onPointerUp, { passive: true });
+
+    // Desktop mouse wheel zoom
+    window.addEventListener('wheel', (e) => {
+      const isModalOpen = !this.isGameStarted || (this.hud?.welcomeModal && !this.hud.welcomeModal.classList.contains('hidden'));
+      if (isModalOpen) return;
+      if (e.target && e.target.closest && e.target.closest('.hud-interactive, button, input')) return;
+
+      const delta = Math.sign(e.deltaY) * 0.08;
+      this.cameraOrbitDistMult = Math.max(0.60, Math.min(2.50, (this.cameraOrbitDistMult || 1.0) + delta));
+      this.lastCameraDragTime = performance.now();
+    }, { passive: true });
+
+    // Double-click / double-tap to smoothly re-center camera behind car
+    window.addEventListener('dblclick', (e) => {
+      if (e.target && e.target.closest && e.target.closest('.touch-btn, .mobile-action-pill, .hud-interactive, button, input')) return;
+      this.resetCameraOrbit(false);
+      this.hud?.showBanner("CAMERA", "Camera View Re-Centered");
+    });
+  }
+
+  resetCameraOrbit(instant = false) {
+    if (instant) {
+      this.cameraOrbitYaw = 0;
+      this.cameraOrbitPitch = 0;
+      this.cameraOrbitDistMult = 1.0;
+      this.cameraOrbitYawVel = 0;
+      this.cameraOrbitPitchVel = 0;
+      this.targetCameraOrbitYaw = undefined;
+    } else {
+      this.cameraOrbitYawVel = 0;
+      this.cameraOrbitPitchVel = 0;
+      this.targetCameraOrbitYaw = 0;
+      this.targetCameraOrbitPitch = 0;
+      this.targetCameraOrbitDistMult = 1.0;
+    }
   }
 
   _updateCamera(dt) {
@@ -548,16 +737,80 @@ class App {
       return;
     }
 
+    // Camera inertia damping & auto-centering logic
+    if (!this.isDraggingCamera) {
+      if (Math.abs(this.cameraOrbitYawVel || 0) > 0.0001) {
+        this.cameraOrbitYaw += this.cameraOrbitYawVel;
+        this.cameraOrbitYawVel *= 0.88;
+      } else {
+        this.cameraOrbitYawVel = 0;
+      }
+
+      if (Math.abs(this.cameraOrbitPitchVel || 0) > 0.0001) {
+        this.cameraOrbitPitch += this.cameraOrbitPitchVel;
+        this.cameraOrbitPitchVel *= 0.88;
+      } else {
+        this.cameraOrbitPitchVel = 0;
+      }
+      if (this.currentCameraMode === 2) {
+        this.cameraOrbitYaw = Math.max(-1.30, Math.min(1.30, this.cameraOrbitYaw));
+        this.cameraOrbitPitch = Math.max(-0.35, Math.min(0.45, this.cameraOrbitPitch));
+      } else {
+        this.cameraOrbitPitch = Math.max(-0.06, Math.min(1.05, this.cameraOrbitPitch));
+      }
+
+      // Smooth recenter if target is active
+      if (this.targetCameraOrbitYaw !== undefined) {
+        this.cameraOrbitYaw = THREE.MathUtils.lerp(this.cameraOrbitYaw, this.targetCameraOrbitYaw, Math.min(1.0, 7.0 * dt));
+        this.cameraOrbitPitch = THREE.MathUtils.lerp(this.cameraOrbitPitch, this.targetCameraOrbitPitch, Math.min(1.0, 7.0 * dt));
+        this.cameraOrbitDistMult = THREE.MathUtils.lerp(this.cameraOrbitDistMult, this.targetCameraOrbitDistMult || 1.0, Math.min(1.0, 7.0 * dt));
+        if (Math.abs(this.cameraOrbitYaw - this.targetCameraOrbitYaw) < 0.002 && Math.abs(this.cameraOrbitPitch - this.targetCameraOrbitPitch) < 0.002) {
+          this.cameraOrbitYaw = this.targetCameraOrbitYaw;
+          this.cameraOrbitPitch = this.targetCameraOrbitPitch;
+          this.cameraOrbitDistMult = this.targetCameraOrbitDistMult || 1.0;
+          this.targetCameraOrbitYaw = undefined;
+        }
+      }
+
+      // If user hasn't dragged camera for idleTimeout AND vehicle is driving manually at speed,
+      // softly glide back to center view behind vehicle.
+      // (Cockpit mode recenters slightly faster at 2.5s for responsive driver road awareness)
+      const idleTimeout = (this.currentCameraMode === 2) ? 2.5 : 4.5;
+      const recenterSpeed = (this.currentCameraMode === 2) ? 2.2 : 1.2;
+      const timeSinceDrag = (performance.now() - (this.lastCameraDragTime || 0)) * 0.001;
+      const speed = this.vehiclePhysics?.speed || 0;
+      const isManualDrivingFast = this.vehiclePhysics && !this.vehiclePhysics.autopilotActive && speed > 5.0;
+      if (isManualDrivingFast && timeSinceDrag > idleTimeout && this.targetCameraOrbitYaw === undefined) {
+        this.cameraOrbitYaw = THREE.MathUtils.lerp(this.cameraOrbitYaw, 0, Math.min(1.0, recenterSpeed * dt));
+        this.cameraOrbitPitch = THREE.MathUtils.lerp(this.cameraOrbitPitch, 0, Math.min(1.0, recenterSpeed * dt));
+        this.cameraOrbitDistMult = THREE.MathUtils.lerp(this.cameraOrbitDistMult, 1.0, Math.min(1.0, 1.2 * dt));
+      }
+    }
+
     if (this.currentCameraMode === 1) {
       // MODE 1: MINIATURE GLOBE DIORAMA (Centered on vehicle, looking in travel direction)
-      const dioramaElev = 48.0; // Elevated high above surface normal for toybox miniature perspective
-      const dioramaBack = 36.0; // Pulled back along forward direction so road ahead is framed
-      const targetCamPos = vehPos.clone()
-        .add(vehUp.clone().multiplyScalar(dioramaElev))
-        .sub(vehFwd.clone().multiplyScalar(dioramaBack));
+      const dioramaElev = 48.0 * (this.cameraOrbitDistMult || 1.0);
+      const dioramaBack = 36.0 * (this.cameraOrbitDistMult || 1.0);
+      const yaw = this.cameraOrbitYaw || 0;
+      const pitch = this.cameraOrbitPitch || 0;
 
-      this.camera.position.lerp(targetCamPos, Math.min(1.0, 5.0 * dt));
-      this.camera.up.lerp(vehUp, Math.min(1.0, 5.0 * dt));
+      const cosYaw = Math.cos(yaw);
+      const sinYaw = Math.sin(yaw);
+      const cosPitch = Math.cos(pitch);
+      const sinPitch = Math.sin(pitch);
+
+      const horizDist = dioramaBack * cosPitch;
+      const vertDist = dioramaElev + dioramaBack * sinPitch;
+
+      const camOffset = vehFwd.clone().multiplyScalar(-cosYaw * horizDist)
+        .add(vehRight.clone().multiplyScalar(sinYaw * horizDist))
+        .add(vehUp.clone().multiplyScalar(vertDist));
+
+      const targetCamPos = vehPos.clone().add(camOffset);
+      const lerpSpeed = this.isDraggingCamera ? 24.0 : 6.0;
+
+      this.camera.position.lerp(targetCamPos, Math.min(1.0, lerpSpeed * dt));
+      this.camera.up.lerp(vehUp, Math.min(1.0, 6.0 * dt));
       
       const focusTarget = vehPos.clone().add(vehUp.clone().multiplyScalar(0.6));
       this.camera.lookAt(focusTarget);
@@ -565,19 +818,47 @@ class App {
     }
 
     if (this.currentCameraMode === 0) {
-      // MODE 0: CHASE POV (Framing the curved horizon with dynamic portrait scaling)
+      // MODE 0: CHASE POV (Framing the curved horizon with dynamic portrait scaling & 360° orbit)
       const isPortrait = window.innerWidth < window.innerHeight;
-      const backDist = isPortrait ? -9.2 : -7.6;
-      const upDist = isPortrait ? 3.8 : 3.2;
+      const baseDist = (isPortrait ? 9.2 : 7.6) * (this.cameraOrbitDistMult || 1.0);
+      const baseUp = (isPortrait ? 3.8 : 3.2);
       const lookFwd = isPortrait ? 6.5 : 5.5;
 
-      const camOffset = vehFwd.clone().multiplyScalar(backDist).add(vehUp.clone().multiplyScalar(upDist));
+      const yaw = this.cameraOrbitYaw || 0;
+      const pitch = this.cameraOrbitPitch || 0;
+
+      const cosYaw = Math.cos(yaw);
+      const sinYaw = Math.sin(yaw);
+      const cosPitch = Math.cos(pitch);
+      const sinPitch = Math.sin(pitch);
+
+      const horizDist = baseDist * cosPitch;
+      const vertDist = baseUp + baseDist * sinPitch;
+
+      const camOffset = vehFwd.clone().multiplyScalar(-cosYaw * horizDist)
+        .add(vehRight.clone().multiplyScalar(sinYaw * horizDist))
+        .add(vehUp.clone().multiplyScalar(vertDist));
+
       const targetCamPos = vehPos.clone().add(camOffset);
 
-      this.camera.position.lerp(targetCamPos, Math.min(1.0, 16.0 * dt));
+      // Terrain Ground-Clearance Clamp: Guarantee camera never penetrates below terrain or road surface
+      const camNormal = targetCamPos.clone().normalize();
+      const terrainR = this.planet?.getTerrainRadiusAt ? this.planet.getTerrainRadiusAt(camNormal) : 65.0;
+      const minAltitude = terrainR + (isPortrait ? 2.5 : 2.0);
+      if (targetCamPos.length() < minAltitude) {
+        targetCamPos.copy(camNormal.multiplyScalar(minAltitude));
+      }
+
+      const lerpSpeed = this.isDraggingCamera ? 28.0 : 16.0;
+      this.camera.position.lerp(targetCamPos, Math.min(1.0, lerpSpeed * dt));
       this.camera.up.lerp(vehUp, Math.min(1.0, 16.0 * dt));
 
-      const lookTarget = vehPos.clone().add(vehFwd.clone().multiplyScalar(lookFwd)).add(vehUp.clone().multiplyScalar(0.75));
+      // As yaw rotates, seamlessly transition focus to car center so vehicle remains beautifully framed
+      const aheadFactor = Math.max(0, cosYaw);
+      const lookTarget = vehPos.clone()
+        .add(vehFwd.clone().multiplyScalar(lookFwd * aheadFactor))
+        .add(vehUp.clone().multiplyScalar(0.75 + (1.0 - aheadFactor) * 0.45));
+
       this.camera.lookAt(lookTarget);
 
       // Apply Arcade Camera Shake
@@ -591,21 +872,27 @@ class App {
       }
 
     } else if (this.currentCameraMode === 2) {
-      // MODE 2: COCKPIT / HOOD POV
-      // Positioned above dashboard looking out over the hood and road with zero interior clipping
+      // MODE 2: COCKPIT / HOOD POV with interactive driver wide-angle glance
       const cockpitOffset = vehFwd.clone().multiplyScalar(0.48).add(vehUp.clone().multiplyScalar(1.08));
       this.camera.position.copy(vehPos).add(cockpitOffset);
       this.camera.up.copy(vehUp);
 
-      const lookTarget = vehPos.clone().add(vehFwd.clone().multiplyScalar(14.0)).add(vehUp.clone().multiplyScalar(0.70));
-      this.camera.lookAt(lookTarget);
+      // Clamp glance strictly to natural wide-angle driver FOV (+/- 75 deg = +/- 1.30 rad)
+      const glanceYaw = THREE.MathUtils.clamp(this.cameraOrbitYaw || 0, -1.30, 1.30);
+      const glancePitch = THREE.MathUtils.clamp(this.cameraOrbitPitch || 0, -0.35, 0.45);
+      const lookDir = vehFwd.clone().multiplyScalar(Math.cos(glanceYaw) * 14.0)
+        .add(vehRight.clone().multiplyScalar(Math.sin(glanceYaw) * 14.0))
+        .add(vehUp.clone().multiplyScalar(0.70 + Math.sin(glancePitch) * 8.0));
+
+      this.camera.lookAt(vehPos.clone().add(lookDir));
 
     } else if (this.currentCameraMode === 3) {
       // MODE 3: CINEMATIC DRONE TRACK
       const time = this.clock.getElapsedTime() * 0.35;
-      const droneOffset = vehFwd.clone().multiplyScalar(-9.0 + Math.sin(time) * 3.0)
-        .add(vehRight.clone().multiplyScalar(Math.cos(time) * 5.0))
-        .add(vehUp.clone().multiplyScalar(4.5));
+      const yaw = this.cameraOrbitYaw || 0;
+      const droneOffset = vehFwd.clone().multiplyScalar(-9.0 + Math.sin(time + yaw) * 3.0)
+        .add(vehRight.clone().multiplyScalar(Math.cos(time + yaw) * 5.0))
+        .add(vehUp.clone().multiplyScalar(4.5 + (this.cameraOrbitPitch || 0) * 4.0));
 
       this.camera.position.lerp(vehPos.clone().add(droneOffset), Math.min(1.0, 6.0 * dt));
       this.camera.up.lerp(vehUp, Math.min(1.0, 6.0 * dt));
@@ -662,6 +949,11 @@ class App {
       } else if (e.code === 'KeyB') {
         const isComic = this.postProcessor.toggleComicMode();
         this.hud.showBanner("COMIC SHADER", isComic ? "Moebius Ligne-Claire Inking Enabled" : "Flat-Shaded Natural 3D");
+      } else if (e.code === 'KeyI') {
+        const about = this.hud?.aboutModal;
+        if (about) {
+          about.classList.toggle('hidden');
+        }
       } else if (e.code === 'KeyM' || e.code === 'Escape') {
         this.hud.toggleWelcomeModal();
       }
@@ -686,6 +978,7 @@ class App {
     const updateSize = () => {
       const w = window.innerWidth;
       const h = window.innerHeight;
+      if (!w || !h || !this.camera || !this.renderer) return;
       const aspect = w / h;
       this.camera.aspect = aspect;
       // In narrow portrait viewports, dynamically expand vertical FOV to maintain wide horizon visibility
@@ -696,10 +989,14 @@ class App {
       }
       this.camera.updateProjectionMatrix();
       this.renderer.setSize(w, h);
-      this.postProcessor.setSize(w, h);
+      if (this.postProcessor) this.postProcessor.setSize(w, h);
     };
 
     window.addEventListener('resize', updateSize);
+    window.addEventListener('orientationchange', () => setTimeout(updateSize, 100));
+    if (window.visualViewport) {
+      window.visualViewport.addEventListener('resize', updateSize);
+    }
     updateSize(); // Initialize on boot
   }
 

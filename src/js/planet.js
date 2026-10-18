@@ -658,7 +658,7 @@ export class Planet {
 
     // Continuous scenic road across the miniature globe
     const roadLat = Math.asin(u.y);
-    const roadCurve = 0.22 * Math.sin(theta * 4.0 + 0.35) + 0.07 * Math.cos(theta * 2.0);
+    const roadCurve = this.getRoadLat(theta);
     const distRoad = Math.abs(roadLat - roadCurve);
 
     if (this.type === "Oakhaven") {
@@ -691,7 +691,7 @@ export class Planet {
       elevation += (Math.sin(u.x * 7.0) * Math.cos(u.z * 7.0) + 0.4 * Math.sin(u.y * 9.0)) * 2.2;
 
       // 5. ROAD BED SMOOTHING & LEVELING
-      const roadFactor = THREE.MathUtils.smoothstep(distRoad, 0.045, 0.12);
+      const roadFactor = THREE.MathUtils.smoothstep(distRoad, 0.065, 0.145);
       elevation = THREE.MathUtils.lerp(0.42, elevation, roadFactor);
 
     } else if (this.type === "Cinderfell") {
@@ -701,13 +701,13 @@ export class Planet {
         elevation -= (1.0 - u.distanceTo(craterDir) / 0.6) * 5.5; // Volcanic caldera
       }
       elevation += (Math.sin(u.x * 8.5) * Math.cos(u.z * 8.5) + 0.6 * Math.sin(u.y * 11.0)) * 2.8;
-      const roadFactor = THREE.MathUtils.smoothstep(distRoad, 0.045, 0.12);
+      const roadFactor = THREE.MathUtils.smoothstep(distRoad, 0.065, 0.145);
       elevation = THREE.MathUtils.lerp(0.35, elevation, roadFactor);
 
     } else if (this.type === "Aetheria") {
       // Venus: Golden rolling sulfuric dunes
       elevation += (Math.sin(u.x * 5.5) * Math.cos(u.z * 5.5) + 0.4 * Math.sin(u.y * 6.5)) * 2.6;
-      const roadFactor = THREE.MathUtils.smoothstep(distRoad, 0.045, 0.12);
+      const roadFactor = THREE.MathUtils.smoothstep(distRoad, 0.065, 0.145);
       elevation = THREE.MathUtils.lerp(0.32, elevation, roadFactor);
 
     } else if (this.type === "Rustvale") {
@@ -717,19 +717,19 @@ export class Planet {
         elevation += Math.pow(1.0 - u.distanceTo(canyonDir) / 0.55, 1.6) * 11.5; // Olympus Mons
       }
       elevation += (Math.sin(u.x * 6.8) * Math.cos(u.z * 6.8) + 0.4 * Math.sin(u.y * 8.0)) * 2.5;
-      const roadFactor = THREE.MathUtils.smoothstep(distRoad, 0.045, 0.12);
+      const roadFactor = THREE.MathUtils.smoothstep(distRoad, 0.065, 0.145);
       elevation = THREE.MathUtils.lerp(0.38, elevation, roadFactor);
 
     } else if (this.type === "Stormhaven") {
       // Jupiter: Atmospheric gas wave ridges
       elevation += (Math.sin(u.y * 14.0) * 1.8 + Math.cos(theta * 6.0) * 1.2);
-      const roadFactor = THREE.MathUtils.smoothstep(distRoad, 0.045, 0.12);
+      const roadFactor = THREE.MathUtils.smoothstep(distRoad, 0.065, 0.145);
       elevation = THREE.MathUtils.lerp(0.35, elevation, roadFactor);
 
     } else if (this.type === "Ringhaven") {
       // Saturn: Glacial ice terraces
       elevation += (Math.sin(u.x * 7.2) * Math.cos(u.z * 7.2) + 0.5 * Math.sin(u.y * 7.5)) * 2.4;
-      const roadFactor = THREE.MathUtils.smoothstep(distRoad, 0.045, 0.12);
+      const roadFactor = THREE.MathUtils.smoothstep(distRoad, 0.065, 0.145);
       elevation = THREE.MathUtils.lerp(0.36, elevation, roadFactor);
 
     } else if (this.type === "Frostveil") {
@@ -739,7 +739,7 @@ export class Planet {
         elevation += Math.pow(1.0 - u.distanceTo(cryoPeak) / 0.48, 1.5) * 10.0;
       }
       elevation += (Math.sin(u.x * 8.0) * Math.cos(u.z * 8.0) + 0.5 * Math.sin(u.y * 9.5)) * 2.9;
-      const roadFactor = THREE.MathUtils.smoothstep(distRoad, 0.045, 0.12);
+      const roadFactor = THREE.MathUtils.smoothstep(distRoad, 0.065, 0.145);
       elevation = THREE.MathUtils.lerp(0.35, elevation, roadFactor);
 
     } else if (this.type === "Thalassa") {
@@ -749,7 +749,7 @@ export class Planet {
         elevation -= (1.0 - u.distanceTo(oceanShelf) / 0.65) * 4.8;
       }
       elevation += (Math.sin(u.x * 6.2) * Math.cos(u.z * 6.2) + 0.4 * Math.sin(u.y * 7.2)) * 2.3;
-      const roadFactor = THREE.MathUtils.smoothstep(distRoad, 0.045, 0.12);
+      const roadFactor = THREE.MathUtils.smoothstep(distRoad, 0.065, 0.145);
       elevation = THREE.MathUtils.lerp(0.40, elevation, roadFactor);
 
     } else {
@@ -759,7 +759,7 @@ export class Planet {
         elevation -= (1.0 - u.distanceTo(craterDir) / 0.52) * 3.8;
       }
       elevation += (Math.sin(u.x * 7.5) * Math.cos(u.z * 7.5) + 0.3 * Math.sin(u.y * 8.5)) * 2.1;
-      const roadFactor = THREE.MathUtils.smoothstep(distRoad, 0.045, 0.12);
+      const roadFactor = THREE.MathUtils.smoothstep(distRoad, 0.065, 0.145);
       elevation = THREE.MathUtils.lerp(0.32, elevation, roadFactor);
     }
 
@@ -854,7 +854,7 @@ export class Planet {
   _getFacetColor(u, elevation, normal) {
     const theta = Math.atan2(u.z, u.x);
     const roadLat = Math.asin(u.y);
-    const roadCurve = 0.22 * Math.sin(theta * 4.0 + 0.35) + 0.07 * Math.cos(theta * 2.0);
+    const roadCurve = this.getRoadLat(theta);
     const isRoad = Math.abs(roadLat - roadCurve) < 0.11;
 
     if (this.type === "Oakhaven") {
@@ -1078,8 +1078,8 @@ export class Planet {
       // -------------------------------------------------------------
       // A. Outpost Log Cabin
       const cabinDir = this._getRoadDir(0.28);
-      const cabinSide = new THREE.Vector3(-cabinDir.z, 0, cabinDir.x).normalize();
-      const cabinWorldDir = new THREE.Vector3().addVectors(cabinDir, cabinSide.clone().multiplyScalar(0.095)).normalize();
+      const cabinRight = this._getRoadRight(0.28);
+      const cabinWorldDir = new THREE.Vector3().addVectors(cabinDir, cabinRight.clone().multiplyScalar(0.145)).normalize();
       const cabinPlace = this.getSurfacePlacement(cabinWorldDir, -0.15);
       const cabin = buildAlpineCabin();
       cabin.scale.set(0.9, 0.9, 0.9);
@@ -1090,8 +1090,8 @@ export class Planet {
 
       // B. Village Chalet House 1 (Red Roof variant)
       const h1Dir = this._getRoadDir(0.42);
-      const h1Side = new THREE.Vector3(-h1Dir.z, 0, h1Dir.x).normalize();
-      const h1WorldDir = new THREE.Vector3().addVectors(h1Dir, h1Side.clone().multiplyScalar(-0.095)).normalize();
+      const h1Right = this._getRoadRight(0.42);
+      const h1WorldDir = new THREE.Vector3().addVectors(h1Dir, h1Right.clone().multiplyScalar(-0.145)).normalize();
       const h1Place = this.getSurfacePlacement(h1WorldDir, -0.15);
       const h1 = buildAlpineVillageHouse(0);
       h1.scale.set(1.0, 1.0, 1.0);
@@ -1102,8 +1102,8 @@ export class Planet {
 
       // C. Village Chalet House 2 (Slate Roof variant)
       const h2Dir = this._getRoadDir(0.56);
-      const h2Side = new THREE.Vector3(-h2Dir.z, 0, h2Dir.x).normalize();
-      const h2WorldDir = new THREE.Vector3().addVectors(h2Dir, h2Side.clone().multiplyScalar(0.092)).normalize();
+      const h2Right = this._getRoadRight(0.56);
+      const h2WorldDir = new THREE.Vector3().addVectors(h2Dir, h2Right.clone().multiplyScalar(0.145)).normalize();
       const h2Place = this.getSurfacePlacement(h2WorldDir, -0.15);
       const h2 = buildAlpineVillageHouse(1);
       h2.scale.set(1.0, 1.0, 1.0);
@@ -1117,9 +1117,9 @@ export class Planet {
       for (let i = 0; i < lanternThetas.length; i++) {
         const lTh = lanternThetas[i];
         const lDir = this._getRoadDir(lTh);
-        const lSide = new THREE.Vector3(-lDir.z, 0, lDir.x).normalize();
-        const sideSign = (i % 2 === 0 ? 1 : -1) * 0.055;
-        const lWorldDir = new THREE.Vector3().addVectors(lDir, lSide.clone().multiplyScalar(sideSign)).normalize();
+        const lRight = this._getRoadRight(lTh);
+        const sideSign = (i % 2 === 0 ? 1 : -1) * 0.098;
+        const lWorldDir = new THREE.Vector3().addVectors(lDir, lRight.clone().multiplyScalar(sideSign)).normalize();
         const lPlace = this.getSurfacePlacement(lWorldDir, -0.12);
         const lantern = buildStreetLanternPost();
         lantern.position.copy(lPlace.position);
@@ -1142,35 +1142,35 @@ export class Planet {
         bridge.position.copy(bPlace.position);
 
         const bTangent = this._getRoadTangent(bTheta);
-        const bRight = new THREE.Vector3().crossVectors(bTangent, bDir).normalize();
+        const bRight = this._getRoadRight(bTheta);
         const bMat = new THREE.Matrix4().makeBasis(bRight, bDir, bTangent.clone().negate());
         bridge.quaternion.setFromRotationMatrix(bMat);
         this.group.add(bridge);
 
-        const leftRail = bridge.position.clone().add(bRight.clone().multiplyScalar(-1.8));
-        const rightRail = bridge.position.clone().add(bRight.clone().multiplyScalar(1.8));
+        const leftRail = bridge.position.clone().add(bRight.clone().multiplyScalar(-2.6));
+        const rightRail = bridge.position.clone().add(bRight.clone().multiplyScalar(2.6));
         this.addCollider(leftRail, 0.24, 2.0, "rail", "Bridge Railing");
         this.addCollider(rightRail, 0.24, 2.0, "rail", "Bridge Railing");
       }
 
       // Clustered Pine Groves (organic natural copses, NOT a uniform conveyor belt)
       const pineClusters = [
-        { baseTheta: 0.18, count: 5, sideBase: -0.10, spread: 0.03 },
-        { baseTheta: 0.95, count: 6, sideBase: 0.09, spread: 0.04 },
-        { baseTheta: 1.35, count: 8, sideBase: -0.11, spread: 0.05 },
-        { baseTheta: 2.10, count: 7, sideBase: 0.10, spread: 0.045 },
-        { baseTheta: 2.65, count: 6, sideBase: -0.095, spread: 0.035 },
-        { baseTheta: 3.75, count: 5, sideBase: 0.095, spread: 0.035 },
-        { baseTheta: 5.30, count: 5, sideBase: -0.10, spread: 0.04 }
+        { baseTheta: 0.18, count: 5, sideBase: -0.145, spread: 0.03 },
+        { baseTheta: 0.95, count: 6, sideBase: 0.145, spread: 0.04 },
+        { baseTheta: 1.35, count: 8, sideBase: -0.150, spread: 0.05 },
+        { baseTheta: 2.10, count: 7, sideBase: 0.145, spread: 0.045 },
+        { baseTheta: 2.65, count: 6, sideBase: -0.145, spread: 0.035 },
+        { baseTheta: 3.75, count: 5, sideBase: 0.145, spread: 0.035 },
+        { baseTheta: 5.30, count: 5, sideBase: -0.145, spread: 0.04 }
       ];
 
       for (const cl of pineClusters) {
         for (let p = 0; p < cl.count; p++) {
           const tTheta = cl.baseTheta + (p - cl.count / 2) * (cl.spread / cl.count);
           const rDir = this._getRoadDir(tTheta);
-          const rSide = new THREE.Vector3(-rDir.z, 0, rDir.x).normalize();
+          const rRight = this._getRoadRight(tTheta);
           const treeOffset = cl.sideBase + ((p % 3) - 1) * 0.025;
-          const treeDir = new THREE.Vector3().addVectors(rDir, rSide.clone().multiplyScalar(treeOffset)).normalize();
+          const treeDir = new THREE.Vector3().addVectors(rDir, rRight.clone().multiplyScalar(treeOffset)).normalize();
           const treePlace = this.getSurfacePlacement(treeDir, -0.18);
 
           const pine = buildPineTree(p % 2 === 0);
@@ -1194,8 +1194,8 @@ export class Planet {
         for (let p = 0; p < posts; p++) {
           const gTheta = gc.start + (p / (posts - 1)) * (gc.end - gc.start);
           const rDir = this._getRoadDir(gTheta);
-          const rSide = new THREE.Vector3(-rDir.z, 0, rDir.x).normalize();
-          const gDir = new THREE.Vector3().addVectors(rDir, rSide.clone().multiplyScalar(gc.side * 0.058)).normalize();
+          const rRight = this._getRoadRight(gTheta);
+          const gDir = new THREE.Vector3().addVectors(rDir, rRight.clone().multiplyScalar(gc.side * 0.088)).normalize();
           const gPlace = this.getSurfacePlacement(gDir, -0.05);
 
           const postGroup = new THREE.Group();
@@ -1220,8 +1220,8 @@ export class Planet {
       // -------------------------------------------------------------
       // A. Highland Windmill with spinning sails
       const wmDir = this._getRoadDir(3.38);
-      const wmSide = new THREE.Vector3(-wmDir.z, 0, wmDir.x).normalize();
-      const wmWorldDir = new THREE.Vector3().addVectors(wmDir, wmSide.clone().multiplyScalar(0.095)).normalize();
+      const wmRight = this._getRoadRight(3.38);
+      const wmWorldDir = new THREE.Vector3().addVectors(wmDir, wmRight.clone().multiplyScalar(0.150)).normalize();
       const wmPlace = this.getSurfacePlacement(wmWorldDir, -0.18);
       const windmill = buildWindmill();
       windmill.position.copy(wmPlace.position);
@@ -1234,8 +1234,8 @@ export class Planet {
 
       // B. Farmstead Barn / Chalet
       const barnDir = this._getRoadDir(3.58);
-      const barnSide = new THREE.Vector3(-barnDir.z, 0, barnDir.x).normalize();
-      const barnWorldDir = new THREE.Vector3().addVectors(barnDir, barnSide.clone().multiplyScalar(-0.095)).normalize();
+      const barnRight = this._getRoadRight(3.58);
+      const barnWorldDir = new THREE.Vector3().addVectors(barnDir, barnRight.clone().multiplyScalar(-0.150)).normalize();
       const barnPlace = this.getSurfacePlacement(barnWorldDir, -0.15);
       const barn = buildAlpineVillageHouse(1);
       barn.scale.set(1.1, 1.1, 1.1);
@@ -1251,18 +1251,18 @@ export class Planet {
       b3Bridge.scale.set(0.85, 0.85, 0.85);
       b3Bridge.position.copy(b3Place.position);
       const b3Tangent = this._getRoadTangent(3.92);
-      const b3Right = new THREE.Vector3().crossVectors(b3Tangent, b3Dir).normalize();
+      const b3Right = this._getRoadRight(3.92);
       const b3Mat = new THREE.Matrix4().makeBasis(b3Right, b3Dir, b3Tangent.clone().negate());
       b3Bridge.quaternion.setFromRotationMatrix(b3Mat);
       this.group.add(b3Bridge);
-      this.addCollider(b3Bridge.position.clone().add(b3Right.clone().multiplyScalar(-1.8)), 0.24, 2.0, "rail", "Bridge Railing");
-      this.addCollider(b3Bridge.position.clone().add(b3Right.clone().multiplyScalar(1.8)), 0.24, 2.0, "rail", "Bridge Railing");
+      this.addCollider(b3Bridge.position.clone().add(b3Right.clone().multiplyScalar(-2.6)), 0.24, 2.0, "rail", "Bridge Railing");
+      this.addCollider(b3Bridge.position.clone().add(b3Right.clone().multiplyScalar(2.6)), 0.24, 2.0, "rail", "Bridge Railing");
 
       // Lanterns in Windmill Valley
       for (const wlTh of [3.28, 3.70]) {
         const wlDir = this._getRoadDir(wlTh);
-        const wlSide = new THREE.Vector3(-wlDir.z, 0, wlDir.x).normalize();
-        const wlWorldDir = new THREE.Vector3().addVectors(wlDir, wlSide.clone().multiplyScalar(0.055)).normalize();
+        const wlRight = this._getRoadRight(wlTh);
+        const wlWorldDir = new THREE.Vector3().addVectors(wlDir, wlRight.clone().multiplyScalar(0.098)).normalize();
         const wlPlace = this.getSurfacePlacement(wlWorldDir, -0.12);
         const lantern = buildStreetLanternPost();
         lantern.position.copy(wlPlace.position);
@@ -1275,8 +1275,8 @@ export class Planet {
       // BIOME 4: STARGAZER MOUNTAIN OBSERVATORY (theta ~ 4.70 - 5.80)
       // -------------------------------------------------------------
       const obsDir = this._getRoadDir(4.95);
-      const obsSide = new THREE.Vector3(-obsDir.z, 0, obsDir.x).normalize();
-      const obsWorldDir = new THREE.Vector3().addVectors(obsDir, obsSide.clone().multiplyScalar(0.10)).normalize();
+      const obsRight = this._getRoadRight(4.95);
+      const obsWorldDir = new THREE.Vector3().addVectors(obsDir, obsRight.clone().multiplyScalar(0.150)).normalize();
       const obsPlace = this.getSurfacePlacement(obsWorldDir, -0.22);
       const observatory = buildObservatoryDome();
       observatory.position.copy(obsPlace.position);
@@ -1285,8 +1285,8 @@ export class Planet {
       this.addCollider(observatory.position, 2.45, 6.0, "observatory", "Stargazer Observatory");
 
       const obsLanternDir = this._getRoadDir(4.78);
-      const obsLanternSide = new THREE.Vector3(-obsLanternDir.z, 0, obsLanternDir.x).normalize();
-      const obsLWorldDir = new THREE.Vector3().addVectors(obsLanternDir, obsLanternSide.clone().multiplyScalar(-0.055)).normalize();
+      const obsLanternRight = this._getRoadRight(4.78);
+      const obsLWorldDir = new THREE.Vector3().addVectors(obsLanternDir, obsLanternRight.clone().multiplyScalar(-0.098)).normalize();
       const obsLPlace = this.getSurfacePlacement(obsLWorldDir, -0.12);
       const obsLantern = buildStreetLanternPost();
       obsLantern.position.copy(obsLPlace.position);
@@ -1303,9 +1303,9 @@ export class Planet {
       for (let i = 0; i < angles.length; i++) {
         const th = angles[i];
         const dir = this._getRoadDir(th);
-        const side = new THREE.Vector3(-dir.z, 0, dir.x).normalize();
-        const sideOffset = (i % 2 === 0 ? 0.095 : -0.095);
-        const worldDir = new THREE.Vector3().addVectors(dir, side.clone().multiplyScalar(sideOffset)).normalize();
+        const right = this._getRoadRight(th);
+        const sideOffset = (i % 2 === 0 ? 0.155 : -0.155);
+        const worldDir = new THREE.Vector3().addVectors(dir, right.clone().multiplyScalar(sideOffset)).normalize();
         const place = this.getSurfacePlacement(worldDir, -0.15);
 
         let landmark = null;
@@ -1449,8 +1449,59 @@ export class Planet {
   }
 
   // Analytical Road Coordinates
+  getRoadLat(theta) {
+    if (this.type === "Rustvale") {
+      // Mars: Dramatic canyon gorge winding around Olympus Mons
+      return 0.24 * Math.sin(theta * 3.5 + 0.5) + 0.09 * Math.cos(theta * 2.0);
+    } else if (this.type === "Cinderfell") {
+      // Mercury: Volcanic caldera rim circuit
+      return 0.18 * Math.sin(theta * 3.0 + 0.2) + 0.08 * Math.cos(theta * 4.0);
+    } else if (this.type === "Stormhaven") {
+      // Jupiter: Jovian equatorial atmospheric runway with wide sweeping curves
+      return 0.15 * Math.sin(theta * 2.5 + 0.4) + 0.06 * Math.cos(theta * 3.0);
+    } else if (this.type === "Ringhaven") {
+      // Saturn: Broad ringway with panoramic view of planetary rings
+      return 0.20 * Math.sin(theta * 3.0) + 0.08 * Math.cos(theta * 2.0);
+    } else if (this.type === "Frostveil") {
+      // Uranus: Glacier pass snaking between cryo-pinnacles
+      return 0.22 * Math.sin(theta * 3.5 - 0.3) + 0.08 * Math.cos(theta * 2.0);
+    } else if (this.type === "Thalassa") {
+      // Neptune: Coastal archipelago oceanic causeway
+      return 0.20 * Math.sin(theta * 3.0 + 0.6) + 0.09 * Math.cos(theta * 2.0);
+    } else if (this.type === "Nocturna") {
+      // Pluto: Starlight crater circuit across nitrogen ice plains
+      return 0.22 * Math.sin(theta * 3.0 + 0.1) + 0.07 * Math.cos(theta * 2.0);
+    } else if (this.type === "Aetheria") {
+      // Venus: Rolling sulfuric dunes highway
+      return 0.19 * Math.sin(theta * 3.2 + 0.3) + 0.08 * Math.cos(theta * 2.0);
+    }
+    // Oakhaven (Alpine Wilderness): Classical scenic mountain route (100% original untouched formula)
+    return 0.22 * Math.sin(theta * 4.0 + 0.35) + 0.07 * Math.cos(theta * 2.0);
+  }
+
+  getRoadDLatDTheta(theta) {
+    if (this.type === "Rustvale") {
+      return 0.24 * 3.5 * Math.cos(theta * 3.5 + 0.5) - 0.09 * 2.0 * Math.sin(theta * 2.0);
+    } else if (this.type === "Cinderfell") {
+      return 0.18 * 3.0 * Math.cos(theta * 3.0 + 0.2) - 0.08 * 4.0 * Math.sin(theta * 4.0);
+    } else if (this.type === "Stormhaven") {
+      return 0.15 * 2.5 * Math.cos(theta * 2.5 + 0.4) - 0.06 * 3.0 * Math.sin(theta * 3.0);
+    } else if (this.type === "Ringhaven") {
+      return 0.20 * 3.0 * Math.cos(theta * 3.0) - 0.08 * 2.0 * Math.sin(theta * 2.0);
+    } else if (this.type === "Frostveil") {
+      return 0.22 * 3.5 * Math.cos(theta * 3.5 - 0.3) - 0.08 * 2.0 * Math.sin(theta * 2.0);
+    } else if (this.type === "Thalassa") {
+      return 0.20 * 3.0 * Math.cos(theta * 3.0 + 0.6) - 0.09 * 2.0 * Math.sin(theta * 2.0);
+    } else if (this.type === "Nocturna") {
+      return 0.22 * 3.0 * Math.cos(theta * 3.0 + 0.1) - 0.07 * 2.0 * Math.sin(theta * 2.0);
+    } else if (this.type === "Aetheria") {
+      return 0.19 * 3.2 * Math.cos(theta * 3.2 + 0.3) - 0.08 * 2.0 * Math.sin(theta * 2.0);
+    }
+    return 0.22 * 4.0 * Math.cos(theta * 4.0 + 0.35) - 0.07 * 2.0 * Math.sin(theta * 2.0);
+  }
+
   _getRoadDir(theta) {
-    const roadLat = 0.22 * Math.sin(theta * 4.0 + 0.35) + 0.07 * Math.cos(theta * 2.0);
+    const roadLat = this.getRoadLat(theta);
     const x = Math.cos(roadLat) * Math.cos(theta);
     const y = Math.sin(roadLat);
     const z = Math.cos(roadLat) * Math.sin(theta);
@@ -1458,8 +1509,8 @@ export class Planet {
   }
 
   _getRoadTangent(theta) {
-    const roadLat = 0.22 * Math.sin(theta * 4.0 + 0.35) + 0.07 * Math.cos(theta * 2.0);
-    const dLatDTheta = 0.22 * 4.0 * Math.cos(theta * 4.0 + 0.35) - 0.07 * 2.0 * Math.sin(theta * 2.0);
+    const roadLat = this.getRoadLat(theta);
+    const dLatDTheta = this.getRoadDLatDTheta(theta);
 
     const cosLat = Math.cos(roadLat);
     const sinLat = Math.sin(roadLat);
@@ -1470,6 +1521,12 @@ export class Planet {
     const dy = cosLat * dLatDTheta;
     const dz = -sinLat * sinTh * dLatDTheta + cosLat * cosTh;
     return new THREE.Vector3(dx, dy, dz).normalize();
+  }
+
+  _getRoadRight(theta) {
+    const tangent = this._getRoadTangent(theta);
+    const normal = this._getRoadDir(theta);
+    return new THREE.Vector3().crossVectors(tangent, normal).normalize();
   }
 
   // ---------------------------------------------------------------
