@@ -19,6 +19,8 @@ export class PresenceTracker {
 
     // UI elements
     this.menuPill = document.getElementById('carousel-presence-pill');
+    this.menuNum = document.getElementById('presence-online-num');
+    this.menuLabel = document.getElementById('presence-online-label');
     this.menuCount = document.getElementById('presence-online-count');
     this.hudPill = document.getElementById('hud-presence-pill');
     this.hudCount = document.getElementById('hud-online-count');
@@ -143,18 +145,23 @@ export class PresenceTracker {
   }
 
   updateUI(count) {
-    const text = `${count} ${count === 1 ? 'Explorer' : 'Explorers'} Online`;
+    const fullText = `${count} ${count === 1 ? 'Explorer' : 'Explorers'} Online`;
+    const labelText = count === 1 ? 'Explorer Online' : 'Explorers Online';
 
-    if (this.menuCount) this.menuCount.textContent = text;
-    if (this.hudCount) this.hudCount.textContent = text;
+    if (this.menuNum) this.menuNum.textContent = count;
+    if (this.menuLabel) this.menuLabel.textContent = labelText;
+    if (this.menuCount) this.menuCount.textContent = fullText;
+    if (this.hudCount) this.hudCount.textContent = fullText;
 
     if (this.menuPill) {
       this.menuPill.classList.remove('hidden');
       this.menuPill.style.display = 'inline-flex';
+      this.menuPill.title = fullText;
     }
     if (this.hudPill) {
       this.hudPill.classList.remove('hidden');
       this.hudPill.style.display = 'inline-flex';
+      this.hudPill.title = fullText;
     }
   }
 

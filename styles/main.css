@@ -764,7 +764,28 @@ body.camera-dragging * {
     pointer-events: none;
   }
 
-  /* Row 1: Brand title pill on left, Quick Actions on right */
+  /* Row 1: Brand title pill on left, Full Presence Pill on right-most end of same line */
+  .hud-top-header-row {
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    width: 100% !important;
+    gap: 8px !important;
+    pointer-events: none;
+  }
+
+  .hud-top-header-row > * {
+    pointer-events: auto;
+  }
+
+  .hud-presence-pill {
+    padding: 4px 10px !important;
+    font-size: 9.5px !important;
+    letter-spacing: 0.3px !important;
+    margin-left: auto !important;
+    flex-shrink: 0 !important;
+  }
+
   .top-bar .title-card {
     pointer-events: auto;
     padding: 4px 10px;
@@ -1649,9 +1670,50 @@ body:has(#welcome-modal:not(.hidden)) #mobile-controls {
   z-index: 30;
 }
 
-/* Live Online Presence Pill & Pulse Dot (Silent Fail-Safe) */
-.carousel-presence-pill,
+/* HUD Top Header Row (Game Brand on Left, Full Presence Pill on Right-Most End) */
+.hud-top-header-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  pointer-events: none;
+  gap: 12px;
+}
+
+.hud-top-header-row > * {
+  pointer-events: auto;
+}
+
+/* In-Game HUD Full Presence Pill (Right-Most End of Game Name Line) */
 .hud-presence-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  background: rgba(8, 20, 28, 0.90);
+  border: 1.5px solid rgba(16, 185, 129, 0.45);
+  color: #F8FAFC;
+  border-radius: 9999px;
+  padding: 6px 14px;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.5px;
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.45);
+  user-select: none;
+  pointer-events: auto;
+  white-space: nowrap;
+  flex-shrink: 0;
+  transition: opacity 0.3s ease, border-color 0.3s ease;
+}
+
+.hud-presence-pill:hover {
+  border-color: rgba(16, 185, 129, 0.8);
+  background: rgba(16, 185, 129, 0.15);
+}
+
+/* Carousel Menu Presence Pill */
+.carousel-presence-pill {
   display: inline-flex;
   align-items: center;
   gap: 7px;
@@ -1670,8 +1732,7 @@ body:has(#welcome-modal:not(.hidden)) #mobile-controls {
   transition: opacity 0.3s ease, border-color 0.3s ease;
 }
 
-.carousel-presence-pill:hover,
-.hud-presence-pill:hover {
+.carousel-presence-pill:hover {
   border-color: rgba(16, 185, 129, 0.6);
   background: rgba(16, 185, 129, 0.12);
 }
@@ -2247,6 +2308,18 @@ body:has(#welcome-modal:not(.hidden)) #mobile-controls {
     transform: none;
     gap: 6px;
     flex-shrink: 0;
+  }
+
+  /* Option 1: Compact Presence Pill on mobile (only [● 2]) */
+  .carousel-presence-pill {
+    padding: 5px 8px !important;
+    gap: 5px !important;
+    font-size: 9.5px !important;
+    font-weight: 800 !important;
+  }
+
+  .carousel-presence-pill .presence-label-full {
+    display: none !important;
   }
 
   .btn-carousel-guide {
