@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+        xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">
+  <url>
+    <loc>https://overthehorizon.game/</loc>
+    <lastmod>2026-10-18</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>1.0</priority>
+    <image:image>
+      <image:loc>https://overthehorizon.game/assets/og-cover.png</image:loc>
+      <image:title>Over The Horizon — 3D Low-Poly Planetary Driving Odyssey</image:title>
+      <image:caption>Miniature 3D low-poly planets and vintage overland rover in an indie browser driving game.</image:caption>
+    </image:image>
+    <image:image>
+      <image:loc>https://overthehorizon.game/assets/previews/map_oakhaven.png</image:loc>
+      <image:title>Planet Oakhaven Alpine Wilderness</image:title>
+      <image:caption>Lush alpine diorama with towering pine forests, rustic wooden bridges, and drifting cumulus clouds.</image:caption>
+    </image:image>
+  </url>
+</urlset>

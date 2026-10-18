@@ -1,0 +1,677 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  
+  <!-- Tab Title (Search & Browser Optimized) -->
+  <title>Over The Horizon — 3D Low-Poly Planetary Driving Odyssey</title>
+
+  <!-- Primary SEO Meta Tags -->
+  <meta name="description" content="Drive across 9 miniature spherical planets in Over The Horizon, an indie 3D low-poly driving odyssey. Cruise alpine trails, dodge meteor cascades & conquer crossing convoys right in your browser. Free to play, zero download.">
+  <meta name="keywords" content="over the horizon, 3d driving game, low poly game, browser game, indie game, three.js game, webgl driving simulator, cozy games, solar system game, space rover, art of rally web, free online games, relaxing driving game, html5 game, off-road overland, procedural soundscape, miniature planets">
+  <meta name="author" content="Over The Horizon Team">
+  <meta name="application-name" content="Over The Horizon">
+  <meta name="generator" content="Three.js WebGL">
+  <link rel="canonical" href="https://overthehorizon.game/">
+
+  <!-- Search Engine Bot Directives (Maximum Reach & Rich Indexing) -->
+  <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1">
+  <meta name="googlebot" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1">
+  <meta name="bingbot" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1">
+
+  <!-- Open Graph / Facebook / Discord / LinkedIn Rich Previews -->
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="Over The Horizon">
+  <meta property="og:title" content="Over The Horizon — 3D Low-Poly Planetary Driving Odyssey">
+  <meta property="og:description" content="Drive across 9 miniature spherical planets in this cozy indie 3D driving game. Free to play directly in your browser with zero installation.">
+  <meta property="og:url" content="https://overthehorizon.game/">
+  <meta property="og:image" content="https://overthehorizon.game/assets/og-cover.png">
+  <meta property="og:image:secure_url" content="https://overthehorizon.game/assets/og-cover.png">
+  <meta property="og:image:type" content="image/png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="Over The Horizon 3D Low-Poly Planetary Driving Game Rover and Miniature Planet">
+  <meta property="og:locale" content="en_US">
+
+  <!-- Twitter / X Card Meta Tags -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:site" content="@OverTheHorizon">
+  <meta name="twitter:creator" content="@OverTheHorizon">
+  <meta name="twitter:title" content="Over The Horizon — 3D Low-Poly Planetary Driving Odyssey">
+  <meta name="twitter:description" content="Explore 9 miniature spherical planets in an off-road overland rover. Free 3D browser driving game with cozy organic soundtracks.">
+  <meta name="twitter:image" content="https://overthehorizon.game/assets/og-cover.png">
+  <meta name="twitter:image:alt" content="Over The Horizon 3D Low-Poly Rover and Miniature Planet">
+
+  <!-- Mobile & PWA Optimization -->
+  <meta name="theme-color" content="#090D16">
+  <meta name="color-scheme" content="dark">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Over The Horizon">
+  <link rel="manifest" href="manifest.json">
+
+  <!-- Favicons and App Icons -->
+  <link rel="icon" type="image/svg+xml" href="favicon.svg">
+  <link rel="icon" type="image/png" sizes="64x64" href="favicon.png">
+  <link rel="shortcut icon" href="favicon.ico">
+  <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
+
+  <!-- Schema.org JSON-LD Structured Data for Google Rich Results -->
+  <script type="application/ld+json">
+  [
+    {
+      "@context": "https://schema.org",
+      "@type": "VideoGame",
+      "name": "Over The Horizon",
+      "alternateName": ["Over The Horizon: Planetary Driving Odyssey", "Over The Horizon 3D"],
+      "description": "An indie 3D low-poly driving odyssey where players pilot an overland rover across 9 miniature spherical planets throughout the solar system.",
+      "url": "https://overthehorizon.game/",
+      "image": "https://overthehorizon.game/assets/og-cover.png",
+      "genre": [
+        "Driving Simulation",
+        "Adventure Game",
+        "Cozy Game",
+        "Space Exploration",
+        "Arcade"
+      ],
+      "gamePlatform": [
+        "Web Browser",
+        "HTML5",
+        "WebGL"
+      ],
+      "applicationCategory": "Game",
+      "operatingSystem": "Any (Chrome, Firefox, Safari, Edge, Android, iOS)",
+      "playMode": "SinglePlayer",
+      "inLanguage": "en",
+      "offers": {
+        "@type": "Offer",
+        "price": "0",
+        "priceCurrency": "USD",
+        "availability": "https://schema.org/InStock",
+        "category": "Free to Play"
+      },
+      "author": {
+        "@type": "Organization",
+        "name": "Over The Horizon Studio",
+        "url": "https://overthehorizon.game/"
+      },
+      "screenshot": [
+        "https://overthehorizon.game/assets/og-cover.png",
+        "https://overthehorizon.game/assets/previews/map_oakhaven.png"
+      ]
+    },
+    {
+      "@context": "https://schema.org",
+      "@type": "WebApplication",
+      "name": "Over The Horizon",
+      "url": "https://overthehorizon.game/",
+      "applicationCategory": "GameApplication",
+      "browserRequirements": "Requires WebGL 2.0 or WebGL 1.0 support",
+      "operatingSystem": "All modern browsers"
+    }
+  ]
+  </script>
+
+  <link rel="stylesheet" href="styles/main.css">
+  
+  <!-- Modern HTML5 Import Map for Zero-Installation Three.js -->
+  <script type="importmap">
+  {
+    "imports": {
+      "three": "./libs/three.module.js",
+      "three/addons/": "./libs/"
+    }
+  }
+  </script>
+</head>
+<body>
+  <!-- WebGL 3D Canvas -->
+  <canvas id="webgl-canvas" layoutsubtree></canvas>
+
+  <!-- Red Danger Vignette for Damage & Low Health -->
+  <div class="danger-vignette" id="danger-vignette"></div>
+
+  <!-- Heads-Up Display (HUD) Layer -->
+  <div class="hud-layer hidden" id="hud-layer">
+    
+    <!-- Top Bar: Modern Floating Telemetry & Navigation Instrument Cluster -->
+    <header class="top-bar">
+      <!-- Left: Game Brand & Planet Sector Pill -->
+      <div class="hud-pill-card title-card hud-interactive">
+        <div class="hud-brand-crest" aria-hidden="true">
+          <img src="assets/logo-crest.png" class="brand-crest-img" alt="Over The Horizon Globe Logo" width="26" height="26">
+        </div>
+        <div class="hud-title-text-group">
+          <h1 class="hud-brand-title">OVER THE HORIZON</h1>
+          <p class="hud-planet-subtitle" id="label-planet-status">Planet Oakhaven • Alpine Miniature Diorama</p>
+        </div>
+      </div>
+
+      <!-- Mobile Quick-Actions Bar (Camera POV, Solar Map, Climate/Time Console) -->
+      <div class="mobile-quick-actions" id="mobile-quick-actions">
+        <button class="mobile-action-pill" id="btn-touch-menu" type="button" title="Solar System Expedition Map">
+          <span class="mobile-action-icon">
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="none">
+              <circle cx="12" cy="12" r="9" stroke="#F59E0B" stroke-width="2" fill="rgba(245,158,11,0.2)"/>
+              <polygon points="12,4 13.5,10.5 20,12 13.5,13.5 12,20 10.5,13.5 4,12 10.5,10.5" fill="#F59E0B"/>
+            </svg>
+          </span>
+          <span class="mobile-action-label">MAP</span>
+        </button>
+        <button class="mobile-action-pill" id="btn-touch-cam" type="button" title="Cycle Camera Mode">
+          <span class="mobile-action-icon">
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="#38BDF8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M23 7l-7 5 7 5V7z" fill="rgba(56,189,248,0.25)"/>
+              <rect x="1" y="5" width="15" height="14" rx="2" ry="2"/>
+            </svg>
+          </span>
+          <span class="mobile-action-label">CAM</span>
+        </button>
+        <button class="mobile-action-pill" id="btn-touch-atmo" type="button" title="Toggle Atmosphere &amp; Time Scrubbing">
+          <span class="mobile-action-icon">
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="#FBBF24" stroke-width="2">
+              <circle cx="12" cy="12" r="4" fill="#FBBF24"/>
+              <line x1="12" y1="1" x2="12" y2="4"/>
+              <line x1="12" y1="20" x2="12" y2="23"/>
+              <line x1="1" y1="12" x2="4" y2="12"/>
+              <line x1="20" y1="12" x2="23" y2="12"/>
+            </svg>
+          </span>
+          <span class="mobile-action-label">TIME</span>
+        </button>
+      </div>
+
+      <!-- Right (Cosy Exploration): Navigation Waypoint & Precision Odometer -->
+      <div class="hud-pill-card mission-card hud-interactive" id="cosy-hud-header">
+        <div class="waypoint-row">
+          <span class="waypoint-icon-pin" aria-hidden="true">
+            <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="#F59E0B" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M12 2a7 7 0 0 0-7 7c0 5.25 7 13 7 13s7-7.75 7-13a7 7 0 0 0-7-7z" fill="rgba(245,158,11,0.2)"/>
+              <circle cx="12" cy="9" r="2.5" fill="#FBBF24"/>
+            </svg>
+          </span>
+          <span class="mission-title" id="region-badge">PINE CREEK OUTPOST</span>
+        </div>
+        <div class="mission-status-row">
+          <span class="mission-status" id="odometer-badge">ODOMETER: 0.00 KM / 0.41 KM</span>
+        </div>
+      </div>
+
+      <!-- Right (Arcade Mode): Shield Integrity, High-Score & Multiplier -->
+      <div class="hud-pill-card arcade-card hud-interactive hidden" id="arcade-hud-header">
+        <div class="arcade-top-row">
+          <div class="arcade-shields" id="arcade-hearts" title="Vehicle Shield Charges">
+            <span class="shield-cell heart-icon active">
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#38BDF8" stroke-width="2" stroke-linecap="round"><path d="M12 2l8 4v6c0 5.5-3.8 10-8 11-4.2-1-8-5.5-8-11V6l8-4z" fill="rgba(56,189,248,0.3)"/></svg>
+            </span>
+            <span class="shield-cell heart-icon active">
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#38BDF8" stroke-width="2" stroke-linecap="round"><path d="M12 2l8 4v6c0 5.5-3.8 10-8 11-4.2-1-8-5.5-8-11V6l8-4z" fill="rgba(56,189,248,0.3)"/></svg>
+            </span>
+            <span class="shield-cell heart-icon active">
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#38BDF8" stroke-width="2" stroke-linecap="round"><path d="M12 2l8 4v6c0 5.5-3.8 10-8 11-4.2-1-8-5.5-8-11V6l8-4z" fill="rgba(56,189,248,0.3)"/></svg>
+            </span>
+          </div>
+          <div class="arcade-score-wrap">
+            <span class="score-label">SCORE</span>
+            <span class="score-value" id="arcade-score">0</span>
+          </div>
+          <div class="arcade-hi-wrap">
+            <span class="hi-label">HI-SCORE</span>
+            <span class="hi-value" id="arcade-high-score">0</span>
+          </div>
+        </div>
+        <div class="arcade-combo-row">
+          <div class="combo-badge" id="arcade-combo-badge">COMBO x1</div>
+          <div class="combo-progress-bar">
+            <div class="combo-progress-fill" id="arcade-combo-fill" style="width: 0%;"></div>
+          </div>
+        </div>
+        <div class="lockon-warning-badge hidden" id="lockon-warning-badge">
+          <span class="lockon-pulsar"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="#EF4444" stroke-width="2.5"><polygon points="12,2 22,20 2,20" fill="rgba(239,68,68,0.25)"/><line x1="12" y1="9" x2="12" y2="13"/><circle cx="12" cy="17" r="1" fill="#EF4444"/></svg></span> STATIONARY LOCK-ON! MOVE NOW!
+        </div>
+      </div>
+    </header>
+
+    <!-- Arcade Floating Notification Toasts -->
+    <div class="arcade-toast-container" id="arcade-toast-container"></div>
+
+    <!-- Center Banner Notification -->
+    <div class="glass-panel banner-container" id="banner-notification">
+      <div class="banner-title" id="banner-title">EXPEDITION COMMENCED</div>
+      <div class="banner-subtitle" id="banner-subtitle">Traverse the curved horizon and deliver supplies!</div>
+    </div>
+
+    <!-- Bottom Bar: Controls, Speedometer & Nitro, Atmosphere Dial -->
+    <footer class="bottom-bar">
+      <!-- Left: Minimalist Tactile Keycaps Guide -->
+      <div class="hud-pill-card controls-guide hud-interactive" id="controls-guide-bar">
+        <div class="controls-keycap-group">
+          <span class="keycap-cluster">
+            <kbd class="keycap">W</kbd><kbd class="keycap">A</kbd><kbd class="keycap">S</kbd><kbd class="keycap">D</kbd>
+            <span class="keycap-action">Drive &amp; Steer</span>
+          </span>
+          <span class="keycap-divider"></span>
+          <span class="keycap-cluster">
+            <kbd class="keycap keycap-space">SPACE</kbd>
+            <span class="keycap-action">Nitro Boost</span>
+          </span>
+        </div>
+        <div class="controls-aux-row">
+          <span class="aux-item"><kbd class="keycap keycap-xs">C</kbd> Camera</span>
+          <span class="aux-item"><kbd class="keycap keycap-xs">P</kbd> Cruise</span>
+          <span class="aux-item"><kbd class="keycap keycap-xs">H</kbd> Horn</span>
+          <span class="aux-item"><kbd class="keycap keycap-xs">M</kbd> Solar Map</span>
+        </div>
+      </div>
+
+      <!-- Center: Speedometer & Nitro Energy Core -->
+      <div class="hud-pill-card speedometer-box hud-interactive">
+        <div class="speedometer-cluster">
+          <div class="speed-num-row">
+            <span class="speed-value" id="speed-indicator">0</span>
+            <span class="speed-unit">KM/H</span>
+          </div>
+          
+          <!-- Tactile Nitro Energy Gauge -->
+          <div class="nitro-gauge-container">
+            <div class="nitro-label-row">
+              <span class="nitro-label-icon">
+                <svg viewBox="0 0 24 24" width="10" height="10" fill="#00f0ff"><polygon points="13,2 4,14 11,14 10,22 20,10 13,10"/></svg>
+              </span>
+              <span class="nitro-label">NITRO BOOST</span>
+              <span class="nitro-hint">[SPACE]</span>
+            </div>
+            <div class="nitro-bar">
+              <div class="nitro-fill" id="nitro-fill" style="width: 100%;"></div>
+            </div>
+          </div>
+
+          <div class="pill-autopilot" id="autopilot-pill">MANUAL DRIVING</div>
+        </div>
+      </div>
+
+      <!-- Right: Planetary Atmosphere Dial & Environment Console -->
+      <div class="hud-pill-card atmosphere-box hud-interactive" id="atmosphere-box">
+        <div class="mobile-atmo-header">
+          <span>PLANETARY ATMOSPHERE &amp; TIME</span>
+          <button class="btn-close-atmo" id="btn-close-atmo" type="button" aria-label="Close Climate Console">✕</button>
+        </div>
+        <div class="time-row">
+          <div class="atmosphere-label-wrap">
+            <span class="atmosphere-icon-dial">
+              <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="#F59E0B" stroke-width="2"><circle cx="12" cy="12" r="5" fill="#FBBF24"/><line x1="12" y1="1" x2="12" y2="4"/><line x1="12" y1="20" x2="12" y2="23"/><line x1="1" y1="12" x2="4" y2="12"/><line x1="20" y1="12" x2="23" y2="12"/></svg>
+            </span>
+            <span class="atmosphere-title">ATMOSPHERE DIAL</span>
+          </div>
+          <span class="atmosphere-time-badge" id="time-display">Sunset (18:15)</span>
+        </div>
+        
+        <div class="slider-track-wrap">
+          <input type="range" min="0" max="24" step="0.1" value="18.25" class="time-slider" id="atmosphere-slider" title="Scrub planetary time-of-day">
+        </div>
+        
+        <div class="weather-buttons">
+          <button class="btn-weather active" data-weather="0" id="btn-weather-sun" type="button" title="Clear Midday Sun">
+            <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="4" fill="#FBBF24" stroke="#F59E0B"/><line x1="12" y1="2" x2="12" y2="4" stroke="#FBBF24"/><line x1="12" y1="20" x2="12" y2="22" stroke="#FBBF24"/><line x1="2" y1="12" x2="4" y2="12" stroke="#FBBF24"/><line x1="20" y1="12" x2="22" y2="12" stroke="#FBBF24"/></svg>
+            <span>Sun</span>
+          </button>
+          <button class="btn-weather" data-weather="1" id="btn-weather-rain" type="button" title="Precipitation Rain">
+            <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M19 14a4 4 0 0 0-4-4 6 6 0 0 0-11.3 1.8A4 4 0 0 0 5 18h14" stroke="#60A5FA" fill="rgba(96,165,250,0.2)"/><line x1="9" y1="19" x2="8" y2="22" stroke="#38BDF8" stroke-width="2"/><line x1="15" y1="19" x2="14" y2="22" stroke="#38BDF8" stroke-width="2"/></svg>
+            <span>Rain</span>
+          </button>
+          <button class="btn-weather" data-weather="2" id="btn-weather-snow" type="button" title="Alpine Snow Blizzard">
+            <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="#93C5FD" stroke-width="1.8" stroke-linecap="round"><line x1="12" y1="2" x2="12" y2="22"/><line x1="3.3" y1="7" x2="20.7" y2="17"/><line x1="3.3" y1="17" x2="20.7" y2="7"/><polyline points="9,3.5 12,6 15,3.5"/><polyline points="9,20.5 12,18 15,20.5"/></svg>
+            <span>Snow</span>
+          </button>
+          <button class="btn-weather" data-weather="3" id="btn-weather-dust" type="button" title="Dust Storm / Smog">
+            <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="#F59E0B" stroke-width="1.8" stroke-linecap="round"><path d="M4 8h12a3 3 0 0 0 0-6H14"/><path d="M2 13h17a2.5 2.5 0 0 1 0 5H17"/><path d="M6 18h10"/></svg>
+            <span>Dust</span>
+          </button>
+        </div>
+      </div>
+    </footer>
+  </div>
+
+  <!-- Mobile On-Screen Virtual Driving Controls -->
+  <div class="mobile-controls hidden" id="mobile-controls">
+    <!-- Left Thumb: Steering Controls -->
+    <div class="mobile-steer-zone">
+      <div class="touch-btn touch-steer-btn" id="btn-touch-left" role="button" aria-label="Steer Left">
+        <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+      </div>
+      <div class="touch-btn touch-steer-btn" id="btn-touch-right" role="button" aria-label="Steer Right">
+        <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+      </div>
+    </div>
+    
+    <!-- Right Thumb: Pedals & Nitro Cluster (Ergonomic Staggered Diamond) -->
+    <div class="mobile-action-zone">
+      <!-- Nitro Boost: Floating right above the Gas pedal -->
+      <div class="touch-btn touch-nitro-btn" id="btn-touch-boost" role="button" aria-label="Nitro Boost">
+        <svg viewBox="0 0 24 24" width="13" height="13" fill="#00F0FF" style="margin-right: 3px;"><polygon points="13,2 4,14 11,14 10,22 20,10 13,10"/></svg>
+        <span>NITRO</span>
+      </div>
+
+      <!-- Bottom Pedals Row: Brake on left, Gas on far right -->
+      <div class="mobile-pedal-row">
+        <div class="touch-btn touch-brake-btn" id="btn-touch-brake" role="button" aria-label="Dynamic Brake">
+          <span>BRAKE</span>
+        </div>
+        <div class="touch-btn touch-gas-btn" id="btn-touch-gas" role="button" aria-label="Accelerate Forward">
+          <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="18 15 12 9 6 15"/></svg>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Welcome & Mode Select Modal: Diegetic 3D Planetary Carousel Menu (Variation 1) -->
+  <div class="carousel-modal" id="welcome-modal">
+    <div class="planetary-carousel-menu hud-interactive" id="modern-start-menu">
+      
+      <!-- Top Bar: Minimal Centered Title Pill & Subtle Field Guide Action -->
+      <header class="carousel-top-bar">
+        <div class="carousel-brand-pill">
+          <div class="carousel-compass-icon" aria-hidden="true">
+            <img src="assets/logo-crest.png" class="brand-crest-img" alt="Over The Horizon Globe Logo" width="24" height="24">
+          </div>
+          <div class="carousel-brand-text">
+            <h1 class="carousel-main-title">OVER THE HORIZON</h1>
+            <span class="carousel-sub-title">Planetary Driving Odyssey</span>
+          </div>
+        </div>
+
+        <div class="carousel-top-actions">
+          <button class="btn-carousel-guide" id="btn-open-about" type="button" title="Expedition Field Guide &amp; Controls">
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <circle cx="12" cy="12" r="10"/>
+              <line x1="12" y1="16" x2="12" y2="12"/>
+              <line x1="12" y1="8" x2="12.01" y2="8"/>
+            </svg>
+            <span class="guide-btn-label">GUIDE</span>
+          </button>
+        </div>
+      </header>
+
+      <!-- Center Floating Planet Chevrons (Left & Right) -->
+      <button class="carousel-chevron chevron-prev" id="btn-prev-planet" aria-label="Cycle to previous planet" type="button" title="Previous Planet">
+        <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="15 18 9 12 15 6" />
+        </svg>
+      </button>
+      <button class="carousel-chevron chevron-next" id="btn-next-planet" aria-label="Cycle to next planet" type="button" title="Next Planet">
+        <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="9 18 15 12 9 6" />
+        </svg>
+      </button>
+
+      <!-- Bottom Floating Capsule Dock: Planet Hero + Mode Chips + DRIVE Button -->
+      <footer class="carousel-dock-footer">
+        <!-- Planet Hero Identifier (Floating cleanly stacked above dock pill) -->
+        <div class="carousel-planet-hero" id="carousel-planet-info">
+          <div class="planet-hero-title-wrap">
+            <h2 class="planet-hero-name" id="planet-hero-name">OAKHAVEN <span class="planet-hero-real" id="planet-hero-real">(Earth)</span></h2>
+            <div class="planet-hero-meta">
+              <span class="planet-hero-tag" id="planet-hero-tag">Alpine Wilderness</span>
+              <span class="meta-dot">•</span>
+              <span class="planet-hero-vehicle" id="planet-hero-vehicle">TrailScout 4x4 Rig</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="carousel-dock-pill">
+          <!-- Mode Chips -->
+          <div class="carousel-mode-group" role="tablist" aria-label="Expedition Modes">
+            <button class="carousel-mode-chip active" id="card-mode-cosy" role="tab" type="button" aria-selected="true" data-mode="cosy">
+              <span class="mode-chip-dot"></span>
+              <span class="mode-chip-text"><span class="mode-prefix">Cosy </span>Cruise</span>
+            </button>
+            <button class="carousel-mode-chip" id="card-mode-cascade" role="tab" type="button" aria-selected="false" data-mode="cascade">
+              <span class="mode-chip-dot"></span>
+              <span class="mode-chip-text"><span class="mode-prefix">Celestial </span>Cascade</span>
+            </button>
+            <button class="carousel-mode-chip" id="card-mode-crossy" role="tab" type="button" aria-selected="false" data-mode="crossy">
+              <span class="mode-chip-dot"></span>
+              <span class="mode-chip-text"><span class="mode-prefix">Crossy </span>Odyssey</span>
+            </button>
+          </div>
+
+          <!-- Tactile Amber Launch Button -->
+          <button class="btn-carousel-drive" id="btn-start-game" type="button" aria-label="Drive">
+            <span class="drive-label" id="btn-start-text">DRIVE</span>
+            <svg class="drive-icon" viewBox="0 0 24 24" width="13" height="13" fill="currentColor">
+              <polygon points="6,3 20,12 6,21" />
+            </svg>
+          </button>
+        </div>
+
+        <!-- Quick 9-Planet Dot Indicator (Subtle bottom tracker) -->
+        <div class="carousel-planet-dots" id="carousel-planet-dots" aria-label="Planet Selector">
+          <button class="planet-dot planet-card" data-planet="Cinderfell" title="Cinderfell (Mercury)" type="button" aria-label="Select Cinderfell"></button>
+          <button class="planet-dot planet-card" data-planet="Aetheria" title="Aetheria (Venus)" type="button" aria-label="Select Aetheria"></button>
+          <button class="planet-dot planet-card active" data-planet="Oakhaven" title="Oakhaven (Earth)" type="button" aria-label="Select Oakhaven"></button>
+          <button class="planet-dot planet-card" data-planet="Rustvale" title="Rustvale (Mars)" type="button" aria-label="Select Rustvale"></button>
+          <button class="planet-dot planet-card" data-planet="Stormhaven" title="Stormhaven (Jupiter)" type="button" aria-label="Select Stormhaven"></button>
+          <button class="planet-dot planet-card" data-planet="Ringhaven" title="Ringhaven (Saturn)" type="button" aria-label="Select Ringhaven"></button>
+          <button class="planet-dot planet-card" data-planet="Frostveil" title="Frostveil (Uranus)" type="button" aria-label="Select Frostveil"></button>
+          <button class="planet-dot planet-card" data-planet="Thalassa" title="Thalassa (Neptune)" type="button" aria-label="Select Thalassa"></button>
+          <button class="planet-dot planet-card" data-planet="Nocturna" title="Nocturna (Pluto)" type="button" aria-label="Select Nocturna"></button>
+        </div>
+      </footer>
+
+      <!-- Hidden backward-compatibility elements -->
+      <div style="display: none;" id="destination-ribbon">
+        <span id="ribbon-dest-text">Oakhaven (Earth)</span>
+        <span id="ribbon-veh-text">TrailScout 4x4 Rig</span>
+      </div>
+      <div style="display: none;" id="mode-detail-box">
+        <span id="mode-desc-title">SCENIC DIORAMA EXPEDITION</span>
+        <span id="mode-desc-tagline">Freeform Exploration</span>
+        <span id="mode-desc-text">Explore winding mountain trails.</span>
+      </div>
+      <div style="display: none;" id="mode-summary-text">Chill diorama exploration across miniature worlds</div>
+      <div style="display: none;" id="planet-hero-desc"></div>
+      <div style="display: none;" id="spec-terrain"></div>
+      <div style="display: none;" id="spec-atmosphere"></div>
+      <div style="display: none;" id="planet-hero-feature"></div>
+      <div style="display: none;" id="solar-stage"></div>
+
+    </div>
+  </div>
+
+  <!-- Arcade Game Over / High Score Summary Modal -->
+  <div class="modal-overlay hidden" id="gameover-modal">
+    <div class="glass-panel modal-card hud-interactive gameover-card">
+      <div class="gameover-icon">
+        <svg viewBox="0 0 24 24" width="36" height="36" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 22V3" stroke="#94A3B8" /><path d="M4 4h14l-2 5 2 5H4" fill="rgba(56,189,248,0.2)" stroke="#38BDF8" /></svg>
+      </div>
+      <h2>EXPEDITION SUMMARY</h2>
+      <p class="subtitle" id="go-mode-title">Celestial Cascade</p>
+
+      <div class="gameover-stats-grid">
+        <div class="go-stat-box">
+          <span class="go-stat-label">FINAL SCORE</span>
+          <span class="go-stat-value" id="go-final-score">0</span>
+        </div>
+        <div class="go-stat-box">
+          <span class="go-stat-label">HIGH SCORE</span>
+          <span class="go-stat-value" id="go-high-score">0</span>
+        </div>
+        <div class="go-stat-box highlight">
+          <span class="go-stat-label">MISSION RANK</span>
+          <span class="go-stat-value rank-text" id="go-rank">RANK A</span>
+        </div>
+      </div>
+
+      <div class="new-highscore-badge hidden" id="go-new-high-badge">NEW HIGH SCORE!</div>
+
+      <div class="modal-menu">
+        <button class="btn-primary" id="btn-retry-arcade" type="button" tabindex="0">PLAY AGAIN</button>
+        <button class="btn-secondary" id="btn-change-mode" type="button" tabindex="0">SELECT GAME MODE</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Expedition Manual / Ranger Handbook Modal -->
+  <div class="modal-overlay hidden" id="about-modal">
+    <div class="handbook-container hud-interactive">
+      <div class="handbook-binder">
+        
+        <!-- Left Page: Vehicle Dynamics & Controls -->
+        <div class="handbook-page left-page">
+          <div class="page-header">
+            <div class="park-stamp">
+              <svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="#1B3629" stroke-width="1.8"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" fill="rgba(217,130,43,0.15)" stroke="#C07A2B"/></svg>
+            </div>
+            <div>
+              <h2 class="handbook-title">OFFICIAL EXPEDITION MANUAL</h2>
+              <span class="handbook-sub">National Park Ranger Field Guide</span>
+            </div>
+          </div>
+
+          <div class="handbook-section-title">VEHICLE DYNAMICS &amp; CONTROLS</div>
+          <div class="controls-keycaps-grid">
+            <div class="keycap-item"><span class="keycap">W / UP</span> Accelerate Forward</div>
+            <div class="keycap-item"><span class="keycap">S / DOWN</span> Dynamic Brakes / Reverse</div>
+            <div class="keycap-item"><span class="keycap">A / D</span> Momentum Steering</div>
+            <div class="keycap-item"><span class="keycap">SPACE</span> Nitro Trail Boost</div>
+            <div class="keycap-item"><span class="keycap">C</span> Camera Modes (POV / Diorama)</div>
+            <div class="keycap-item"><span class="keycap">P</span> Autopilot Cruise Control</div>
+            <div class="keycap-item"><span class="keycap">H</span> Auxiliary Fog Lamps &amp; Horn</div>
+            <div class="keycap-item"><span class="keycap">R</span> Right Upright / Recover</div>
+          </div>
+
+          <div class="handbook-blueprint-box">
+            <div class="blueprint-label">VEHICLE CHASSIS SPECIFICATION • TRAILSCOUT 4x4</div>
+            <svg viewBox="0 0 320 110" width="100%" height="80" style="display: block; margin: 4px auto;">
+              <!-- Hand-drawn blueprint schematic of TrailScout 4x4 -->
+              <rect x="25" y="30" width="260" height="42" rx="6" fill="rgba(35,78,56,0.06)" stroke="#1B3629" stroke-width="1.8" stroke-dasharray="4,2"/>
+              <rect x="65" y="12" width="155" height="24" rx="4" fill="none" stroke="#1B3629" stroke-width="1.8"/>
+              <line x1="125" y1="12" x2="125" y2="36" stroke="#1B3629" stroke-width="1.2"/>
+              <line x1="175" y1="12" x2="175" y2="36" stroke="#1B3629" stroke-width="1.2"/>
+              <!-- Roof Rack -->
+              <rect x="75" y="6" width="135" height="6" rx="2" fill="none" stroke="#C07A2B" stroke-width="1.4"/>
+              <rect x="90" y="2" width="30" height="4" fill="rgba(192,122,43,0.3)" stroke="#C07A2B" stroke-width="1"/>
+              <rect x="130" y="2" width="45" height="4" fill="rgba(192,122,43,0.3)" stroke="#C07A2B" stroke-width="1"/>
+              <!-- Wheels -->
+              <circle cx="75" cy="74" r="16" fill="#FAF6EE" stroke="#1B3629" stroke-width="2.5"/>
+              <circle cx="75" cy="74" r="8" fill="rgba(35,78,56,0.15)" stroke="#1B3629" stroke-width="1.5"/>
+              <circle cx="235" cy="74" r="16" fill="#FAF6EE" stroke="#1B3629" stroke-width="2.5"/>
+              <circle cx="235" cy="74" r="8" fill="rgba(35,78,56,0.15)" stroke="#1B3629" stroke-width="1.5"/>
+              <!-- Spare Tire on rear -->
+              <rect x="12" y="36" width="12" height="30" rx="3" fill="#FAF6EE" stroke="#1B3629" stroke-width="1.8"/>
+              <!-- Dimensions -->
+              <line x1="25" y1="98" x2="285" y2="98" stroke="#C07A2B" stroke-width="1"/>
+              <text x="155" y="106" font-size="8" font-family="sans-serif" font-weight="bold" fill="#C07A2B" text-anchor="middle">3.85M WHEELBASE • 4-LINK SOLID AXLE</text>
+            </svg>
+          </div>
+        </div>
+
+        <!-- Right Page: Expedition Modes & Field Rules -->
+        <div class="handbook-page right-page">
+          <div class="handbook-section-title">PLANETARY EXPEDITION MODES</div>
+          
+          <div class="handbook-mode-card">
+            <div class="handbook-mode-header">
+              <span class="mode-bullet-badge">1</span>
+              <strong>Cosy Cruise:</strong>
+            </div>
+            <p>Freeform exploration across planetary biomes. Soak in dynamic time-of-day atmospheres and deliver supplies to remote outposts with zero timers.</p>
+          </div>
+
+          <div class="handbook-mode-card">
+            <div class="handbook-mode-header">
+              <span class="mode-bullet-badge">2</span>
+              <strong>Celestial Cascade:</strong>
+            </div>
+            <p>Orbital hazard survival. Astrolabes illuminate impending meteor impact sites. Weave within 2.5m for CLOSE CALL bonuses (+150 pts) and gather stardust shards to charge your 5x combo multiplier!</p>
+          </div>
+
+          <div class="handbook-mode-card">
+            <div class="handbook-mode-header">
+              <span class="mode-bullet-badge">3</span>
+              <strong>Crossy Odyssey:</strong>
+            </div>
+            <p>Traverse perilous mountain passes. Slalom cleanly through crossing transport convoys and evade rolling boulders for massive weave score streaks!</p>
+          </div>
+
+          <div class="handbook-section-title" style="margin-top: 10px;">FIELD RANGER RULES &amp; INTEGRITY</div>
+          <div class="handbook-rules-box">
+            <div class="rule-item">
+              <span class="rule-icon">
+                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#2563EB" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" fill="rgba(37,99,235,0.15)"/></svg>
+              </span>
+              <span><strong>3 Shield Charges:</strong> Shields absorb impact energy and deflect incoming hazards.</span>
+            </div>
+            <div class="rule-item">
+              <span class="rule-icon">
+                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#16A34A" stroke-width="2"><rect x="3" y="7" width="18" height="13" rx="2" fill="rgba(22,163,74,0.15)"/><path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="12" y1="12" x2="12" y2="15"/></svg>
+              </span>
+              <span><strong>Toolbox Repairs:</strong> Green field toolboxes scattered on routes restore depleted shields.</span>
+            </div>
+          </div>
+
+          <div class="handbook-page-footer">
+            <button class="btn-timber-action" id="btn-close-about" type="button" style="width: 100%; margin-top: 10px;">RETURN TO EXPEDITION</button>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- Semantic Indexable Overview for Search Engines & Assistive Technology -->
+  <article class="sr-only" aria-label="Game Overview and Indexing Information">
+    <h1>Over The Horizon: 3D Low-Poly Planetary Driving Odyssey</h1>
+    <p>
+      Over The Horizon is a free-to-play indie 3D low-poly driving simulator and planetary exploration odyssey built with WebGL and Three.js.
+      Players pilot the vintage TrailScout 4x4 Rig overland exploration vehicle across 9 miniature spherical planets orbiting throughout the solar system.
+    </p>
+
+    <section>
+      <h2>Planetary Destinations</h2>
+      <ul>
+        <li><strong>Planet Oakhaven (Earth):</strong> Lush alpine diorama with towering emerald pine forests, rustic wooden bridges, cascading waterfalls, and drifting cumulus clouds.</li>
+        <li><strong>Planet Cinderfell (Mercury):</strong> Scorched volcanic basalt calderas, molten magma streams, and glowing thermal vents.</li>
+        <li><strong>Planet Aetheria (Venus):</strong> Sulfuric glasslands, glowing acid sand dunes, and serene twilight atmospheres.</li>
+        <li><strong>Planet Rustvale (Mars):</strong> Crimson canyons, ancient dried riverbeds, iron sand dunes, and monumental rock arches.</li>
+        <li><strong>Planet Stormhaven (Jupiter):</strong> Tempestuous gas giant peaks, colossal cloud vortexes, and floating ion pylons.</li>
+        <li><strong>Planet Ringhaven (Saturn):</strong> Golden ringed horizon, celestial dust fields, and cosmic solar skimmers.</li>
+        <li><strong>Planet Frostveil (Uranus):</strong> Azure methane glaciers, steep tilted planetary rings, and sub-zero crystal spires.</li>
+        <li><strong>Planet Thalassa (Neptune):</strong> Deep cobalt ocean world, abyssal monoliths, and rolling tidal sub-swells.</li>
+        <li><strong>Planet Nocturna (Pluto):</strong> Outer-rim frozen nitrogen plains, dark crystalline peaks, and glittering starlight.</li>
+      </ul>
+    </section>
+
+    <section>
+      <h2>Game Modes</h2>
+      <ul>
+        <li><strong>Cosy Cruise:</strong> Peaceful, relaxing open-trail exploration with dynamic time-of-day transitions, warm sunlight, and scenic vistas.</li>
+        <li><strong>Celestial Cascade:</strong> Action-packed celestial survival dodging falling meteorites tracked by glowing ground astrolabes, earning near-miss combo score multipliers.</li>
+        <li><strong>Crossy Odyssey:</strong> High-stakes mountain transit dodging rolling boulders, crossing utility convoys, and dynamic traffic hazards across busy planetary arteries.</li>
+      </ul>
+    </section>
+
+    <section>
+      <h2>Vehicle & Controls</h2>
+      <p>
+        Drive the TrailScout 4x4 Rig using keyboard controls [W/A/S/D or Arrow keys] to accelerate, steer, and brake.
+        Press [SPACE] for nitro boost, [C] to cycle between Chase, Free Orbit, and Cockpit camera modes, [H] for auxiliary fog lamps, and [P] for cruise control.
+        Full mobile touch steering, virtual pedals, and accelerometer support available on phones and tablets.
+      </p>
+    </section>
+
+    <section>
+      <h2>Audio & Soundscapes</h2>
+      <p>
+        Features 100% organic, zero-beep procedural acoustic and analog soundscapes synthesized live in your browser using the Web Audio API.
+        Includes nylon-string acoustic guitars, concert harps, wooden marimbas, kalimbas, Rhodes electric pianos, and warm analog cello swells tailored to each world.
+      </p>
+    </section>
+  </article>
+
+  <!-- Main Application Entrypoint -->
+  <script type="module" src="src/js/app.js"></script>
+</body>
+</html>
