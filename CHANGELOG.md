@@ -7,6 +7,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [2.5.0] - 2026-10-18
+
+### Added
+- **Official Social Media Banners with Genuine Gameplay Photo Capture**:
+  - Composed and generated official high-resolution branding banners using actual Three.js in-game gameplay capture of planet Oakhaven, the wooden bridge, pine forests, and the TrailScout 4x4 rig:
+    - `assets/banner-readme.png` (1280x520) - Hero banner embedded at the top of `README.md`.
+    - `assets/banner-github.png` (1280x640, 2:1 ratio) - GitHub repository social preview.
+    - `assets/banner-twitter.png` (1500x500, 3:1 ratio) - Twitter / X profile header with avatar safe zone.
+    - `assets/banner-linkedin.png` (1584x396, 4:1 ratio) - LinkedIn profile and company page cover banner.
+    - `assets/og-cover.png` (1200x630, 1.91:1 ratio) - Open Graph and web social share image.
+  - 100% genuine in-engine visual capture with zero AI-generated concept art substitutions and zero emojis.
+
+---
+
 ## [2.4.9] - 2026-10-18
 
 ### Added

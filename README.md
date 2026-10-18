@@ -2,6 +2,10 @@
 
 <div align="center">
 
+<img src="assets/banner-readme.png" alt="Over The Horizon - 3D Low-Poly Planetary Driving Odyssey" width="100%">
+
+<br><br>
+
 ![Code License: GNU AGPLv3](https://img.shields.io/badge/Code_License-GNU_AGPLv3-blue.svg)
 ![Game Design & Assets: All Rights Reserved](https://img.shields.io/badge/Game_Design_%26_Assets-All_Rights_Reserved-crimson.svg)
 ![Technology: WebGL / Three.js](https://img.shields.io/badge/WebGL-Three.js_r128-blue.svg)
