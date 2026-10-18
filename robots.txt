@@ -49,4 +49,4 @@ User-agent: WhatsApp
 Allow: /
 
 # XML Sitemap
-Sitemap: https://overthehorizon.game/sitemap.xml
+Sitemap: https://overthehorizon.srinivasa.dev/sitemap.xml

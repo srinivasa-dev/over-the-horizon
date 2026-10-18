@@ -1,0 +1,568 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Planet Overhaul 3D Preview</title>
+  <style>
+    html, body {
+      width: 1280px;
+      height: 720px;
+      margin: 0;
+      padding: 0;
+      background: #060911;
+      overflow: hidden;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    }
+    #webgl-canvas {
+      width: 1280px;
+      height: 720px;
+      display: block;
+    }
+    #overlay-banner {
+      position: absolute;
+      top: 24px;
+      left: 28px;
+      background: rgba(10, 18, 28, 0.85);
+      border: 1px solid rgba(245, 158, 11, 0.4);
+      border-radius: 16px;
+      padding: 12px 24px;
+      color: #FFF;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.6);
+      backdrop-filter: blur(12px);
+    }
+    #overlay-title {
+      font-size: 20px;
+      font-weight: 900;
+      letter-spacing: 2px;
+      margin: 0;
+      color: #FBBF24;
+      text-transform: uppercase;
+    }
+    #overlay-subtitle {
+      font-size: 12px;
+      color: #94A3B8;
+      margin: 4px 0 0 0;
+      letter-spacing: 1px;
+    }
+    #badge-biome {
+      display: inline-block;
+      margin-top: 6px;
+      font-size: 11px;
+      font-weight: 700;
+      padding: 2px 8px;
+      background: rgba(245, 158, 11, 0.2);
+      color: #FDE68A;
+      border-radius: 6px;
+    }
+  </style>
+
+  <script type="importmap">
+  {
+    "imports": {
+      "three": "./libs/three.module.js",
+      "three/addons/": "./libs/"
+    }
+  }
+  </script>
+</head>
+<body>
+  <div id="overlay-banner">
+    <h1 id="overlay-title">CINDERFELL (MERCURY)</h1>
+    <p id="overlay-subtitle">Volcanic Basalt Calderas, Magma Bridges & Thermal Outposts</p>
+    <div id="badge-biome">4-Biome Worldbuilding Concept Preview</div>
+  </div>
+  <canvas id="webgl-canvas"></canvas>
+
+  <script type="module">
+    import * as THREE from 'three';
+    import { Planet } from './src/js/planet.js';
+    import * as M from './src/js/models.js';
+
+    const urlParams = new URLSearchParams(window.location.search);
+    const planetType = urlParams.get('planet') || 'Cinderfell';
+
+    const titles = {
+      Cinderfell: {
+        title: "CINDERFELL (MERCURY)",
+        sub: "Volcanic Basalt Calderas, Magma Bridges & Geothermal Outposts",
+        biome: "Biome 2: Magma Gorge Bridge & Vulcanology Station"
+      },
+      Aetheria: {
+        title: "AETHERIA (VENUS)",
+        sub: "Sulfuric Amber Plateaus, Toxic Geysers & Cloud Aerostats",
+        biome: "Biome 2: Acid Wash Basin & High-Altitude Outpost"
+      },
+      Rustvale: {
+        title: "RUSTVALE (MARS)",
+        sub: "Crimson Canyons, Sandstone Arch Bridges & Terraforming Bio-Domes",
+        biome: "Biome 1: Valles Marineris Gateway & Canyon Rift"
+      },
+      Stormhaven: {
+        title: "STORMHAVEN (JUPITER)",
+        sub: "Jovian Banded Ridges, Ion Plasma Runways & High-Voltage Pylons",
+        biome: "Biome 2: High-Voltage Ion Lightning Valley"
+      },
+      Ringhaven: {
+        title: "RINGHAVEN (SATURN)",
+        sub: "Golden Planetary Rings, Ring Arch Bridges & Solar Harvesters",
+        biome: "Biome 1: Golden Ring Trench & Solar Array Depot"
+      },
+      Frostveil: {
+        title: "FROSTVEIL (URANUS)",
+        sub: "Azure Methane Glaciers, Tilted Ice Rings & Cryo-Drill Outposts",
+        biome: "Biome 1: Sub-Zero Glacial Crevasse & Truss Bridge"
+      },
+      Thalassa: {
+        title: "THALASSA (NEPTUNE)",
+        sub: "Deep Cobalt Abyssal Shelves, Oceanic Causeways & Marine Labs",
+        biome: "Biome 2: Abyssal Shelf Causeway & Sonar Beacon Network"
+      },
+      Nocturna: {
+        title: "NOCTURNA (PLUTO)",
+        sub: "Crystalline Nitrogen Tundra, Obsidian Chasms & Deep Radio Observatories",
+        biome: "Biome 1: Frost Chasm Bridge & Deep Space Radio Array"
+      }
+    };
+
+    const info = titles[planetType] || titles.Cinderfell;
+    document.getElementById('overlay-title').textContent = info.title;
+    document.getElementById('overlay-subtitle').textContent = info.sub;
+    document.getElementById('badge-biome').textContent = info.biome;
+
+    // Setup Three.js scene
+    const canvas = document.getElementById('webgl-canvas');
+    const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, preserveDrawingBuffer: true });
+    renderer.setSize(1280, 720);
+    renderer.setPixelRatio(1);
+    renderer.shadowMap.enabled = true;
+    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+
+    const scene = new THREE.Scene();
+    scene.background = new THREE.Color(0x060911);
+
+    const camera = new THREE.PerspectiveCamera(42, 1280 / 720, 0.5, 1000);
+
+    // Planet instance
+    const planet = new Planet(planetType, 65.0);
+    scene.add(planet.group);
+
+    // Warm Sun directional light
+    const sunLight = new THREE.DirectionalLight(0xFFF7E6, 2.2);
+    sunLight.position.set(120, 90, 110);
+    sunLight.castShadow = true;
+    sunLight.shadow.mapSize.width = 2048;
+    sunLight.shadow.mapSize.height = 2048;
+    sunLight.shadow.camera.near = 10;
+    sunLight.shadow.camera.far = 400;
+    sunLight.shadow.camera.left = -90;
+    sunLight.shadow.camera.right = 90;
+    sunLight.shadow.camera.top = 90;
+    sunLight.shadow.camera.bottom = -90;
+    scene.add(sunLight);
+
+    // Ambient light
+    const hemiLight = new THREE.HemisphereLight(0x406080, 0x181015, 0.85);
+    scene.add(hemiLight);
+
+    const roverBuilders = {
+      Cinderfell: M.buildMagmaCrawler,
+      Rustvale: M.buildCrimsonNomad,
+      Stormhaven: M.buildIonSpeeder,
+      Frostveil: M.buildCryoTrac,
+      Aetheria: M.buildHazmatStrider,
+      Ringhaven: M.buildSolarSkimmer,
+      Thalassa: M.buildHydroRover,
+      Nocturna: M.buildVoidSled
+    };
+    const roverBuilder = roverBuilders[planetType] || M.buildOverlandWagon;
+    const rover = roverBuilder();
+    rover.scale.set(0.9, 0.9, 0.9);
+    
+    // Position rover on the road at theta = 0.82
+    const roadDir = planet._getRoadDir(0.82);
+    const place = planet.getSurfacePlacement(roadDir, 0.05);
+    rover.position.copy(place.position);
+    planet._alignToNormal(rover, place.normal);
+    
+    // Align forward with road tangent
+    const tangent = planet._getRoadTangent(0.82);
+    const right = new THREE.Vector3().crossVectors(tangent, place.normal).normalize();
+    const rotMat = new THREE.Matrix4().makeBasis(right, place.normal, tangent.clone().negate());
+    rover.quaternion.setFromRotationMatrix(rotMat);
+    scene.add(rover);
+
+    // =========================================================================
+    // SPAWN NEW BIOME PROPS & BRIDGES FOR VISUAL CONCEPT PREVIEW
+    // =========================================================================
+    if (planetType === "Cinderfell") {
+      // 1. Basalt Lava Bridge over road ahead of rover (theta = 0.92)
+      const bDir = planet._getRoadDir(0.92);
+        const bPlace = planet.getSurfacePlacement(bDir, 0.08);
+        const bridge = M.buildWoodenBridge();
+        bridge.traverse((child) => {
+          if (child.isMesh) {
+            child.material = new THREE.MeshStandardMaterial({ color: 0x242022, roughness: 0.9, flatShading: true });
+          }
+        });
+        bridge.scale.set(0.95, 0.95, 0.95);
+        bridge.position.copy(bPlace.position);
+        const bTangent = planet._getRoadTangent(0.92);
+        const bRight = new THREE.Vector3().crossVectors(bTangent, bDir).normalize();
+        const bMat = new THREE.Matrix4().makeBasis(bRight, bDir, bTangent.clone().negate());
+        bridge.quaternion.setFromRotationMatrix(bMat);
+        scene.add(bridge);
+
+        // 2. Geothermal Vulcanology Research Hub (theta = 0.72)
+        const hubDir = planet._getRoadDir(0.72);
+        const hubSide = new THREE.Vector3(-hubDir.z, 0, hubDir.x).normalize();
+        const hubPlace = planet.getSurfacePlacement(hubDir.clone().add(hubSide.clone().multiplyScalar(0.095)).normalize(), -0.15);
+        const hub = M.buildAlpineCabin();
+        hub.traverse((child) => {
+          if (child.isMesh) {
+            child.material = new THREE.MeshStandardMaterial({ color: 0x1A1B22, roughness: 0.7, flatShading: true });
+          }
+        });
+        hub.position.copy(hubPlace.position);
+        planet._alignToNormal(hub, hubPlace.normal);
+        scene.add(hub);
+
+        // 3. Smoking Thermal Vents flanking the road
+        for (const vTh of [0.78, 1.05]) {
+          const vDir = planet._getRoadDir(vTh);
+          const vSide = new THREE.Vector3(-vDir.z, 0, vDir.x).normalize();
+          const vPlace = planet.getSurfacePlacement(vDir.clone().add(vSide.clone().multiplyScalar(0.06)).normalize(), -0.1);
+          const vent = M.buildThermalVent();
+          vent.position.copy(vPlace.position);
+          planet._alignToNormal(vent, vPlace.normal);
+          scene.add(vent);
+        }
+
+        // 4. Clustered Obsidian Spires
+        for (let s = 0; s < 5; s++) {
+          const sDir = planet._getRoadDir(0.85 + s * 0.04);
+          const sSide = new THREE.Vector3(-sDir.z, 0, sDir.x).normalize();
+          const sPlace = planet.getSurfacePlacement(sDir.clone().add(sSide.clone().multiplyScalar(-0.08 - s * 0.015)).normalize(), -0.12);
+          const spire = M.buildObsidianSpire();
+          spire.scale.set(0.8 + s * 0.15, 0.8 + s * 0.2, 0.8 + s * 0.15);
+          spire.position.copy(sPlace.position);
+          planet._alignToNormal(spire, sPlace.normal);
+          scene.add(spire);
+        }
+
+      } else if (planetType === "Rustvale") {
+        // 1. Natural Sandstone Arch Bridge ahead of rover (theta = 0.94)
+        const bDir = planet._getRoadDir(0.94);
+        const bPlace = planet.getSurfacePlacement(bDir, 0.12);
+        const bridge = M.buildWoodenBridge();
+        bridge.traverse((child) => {
+          if (child.isMesh) {
+            child.material = new THREE.MeshStandardMaterial({ color: 0xBA4D32, roughness: 0.88, flatShading: true });
+          }
+        });
+        bridge.scale.set(1.1, 1.1, 1.1);
+        bridge.position.copy(bPlace.position);
+        const bTangent = planet._getRoadTangent(0.94);
+        const bRight = new THREE.Vector3().crossVectors(bTangent, bDir).normalize();
+        const bMat = new THREE.Matrix4().makeBasis(bRight, bDir, bTangent.clone().negate());
+        bridge.quaternion.setFromRotationMatrix(bMat);
+        scene.add(bridge);
+
+        // 2. Terraforming Geodesic Bio-Dome
+        const dDir = planet._getRoadDir(0.72);
+        const dSide = new THREE.Vector3(-dDir.z, 0, dDir.x).normalize();
+        const dPlace = planet.getSurfacePlacement(dDir.clone().add(dSide.clone().multiplyScalar(0.10)).normalize(), -0.2);
+        const dome = M.buildMarsTerraformDome();
+        dome.position.copy(dPlace.position);
+        planet._alignToNormal(dome, dPlace.normal);
+        scene.add(dome);
+
+        // 3. Communications Relay Tower
+        const tDir = planet._getRoadDir(0.68);
+        const tSide = new THREE.Vector3(-tDir.z, 0, tDir.x).normalize();
+        const tPlace = planet.getSurfacePlacement(tDir.clone().add(tSide.clone().multiplyScalar(-0.08)).normalize(), -0.1);
+        const tower = M.buildMarsCommsTower();
+        tower.position.copy(tPlace.position);
+        planet._alignToNormal(tower, tPlace.normal);
+        scene.add(tower);
+
+        // 4. Desert Hoodoos & Rock Pillars
+        for (let h = 0; h < 6; h++) {
+          const hDir = planet._getRoadDir(0.80 + h * 0.05);
+          const hSide = new THREE.Vector3(-hDir.z, 0, hDir.x).normalize();
+          const hPlace = planet.getSurfacePlacement(hDir.clone().add(hSide.clone().multiplyScalar(0.075 + (h % 2) * 0.02)).normalize(), -0.15);
+          const hoodoo = M.buildObsidianSpire();
+          hoodoo.traverse((child) => {
+            if (child.isMesh) child.material = new THREE.MeshStandardMaterial({ color: 0x963622, roughness: 0.9, flatShading: true });
+          });
+          hoodoo.scale.set(0.9, 0.7 + (h % 3) * 0.4, 0.9);
+          hoodoo.position.copy(hPlace.position);
+          planet._alignToNormal(hoodoo, hPlace.normal);
+          scene.add(hoodoo);
+        }
+
+      } else if (planetType === "Stormhaven") {
+        // 1. High-Voltage Ion Runway Bridge ahead (theta = 0.94)
+        const bDir = planet._getRoadDir(0.94);
+        const bPlace = planet.getSurfacePlacement(bDir, 0.1);
+        const bridge = M.buildWoodenBridge();
+        bridge.traverse((child) => {
+          if (child.isMesh) {
+            child.material = new THREE.MeshStandardMaterial({ color: 0x1E293B, emissive: 0x0EA5E9, emissiveIntensity: 0.25, metalness: 0.7, roughness: 0.3, flatShading: true });
+          }
+        });
+        bridge.scale.set(1.0, 1.0, 1.0);
+        bridge.position.copy(bPlace.position);
+        const bTangent = planet._getRoadTangent(0.94);
+        const bRight = new THREE.Vector3().crossVectors(bTangent, bDir).normalize();
+        const bMat = new THREE.Matrix4().makeBasis(bRight, bDir, bTangent.clone().negate());
+        bridge.quaternion.setFromRotationMatrix(bMat);
+        scene.add(bridge);
+
+        // 2. High-Voltage Lightning Pylons
+        for (let p = 0; p < 4; p++) {
+          const pDir = planet._getRoadDir(0.74 + p * 0.09);
+          const pSide = new THREE.Vector3(-pDir.z, 0, pDir.x).normalize();
+          const pPlace = planet.getSurfacePlacement(pDir.clone().add(pSide.clone().multiplyScalar(p % 2 === 0 ? 0.08 : -0.08)).normalize(), -0.1);
+          const pylon = M.buildLightningPylon();
+          pylon.position.copy(pPlace.position);
+          planet._alignToNormal(pylon, pPlace.normal);
+          scene.add(pylon);
+        }
+
+        // 3. Plasma Relay Rods
+        for (let r = 0; r < 5; r++) {
+          const rDir = planet._getRoadDir(0.82 + r * 0.05);
+          const rSide = new THREE.Vector3(-rDir.z, 0, rDir.x).normalize();
+          const rPlace = planet.getSurfacePlacement(rDir.clone().add(rSide.clone().multiplyScalar(-0.065)).normalize(), -0.1);
+          const rod = M.buildPlasmaRod();
+          rod.position.copy(rPlace.position);
+          planet._alignToNormal(rod, rPlace.normal);
+          scene.add(rod);
+        }
+
+      } else if (planetType === "Frostveil") {
+        // 1. Steel-Truss Ice Bridge ahead (theta = 0.94)
+        const bDir = planet._getRoadDir(0.94);
+        const bPlace = planet.getSurfacePlacement(bDir, 0.1);
+        const bridge = M.buildWoodenBridge();
+        bridge.traverse((child) => {
+          if (child.isMesh) {
+            child.material = new THREE.MeshStandardMaterial({ color: 0x64748B, metalness: 0.5, roughness: 0.4, flatShading: true });
+          }
+        });
+        bridge.scale.set(1.0, 1.0, 1.0);
+        bridge.position.copy(bPlace.position);
+        const bTangent = planet._getRoadTangent(0.94);
+        const bRight = new THREE.Vector3().crossVectors(bTangent, bDir).normalize();
+        const bMat = new THREE.Matrix4().makeBasis(bRight, bDir, bTangent.clone().negate());
+        bridge.quaternion.setFromRotationMatrix(bMat);
+        scene.add(bridge);
+
+        // 2. Cryo-Drill Rig Alpha
+        const cDir = planet._getRoadDir(0.70);
+        const cSide = new THREE.Vector3(-cDir.z, 0, cDir.x).normalize();
+        const cPlace = planet.getSurfacePlacement(cDir.clone().add(cSide.clone().multiplyScalar(0.095)).normalize(), -0.15);
+        const drill = M.buildCryoDrill();
+        drill.position.copy(cPlace.position);
+        planet._alignToNormal(drill, cPlace.normal);
+        scene.add(drill);
+
+        // 3. Clustered Cyan Ice Pinnacles
+        for (let i = 0; i < 7; i++) {
+          const iDir = planet._getRoadDir(0.78 + i * 0.04);
+          const iSide = new THREE.Vector3(-iDir.z, 0, iDir.x).normalize();
+          const iPlace = planet.getSurfacePlacement(iDir.clone().add(iSide.clone().multiplyScalar(-0.075 - (i % 2) * 0.02)).normalize(), -0.12);
+          const pin = M.buildFrostPinnacle();
+          pin.scale.set(0.8 + (i % 3) * 0.25, 0.9 + (i % 2) * 0.35, 0.8 + (i % 3) * 0.25);
+          pin.position.copy(iPlace.position);
+          planet._alignToNormal(pin, iPlace.normal);
+          scene.add(pin);
+        }
+
+      } else if (planetType === "Aetheria") {
+        // 1. Acid-resistant reinforced bridge
+        const bDir = planet._getRoadDir(0.94);
+        const bPlace = planet.getSurfacePlacement(bDir, 0.1);
+        const bridge = M.buildWoodenBridge();
+        bridge.traverse((child) => {
+          if (child.isMesh) child.material = new THREE.MeshStandardMaterial({ color: 0xB8860B, metalness: 0.6, roughness: 0.4, flatShading: true });
+        });
+        bridge.scale.set(1.0, 1.0, 1.0);
+        bridge.position.copy(bPlace.position);
+        const bTangent = planet._getRoadTangent(0.94);
+        const bRight = new THREE.Vector3().crossVectors(bTangent, bDir).normalize();
+        const bMat = new THREE.Matrix4().makeBasis(bRight, bDir, bTangent.clone().negate());
+        bridge.quaternion.setFromRotationMatrix(bMat);
+        scene.add(bridge);
+
+        // 2. High-Altitude Atmospheric Research Pod
+        const podDir = planet._getRoadDir(0.70);
+        const podSide = new THREE.Vector3(-podDir.z, 0, podDir.x).normalize();
+        const podPlace = planet.getSurfacePlacement(podDir.clone().add(podSide.clone().multiplyScalar(0.09)).normalize(), -0.15);
+        const pod = M.buildMarsTerraformDome();
+        pod.position.copy(podPlace.position);
+        planet._alignToNormal(pod, podPlace.normal);
+        scene.add(pod);
+
+        // 3. Toxic Acid Geysers
+        for (const vTh of [0.77, 1.04]) {
+          const vDir = planet._getRoadDir(vTh);
+          const vSide = new THREE.Vector3(-vDir.z, 0, vDir.x).normalize();
+          const vPlace = planet.getSurfacePlacement(vDir.clone().add(vSide.clone().multiplyScalar(0.065)).normalize(), -0.1);
+          const vent = M.buildThermalVent();
+          vent.position.copy(vPlace.position);
+          planet._alignToNormal(vent, vPlace.normal);
+          scene.add(vent);
+        }
+
+        // 4. Sulfur Crystal Formations
+        for (let s = 0; s < 5; s++) {
+          const sDir = planet._getRoadDir(0.83 + s * 0.04);
+          const sSide = new THREE.Vector3(-sDir.z, 0, sDir.x).normalize();
+          const sPlace = planet.getSurfacePlacement(sDir.clone().add(sSide.clone().multiplyScalar(-0.08)).normalize(), -0.12);
+          const spire = M.buildMintCrystalCluster(0.9);
+          spire.position.copy(sPlace.position);
+          planet._alignToNormal(spire, sPlace.normal);
+          scene.add(spire);
+        }
+
+      } else if (planetType === "Ringhaven") {
+        // 1. Golden Sandstone Ring-Arch Bridge
+        const bDir = planet._getRoadDir(0.94);
+        const bPlace = planet.getSurfacePlacement(bDir, 0.1);
+        const bridge = M.buildWoodenBridge();
+        bridge.traverse((child) => {
+          if (child.isMesh) child.material = new THREE.MeshStandardMaterial({ color: 0xD4AF37, metalness: 0.7, roughness: 0.3, flatShading: true });
+        });
+        bridge.scale.set(1.0, 1.0, 1.0);
+        bridge.position.copy(bPlace.position);
+        const bTangent = planet._getRoadTangent(0.94);
+        const bRight = new THREE.Vector3().crossVectors(bTangent, bDir).normalize();
+        const bMat = new THREE.Matrix4().makeBasis(bRight, bDir, bTangent.clone().negate());
+        bridge.quaternion.setFromRotationMatrix(bMat);
+        scene.add(bridge);
+
+        // 2. Solar Harvesting Array Tower
+        const tDir = planet._getRoadDir(0.70);
+        const tSide = new THREE.Vector3(-tDir.z, 0, tDir.x).normalize();
+        const tPlace = planet.getSurfacePlacement(tDir.clone().add(tSide.clone().multiplyScalar(0.09)).normalize(), -0.15);
+        const tower = M.buildMarsCommsTower();
+        tower.position.copy(tPlace.position);
+        planet._alignToNormal(tower, tPlace.normal);
+        scene.add(tower);
+
+        // 3. Planetary Ring Arch Monolith
+        const rDir = planet._getRoadDir(1.05);
+        const rPlace = planet.getSurfacePlacement(rDir, 0.05);
+        const arch = M.buildSandstoneRingArch(5.5);
+        arch.position.copy(rPlace.position);
+        planet._alignToNormal(arch, rPlace.normal);
+        scene.add(arch);
+
+        // 4. Solar Pylons
+        for (let p = 0; p < 4; p++) {
+          const pDir = planet._getRoadDir(0.78 + p * 0.06);
+          const pSide = new THREE.Vector3(-pDir.z, 0, pDir.x).normalize();
+          const pPlace = planet.getSurfacePlacement(pDir.clone().add(pSide.clone().multiplyScalar(-0.07)).normalize(), -0.1);
+          const pylon = M.buildLightningPylon();
+          pylon.position.copy(pPlace.position);
+          planet._alignToNormal(pylon, pPlace.normal);
+          scene.add(pylon);
+        }
+
+      } else if (planetType === "Thalassa") {
+        // 1. Oceanic Abyssal Causeway Bridge
+        const bDir = planet._getRoadDir(0.94);
+        const bPlace = planet.getSurfacePlacement(bDir, 0.1);
+        const bridge = M.buildWoodenBridge();
+        bridge.traverse((child) => {
+          if (child.isMesh) child.material = new THREE.MeshStandardMaterial({ color: 0x1E3A8A, metalness: 0.5, roughness: 0.4, flatShading: true });
+        });
+        bridge.scale.set(1.0, 1.0, 1.0);
+        bridge.position.copy(bPlace.position);
+        const bTangent = planet._getRoadTangent(0.94);
+        const bRight = new THREE.Vector3().crossVectors(bTangent, bDir).normalize();
+        const bMat = new THREE.Matrix4().makeBasis(bRight, bDir, bTangent.clone().negate());
+        bridge.quaternion.setFromRotationMatrix(bMat);
+        scene.add(bridge);
+
+        // 2. Sub-Sea Marine Science Bio-Dome
+        const dDir = planet._getRoadDir(0.70);
+        const dSide = new THREE.Vector3(-dDir.z, 0, dDir.x).normalize();
+        const dPlace = planet.getSurfacePlacement(dDir.clone().add(dSide.clone().multiplyScalar(0.095)).normalize(), -0.18);
+        const dome = M.buildMarsTerraformDome();
+        dome.position.copy(dPlace.position);
+        planet._alignToNormal(dome, dPlace.normal);
+        scene.add(dome);
+
+        // 3. Sonar Beacon Buoys
+        for (let r = 0; r < 5; r++) {
+          const rDir = planet._getRoadDir(0.80 + r * 0.06);
+          const rSide = new THREE.Vector3(-rDir.z, 0, rDir.x).normalize();
+          const rPlace = planet.getSurfacePlacement(rDir.clone().add(rSide.clone().multiplyScalar(r % 2 === 0 ? 0.07 : -0.07)).normalize(), -0.1);
+          const beacon = M.buildPlasmaRod();
+          beacon.position.copy(rPlace.position);
+          planet._alignToNormal(beacon, rPlace.normal);
+          scene.add(beacon);
+        }
+
+      } else if (planetType === "Nocturna") {
+        // 1. Obsidian Chasm Composite Bridge
+        const bDir = planet._getRoadDir(0.94);
+        const bPlace = planet.getSurfacePlacement(bDir, 0.1);
+        const bridge = M.buildWoodenBridge();
+        bridge.traverse((child) => {
+          if (child.isMesh) child.material = new THREE.MeshStandardMaterial({ color: 0x18181B, metalness: 0.8, roughness: 0.2, flatShading: true });
+        });
+        bridge.scale.set(1.0, 1.0, 1.0);
+        bridge.position.copy(bPlace.position);
+        const bTangent = planet._getRoadTangent(0.94);
+        const bRight = new THREE.Vector3().crossVectors(bTangent, bDir).normalize();
+        const bMat = new THREE.Matrix4().makeBasis(bRight, bDir, bTangent.clone().negate());
+        bridge.quaternion.setFromRotationMatrix(bMat);
+        scene.add(bridge);
+
+        // 2. Deep-Space Radio Astronomy Array
+        const rDir = planet._getRoadDir(0.70);
+        const rSide = new THREE.Vector3(-rDir.z, 0, rDir.x).normalize();
+        const rPlace = planet.getSurfacePlacement(rDir.clone().add(rSide.clone().multiplyScalar(0.09)).normalize(), -0.15);
+        const obs = M.buildMarsCommsTower();
+        obs.position.copy(rPlace.position);
+        planet._alignToNormal(obs, rPlace.normal);
+        scene.add(obs);
+
+        // 3. Alien Nitrogen Obelisks
+        for (let o = 0; o < 4; o++) {
+          const oDir = planet._getRoadDir(0.80 + o * 0.07);
+          const oSide = new THREE.Vector3(-oDir.z, 0, oDir.x).normalize();
+          const oPlace = planet.getSurfacePlacement(oDir.clone().add(oSide.clone().multiplyScalar(-0.08)).normalize(), -0.12);
+          const obelisk = M.buildLeaningObelisk(6.5 + (o % 2) * 2.0);
+          obelisk.position.copy(oPlace.position);
+          planet._alignToNormal(obelisk, oPlace.normal);
+          scene.add(obelisk);
+        }
+      }
+
+    // Position camera for cinematic diorama perspective
+    const camTarget = rover.position.clone().addScaledVector(place.normal, 3.0);
+    const camOffset = place.normal.clone().multiplyScalar(18.0)
+      .add(right.clone().multiplyScalar(-24.0))
+      .add(tangent.clone().multiplyScalar(-32.0));
+    camera.position.copy(camTarget).add(camOffset);
+    camera.lookAt(camTarget.clone().add(tangent.clone().multiplyScalar(8.0)));
+
+    // Render frame with all props added
+    renderer.render(scene, camera);
+    window.__PROPS_LOADED__ = true;
+    window.__RENDER_READY__ = true;
+
+    // Continuous render loop
+    function animate() {
+      requestAnimationFrame(animate);
+      renderer.render(scene, camera);
+    }
+    requestAnimationFrame(animate);
+  </script>
+</body>
+</html>
