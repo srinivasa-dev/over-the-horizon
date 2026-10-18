@@ -140,67 +140,159 @@ class App {
     this.sunLight.position.set(sunX, sunY, sunZ);
 
     const pType = this.currentPlanetType;
-    let ambHex = 0xE2F2FF, sunHex = 0xFFF9E6;
-    let sunIntensity = 2.4, ambIntensity = 1.05, moonIntensity = 0.0;
-    let moonHex = 0xB5D2FF;
 
-    if (pType === "Cinderfell") {
-      ambHex = 0x451A03; sunHex = 0xF97316; moonHex = 0xEF4444;
-    } else if (pType === "Aetheria") {
-      ambHex = 0x713F12; sunHex = 0xFDE047; moonHex = 0xFEF08A;
-    } else if (pType === "Rustvale") {
-      ambHex = 0x450A0A; sunHex = 0xEF4444; moonHex = 0xFCA5A5;
-    } else if (pType === "Stormhaven") {
-      ambHex = 0x083344; sunHex = 0x22D3EE; moonHex = 0x67E8F9;
-    } else if (pType === "Ringhaven") {
-      ambHex = 0x451A03; sunHex = 0xFBBF24; moonHex = 0xFDE68A;
-    } else if (pType === "Frostveil") {
-      ambHex = 0x082F49; sunHex = 0x38BDF8; moonHex = 0xBAE6FD;
-    } else if (pType === "Thalassa") {
-      ambHex = 0x1E1B4B; sunHex = 0x6366F1; moonHex = 0xA5B4FC;
-    } else if (pType === "Nocturna") {
-      ambHex = 0x18181B; sunHex = 0xA855F7; moonHex = 0xD8B4FE;
-    }
+    if (pType === "Oakhaven") {
+      let ambHex = 0xE2F2FF, sunHex = 0xFFF9E6;
+      let sunIntensity = 2.4, ambIntensity = 1.05, moonIntensity = 0.0;
+      let moonHex = 0xB5D2FF;
 
-    let ambCol, sunCol;
-    if (hourDecimal >= 6 && hourDecimal < 16.5) {
-      ambCol = new THREE.Color(ambHex).lerp(new THREE.Color(0xFFFFFF), 0.45);
-      sunCol = new THREE.Color(sunHex);
-      sunIntensity = 2.4;
-      ambIntensity = 1.05;
-      moonIntensity = 0.0;
-    } else if (hourDecimal >= 16.5 && hourDecimal < 19.5) {
-      ambCol = new THREE.Color(ambHex).lerp(new THREE.Color(0xF97316), 0.35);
-      sunCol = new THREE.Color(sunHex).lerp(new THREE.Color(0xEA580C), 0.5);
-      sunIntensity = 2.1;
-      ambIntensity = 0.95;
-      moonIntensity = 0.15;
-    } else if (hourDecimal >= 19.5 && hourDecimal < 21.5) {
-      ambCol = new THREE.Color(ambHex).lerp(new THREE.Color(0x18181B), 0.6);
-      sunCol = new THREE.Color(sunHex).multiplyScalar(0.4);
-      sunIntensity = 0.9;
-      ambIntensity = 0.85;
-      moonIntensity = 0.6;
+      let ambCol, sunCol;
+      if (hourDecimal >= 6 && hourDecimal < 16.5) {
+        ambCol = new THREE.Color(ambHex).lerp(new THREE.Color(0xFFFFFF), 0.45);
+        sunCol = new THREE.Color(sunHex);
+        sunIntensity = 2.4;
+        ambIntensity = 1.05;
+        moonIntensity = 0.0;
+      } else if (hourDecimal >= 16.5 && hourDecimal < 19.5) {
+        ambCol = new THREE.Color(ambHex).lerp(new THREE.Color(0xF97316), 0.35);
+        sunCol = new THREE.Color(sunHex).lerp(new THREE.Color(0xEA580C), 0.5);
+        sunIntensity = 2.1;
+        ambIntensity = 0.95;
+        moonIntensity = 0.15;
+      } else if (hourDecimal >= 19.5 && hourDecimal < 21.5) {
+        ambCol = new THREE.Color(ambHex).lerp(new THREE.Color(0x18181B), 0.6);
+        sunCol = new THREE.Color(sunHex).multiplyScalar(0.4);
+        sunIntensity = 0.9;
+        ambIntensity = 0.85;
+        moonIntensity = 0.6;
+      } else {
+        ambCol = new THREE.Color(ambHex).multiplyScalar(0.35);
+        sunCol = new THREE.Color(sunHex).multiplyScalar(0.1);
+        sunIntensity = 0.2;
+        ambIntensity = 0.90;
+        moonIntensity = 1.25;
+      }
+
+      this.ambientLight.color = ambCol;
+      this.ambientLight.intensity = ambIntensity;
+      this.sunLight.color = sunCol;
+      this.sunLight.intensity = sunIntensity;
+      if (this.moonLight) {
+        this.moonLight.color.setHex(moonHex);
+        this.moonLight.intensity = moonIntensity;
+      }
+      this.scene.fog = null;
     } else {
-      ambCol = new THREE.Color(ambHex).multiplyScalar(0.35);
-      sunCol = new THREE.Color(sunHex).multiplyScalar(0.1);
-      sunIntensity = 0.2;
-      ambIntensity = 0.90;
-      moonIntensity = 1.25;
-    }
+      // Dynamic Lighting profiles for all 8 other celestial worlds
+      const PLANET_PALETTES = {
+        Cinderfell: {
+          noonSun: 0xFFFAF0, sunsetSun: 0xF97316, dawnSun: 0xFDE047, nightSun: 0xDC2626,
+          noonAmb: 0x7F1D1D, sunsetAmb: 0x3B0716, dawnAmb: 0x4C0519, nightAmb: 0x0F0408,
+          moonHex: 0xF87171
+        },
+        Aetheria: {
+          noonSun: 0xFFFBEB, sunsetSun: 0xF59E0B, dawnSun: 0xFEF08A, nightSun: 0xFDE68A,
+          noonAmb: 0x92400E, sunsetAmb: 0x5C2407, dawnAmb: 0x713F12, nightAmb: 0x261205,
+          moonHex: 0xFEF08A
+        },
+        Rustvale: {
+          noonSun: 0xFFFBEB, sunsetSun: 0xF59E0B, dawnSun: 0xFDBA74, nightSun: 0x60A5FA,
+          noonAmb: 0x451A22, sunsetAmb: 0x581C28, dawnAmb: 0x702E3B, nightAmb: 0x11172A,
+          moonHex: 0xFCA5A5
+        },
+        Stormhaven: {
+          noonSun: 0xFFFFFF, sunsetSun: 0xA855F7, dawnSun: 0x67E8F9, nightSun: 0x38BDF8,
+          noonAmb: 0x1E3A8A, sunsetAmb: 0x581C87, dawnAmb: 0x312E81, nightAmb: 0x0A0F29,
+          moonHex: 0x67E8F9
+        },
+        Ringhaven: {
+          noonSun: 0xFFFDF0, sunsetSun: 0xF59E0B, dawnSun: 0xFDE68A, nightSun: 0xE0E7FF,
+          noonAmb: 0x78350F, sunsetAmb: 0x572619, dawnAmb: 0x44403C, nightAmb: 0x1C1917,
+          moonHex: 0xFDE68A
+        },
+        Frostveil: {
+          noonSun: 0xFFFFFF, sunsetSun: 0xF472B6, dawnSun: 0xFBCFE8, nightSun: 0x60A5FA,
+          noonAmb: 0x0284C7, sunsetAmb: 0x3B82F6, dawnAmb: 0x4338CA, nightAmb: 0x082F49,
+          moonHex: 0xBAE6FD
+        },
+        Thalassa: {
+          noonSun: 0xFFFFFF, sunsetSun: 0x6366F1, dawnSun: 0x99F6E4, nightSun: 0x38BDF8,
+          noonAmb: 0x1D4ED8, sunsetAmb: 0x312E81, dawnAmb: 0x1E3A8A, nightAmb: 0x0B132B,
+          moonHex: 0x93C5FD
+        },
+        Nocturna: {
+          noonSun: 0xFFF5FF, sunsetSun: 0xC084FC, dawnSun: 0xE9D5FF, nightSun: 0xA855F7,
+          noonAmb: 0x3B185F, sunsetAmb: 0x2E1065, dawnAmb: 0x241442, nightAmb: 0x06030A,
+          moonHex: 0xD8B4FE
+        }
+      };
 
-    this.ambientLight.color = ambCol;
-    this.ambientLight.intensity = ambIntensity;
-    this.sunLight.color = sunCol;
-    this.sunLight.intensity = sunIntensity;
-    if (this.moonLight) {
-      this.moonLight.color.setHex(moonHex);
-      this.moonLight.intensity = moonIntensity;
+      const pal = PLANET_PALETTES[pType] || PLANET_PALETTES.Rustvale;
+      let sunCol, ambCol, sunInt, ambInt, moonInt;
+
+      if (hourDecimal >= 7.5 && hourDecimal < 16.5) {
+        // Noon / Daytime
+        sunCol = new THREE.Color(pal.noonSun);
+        ambCol = new THREE.Color(pal.noonAmb).lerp(new THREE.Color(0xFFFFFF), 0.35);
+        sunInt = 3.0;
+        ambInt = 1.15;
+        moonInt = 0.0;
+      } else if (hourDecimal >= 16.5 && hourDecimal < 19.5) {
+        // Sunset / Golden Hour
+        sunCol = new THREE.Color(pal.sunsetSun);
+        ambCol = new THREE.Color(pal.sunsetAmb).lerp(new THREE.Color(0xFFFFFF), 0.25);
+        sunInt = 3.1;
+        ambInt = 1.10;
+        moonInt = 0.20;
+      } else if (hourDecimal >= 4.5 && hourDecimal < 7.5) {
+        // Dawn
+        sunCol = new THREE.Color(pal.dawnSun);
+        ambCol = new THREE.Color(pal.dawnAmb).lerp(new THREE.Color(0xFFFFFF), 0.30);
+        sunInt = 2.8;
+        ambInt = 1.05;
+        moonInt = 0.15;
+      } else if (hourDecimal >= 19.5 && hourDecimal < 21.5) {
+        // Twilight / Dusk
+        sunCol = new THREE.Color(pal.sunsetSun).multiplyScalar(0.4);
+        ambCol = new THREE.Color(pal.nightAmb).lerp(new THREE.Color(pal.sunsetAmb), 0.4);
+        sunInt = 0.85;
+        ambInt = 0.85;
+        moonInt = 0.65;
+      } else {
+        // Deep Night
+        sunCol = new THREE.Color(pal.nightSun).multiplyScalar(0.18);
+        ambCol = new THREE.Color(pal.nightAmb);
+        sunInt = 0.20;
+        ambInt = 0.70;
+        moonInt = 1.30;
+      }
+
+      this.ambientLight.color = ambCol;
+      this.ambientLight.intensity = ambInt;
+      this.sunLight.color = sunCol;
+      this.sunLight.intensity = sunInt;
+      if (this.moonLight) {
+        this.moonLight.color.setHex(pal.moonHex);
+        this.moonLight.intensity = moonInt;
+      }
     }
 
     // Dynamic Celestial Skybox Gradient & Star Field Update
     if (this.planet && this.planet.updateAtmosphere) {
       this.planet.updateAtmosphere(hourDecimal, this.weather?.currentMode || "Clear");
+    }
+
+    // Dynamic Atmospheric Horizon Fog for alien worlds
+    if (pType !== "Oakhaven" && this.planet && this.planet.skyUniforms) {
+      const horizCol = this.planet.skyUniforms.horizonColor.value;
+      if (!this.scene.fog) {
+        this.scene.fog = new THREE.FogExp2(horizCol, 0.0035);
+      } else {
+        this.scene.fog.color.copy(horizCol);
+        this.scene.fog.density = 0.0035;
+      }
+    } else {
+      this.scene.fog = null;
     }
   }
 
@@ -291,7 +383,14 @@ class App {
 
     this.setAtmosphereTime(this.atmosphereHour);
     this.audio.startPlanetMusic(planetType);
-    this.hud.updatePlanetLabel(planetType);
+    if (this.hud) {
+      this.hud.updatePlanetLabel(planetType);
+      this.hud.updateDestinationRibbon(planetType);
+      const planetCards = document.querySelectorAll('.planet-card');
+      planetCards.forEach(c => {
+        c.classList.toggle('active', c.getAttribute('data-planet') === planetType);
+      });
+    }
 
     const PLANET_SUBTITLES = {
       "Cinderfell": "Volcanic Basalt & Magma Calderas",

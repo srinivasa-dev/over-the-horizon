@@ -261,61 +261,302 @@ export class Planet {
         stars = 0.70;
       }
     } else if (this.type === "Cinderfell") {
-      // Mercury Counterpart: Scorched solar void with intense amber/magma glow
-      targetTop = new THREE.Color(0x090508);
-      targetMid = new THREE.Color(0x2E0B0B);
-      targetHoriz = new THREE.Color(0xDC2626);
-      targetBottom = new THREE.Color(0xF97316);
-      stars = 0.95;
+      if (hourDecimal >= 21.5 || hourDecimal < 4.5) {
+        // Deep Scorched Basalt Night
+        targetTop = new THREE.Color(0x050204);
+        targetMid = new THREE.Color(0x0f0408);
+        targetHoriz = new THREE.Color(0x2e0b0b);
+        targetBottom = new THREE.Color(0x991b1b);
+        stars = 0.95;
+      } else if (hourDecimal >= 4.5 && hourDecimal < 7.5) {
+        // Incandescent Magma Dawn
+        targetTop = new THREE.Color(0x18080c);
+        targetMid = new THREE.Color(0x4c0519);
+        targetHoriz = new THREE.Color(0xea580c);
+        targetBottom = new THREE.Color(0xfde047);
+        stars = 0.30;
+      } else if (hourDecimal >= 7.5 && hourDecimal < 16.5) {
+        // Scorched Solar Void Daytime
+        targetTop = new THREE.Color(0x2a0b10);
+        targetMid = new THREE.Color(0x7f1d1d);
+        targetHoriz = new THREE.Color(0xf97316);
+        targetBottom = new THREE.Color(0xfef08a);
+        stars = 0.10;
+      } else if (hourDecimal >= 16.5 && hourDecimal < 19.5) {
+        // Molten Amber Twilight Sunset
+        targetTop = new THREE.Color(0x0f050a);
+        targetMid = new THREE.Color(0x3b0716);
+        targetHoriz = new THREE.Color(0xdc2626);
+        targetBottom = new THREE.Color(0xf59e0b);
+        stars = 0.40;
+      } else {
+        // Ash Twilight
+        targetTop = new THREE.Color(0x080306);
+        targetMid = new THREE.Color(0x1f070e);
+        targetHoriz = new THREE.Color(0x521515);
+        targetBottom = new THREE.Color(0x280a0a);
+        stars = 0.75;
+      }
     } else if (this.type === "Aetheria") {
-      // Venus Counterpart: Thick golden amber sulfuric smog
-      targetTop = new THREE.Color(0x451A03);
-      targetMid = new THREE.Color(0x78350F);
-      targetHoriz = new THREE.Color(0xD97706);
-      targetBottom = new THREE.Color(0xFDE68A);
-      stars = 0.05;
+      if (hourDecimal >= 21.5 || hourDecimal < 4.5) {
+        // Phosphorescent Acid Night
+        targetTop = new THREE.Color(0x0c0602);
+        targetMid = new THREE.Color(0x261205);
+        targetHoriz = new THREE.Color(0x542308);
+        targetBottom = new THREE.Color(0x92400e);
+        stars = 0.25;
+      } else if (hourDecimal >= 4.5 && hourDecimal < 7.5) {
+        // Golden Sulfur Haze Dawn
+        targetTop = new THREE.Color(0x3a1805);
+        targetMid = new THREE.Color(0x713f12);
+        targetHoriz = new THREE.Color(0xd97706);
+        targetBottom = new THREE.Color(0xfef08a);
+        stars = 0.05;
+      } else if (hourDecimal >= 7.5 && hourDecimal < 16.5) {
+        // Brilliant Amber Sulfuric Smog Daytime
+        targetTop = new THREE.Color(0x542308);
+        targetMid = new THREE.Color(0x92400e);
+        targetHoriz = new THREE.Color(0xf59e0b);
+        targetBottom = new THREE.Color(0xfde68a);
+        stars = 0.0;
+      } else if (hourDecimal >= 16.5 && hourDecimal < 19.5) {
+        // Honey Bronze Sunset
+        targetTop = new THREE.Color(0x2d1104);
+        targetMid = new THREE.Color(0x5c2407);
+        targetHoriz = new THREE.Color(0xea580c);
+        targetBottom = new THREE.Color(0xfbbf24);
+        stars = 0.10;
+      } else {
+        // Heavy Bronze Dusk
+        targetTop = new THREE.Color(0x180b03);
+        targetMid = new THREE.Color(0x3b1807);
+        targetHoriz = new THREE.Color(0x78350f);
+        targetBottom = new THREE.Color(0x321606);
+        stars = 0.20;
+      }
     } else if (this.type === "Rustvale") {
-      // Mars Counterpart: Butterscotch red oxide with pale blue twilight
-      targetTop = new THREE.Color(0x1E1424);
-      targetMid = new THREE.Color(0x58242A);
-      targetHoriz = new THREE.Color(0x991B1B);
-      targetBottom = new THREE.Color(0xFECACA);
-      stars = 0.65;
+      if (hourDecimal >= 21.5 || hourDecimal < 4.5) {
+        // Deep Cold Starlight Sapphire Night with Mars Rim Glow
+        targetTop = new THREE.Color(0x060814);
+        targetMid = new THREE.Color(0x11172a);
+        targetHoriz = new THREE.Color(0x450a0a);
+        targetBottom = new THREE.Color(0x7f1d1d);
+        stars = 1.0;
+      } else if (hourDecimal >= 4.5 && hourDecimal < 7.5) {
+        // Butterscotch & Coral Peach Dawn
+        targetTop = new THREE.Color(0x2d1b36);
+        targetMid = new THREE.Color(0x702e3b);
+        targetHoriz = new THREE.Color(0xdc2626);
+        targetBottom = new THREE.Color(0xfdba74);
+        stars = 0.20;
+      } else if (hourDecimal >= 7.5 && hourDecimal < 16.5) {
+        // Crisp Rust Oxide Daytime with Golden Horizon
+        targetTop = new THREE.Color(0x451a22);
+        targetMid = new THREE.Color(0x991b1b);
+        targetHoriz = new THREE.Color(0xea580c);
+        targetBottom = new THREE.Color(0xfed7aa);
+        stars = 0.0;
+      } else if (hourDecimal >= 16.5 && hourDecimal < 19.5) {
+        // Fiery Incandescent Vermilion Sunset
+        targetTop = new THREE.Color(0x181028);
+        targetMid = new THREE.Color(0x581c28);
+        targetHoriz = new THREE.Color(0xdc2626);
+        targetBottom = new THREE.Color(0xfbbf24);
+        stars = 0.35;
+      } else {
+        // Mauve Martian Twilight
+        targetTop = new THREE.Color(0x0e0c18);
+        targetMid = new THREE.Color(0x2c1322);
+        targetHoriz = new THREE.Color(0x651c2a);
+        targetBottom = new THREE.Color(0x260a12);
+        stars = 0.70;
+      }
     } else if (this.type === "Stormhaven") {
-      // Jupiter Counterpart: Deep electric indigo and cyan banded sky
-      targetTop = new THREE.Color(0x0F172A);
-      targetMid = new THREE.Color(0x1E1B4B);
-      targetHoriz = new THREE.Color(0x1D4ED8);
-      targetBottom = new THREE.Color(0x38BDF8);
-      stars = 0.40;
+      if (hourDecimal >= 21.5 || hourDecimal < 4.5) {
+        // Abyssal Jovian Starlight Night
+        targetTop = new THREE.Color(0x020617);
+        targetMid = new THREE.Color(0x0a0f29);
+        targetHoriz = new THREE.Color(0x1e1b4b);
+        targetBottom = new THREE.Color(0x0284c7);
+        stars = 0.95;
+      } else if (hourDecimal >= 4.5 && hourDecimal < 7.5) {
+        // Electric Cyan & Lavender Dawn
+        targetTop = new THREE.Color(0x1e1b4b);
+        targetMid = new THREE.Color(0x312e81);
+        targetHoriz = new THREE.Color(0x06b6d4);
+        targetBottom = new THREE.Color(0x67e8f9);
+        stars = 0.30;
+      } else if (hourDecimal >= 7.5 && hourDecimal < 16.5) {
+        // Saturated Banded Indigo & Cobalt Daytime
+        targetTop = new THREE.Color(0x0f172a);
+        targetMid = new THREE.Color(0x1e3a8a);
+        targetHoriz = new THREE.Color(0x0284c7);
+        targetBottom = new THREE.Color(0x38bdf8);
+        stars = 0.05;
+      } else if (hourDecimal >= 16.5 && hourDecimal < 19.5) {
+        // Electric Violet & Cyan Aurora Sunset
+        targetTop = new THREE.Color(0x2e1065);
+        targetMid = new THREE.Color(0x581c87);
+        targetHoriz = new THREE.Color(0x7c3aed);
+        targetBottom = new THREE.Color(0x38bdf8);
+        stars = 0.40;
+      } else {
+        // Deep Neon Ion Twilight
+        targetTop = new THREE.Color(0x0a0a20);
+        targetMid = new THREE.Color(0x1a1645);
+        targetHoriz = new THREE.Color(0x2563eb);
+        targetBottom = new THREE.Color(0x0c2554);
+        stars = 0.75;
+      }
     } else if (this.type === "Ringhaven") {
-      // Saturn Counterpart: Golden butterscotch with cosmic dust
-      targetTop = new THREE.Color(0x1C1917);
-      targetMid = new THREE.Color(0x44403C);
-      targetHoriz = new THREE.Color(0xB45309);
-      targetBottom = new THREE.Color(0xFDE68A);
-      stars = 0.85;
+      if (hourDecimal >= 21.5 || hourDecimal < 4.5) {
+        // Golden Cosmic Dust Night with Ring Shadows
+        targetTop = new THREE.Color(0x090807);
+        targetMid = new THREE.Color(0x1c1917);
+        targetHoriz = new THREE.Color(0x44403c);
+        targetBottom = new THREE.Color(0x92400e);
+        stars = 0.95;
+      } else if (hourDecimal >= 4.5 && hourDecimal < 7.5) {
+        // Champagne Dawn with Soft Umber Gradients
+        targetTop = new THREE.Color(0x1c1917);
+        targetMid = new THREE.Color(0x44403c);
+        targetHoriz = new THREE.Color(0xb45309);
+        targetBottom = new THREE.Color(0xfde68a);
+        stars = 0.35;
+      } else if (hourDecimal >= 7.5 && hourDecimal < 16.5) {
+        // Warm Butterscotch Ice Daytime
+        targetTop = new THREE.Color(0x292524);
+        targetMid = new THREE.Color(0x78350f);
+        targetHoriz = new THREE.Color(0xd97706);
+        targetBottom = new THREE.Color(0xfef08a);
+        stars = 0.10;
+      } else if (hourDecimal >= 16.5 && hourDecimal < 19.5) {
+        // Radiant Amber & Ring-Arc Sunset
+        targetTop = new THREE.Color(0x1a1416);
+        targetMid = new THREE.Color(0x572619);
+        targetHoriz = new THREE.Color(0xea580c);
+        targetBottom = new THREE.Color(0xfbbf24);
+        stars = 0.45;
+      } else {
+        // Umber Ring Twilight
+        targetTop = new THREE.Color(0x0f0d0c);
+        targetMid = new THREE.Color(0x29231f);
+        targetHoriz = new THREE.Color(0x5c3d28);
+        targetBottom = new THREE.Color(0x1e1510);
+        stars = 0.80;
+      }
     } else if (this.type === "Frostveil") {
-      // Uranus Counterpart: Aquamarine methane polar sky
-      targetTop = new THREE.Color(0x082F49);
-      targetMid = new THREE.Color(0x0369A1);
-      targetHoriz = new THREE.Color(0x38BDF8);
-      targetBottom = new THREE.Color(0xBAE6FD);
-      stars = 0.75;
+      if (hourDecimal >= 21.5 || hourDecimal < 4.5) {
+        // Arctic Aurora Cosmic Night
+        targetTop = new THREE.Color(0x020617);
+        targetMid = new THREE.Color(0x082f49);
+        targetHoriz = new THREE.Color(0x0284c7);
+        targetBottom = new THREE.Color(0x38bdf8);
+        stars = 0.95;
+      } else if (hourDecimal >= 4.5 && hourDecimal < 7.5) {
+        // Rose-Pink over Azure Polar Dawn
+        targetTop = new THREE.Color(0x1e1b4b);
+        targetMid = new THREE.Color(0x4338ca);
+        targetHoriz = new THREE.Color(0x38bdf8);
+        targetBottom = new THREE.Color(0xfbcfe8);
+        stars = 0.25;
+      } else if (hourDecimal >= 7.5 && hourDecimal < 16.5) {
+        // Pure Crisp Arctic Cyan Daytime
+        targetTop = new THREE.Color(0x0c4a6e);
+        targetMid = new THREE.Color(0x0284c7);
+        targetHoriz = new THREE.Color(0x38bdf8);
+        targetBottom = new THREE.Color(0xe0f2fe);
+        stars = 0.0;
+      } else if (hourDecimal >= 16.5 && hourDecimal < 19.5) {
+        // Violet-Peach Ice Ring Sunset
+        targetTop = new THREE.Color(0x172554);
+        targetMid = new THREE.Color(0x3b82f6);
+        targetHoriz = new THREE.Color(0xf472b6);
+        targetBottom = new THREE.Color(0xfde68a);
+        stars = 0.30;
+      } else {
+        // Deep Glacial Twilight
+        targetTop = new THREE.Color(0x051322);
+        targetMid = new THREE.Color(0x0c2742);
+        targetHoriz = new THREE.Color(0x1e4f7a);
+        targetBottom = new THREE.Color(0x071b2d);
+        stars = 0.75;
+      }
     } else if (this.type === "Thalassa") {
-      // Neptune Counterpart: Deep royal sapphire abyss
-      targetTop = new THREE.Color(0x020617);
-      targetMid = new THREE.Color(0x0F172A);
-      targetHoriz = new THREE.Color(0x1E3A8A);
-      targetBottom = new THREE.Color(0x60A5FA);
-      stars = 0.80;
+      if (hourDecimal >= 21.5 || hourDecimal < 4.5) {
+        // Abyssal Bioluminescent Night
+        targetTop = new THREE.Color(0x020617);
+        targetMid = new THREE.Color(0x0b132b);
+        targetHoriz = new THREE.Color(0x1e3a8a);
+        targetBottom = new THREE.Color(0x3b82f6);
+        stars = 0.95;
+      } else if (hourDecimal >= 4.5 && hourDecimal < 7.5) {
+        // Marine Teal & Aquamarine Dawn
+        targetTop = new THREE.Color(0x0f172a);
+        targetMid = new THREE.Color(0x1e3a8a);
+        targetHoriz = new THREE.Color(0x0ea5e9);
+        targetBottom = new THREE.Color(0x99f6e4);
+        stars = 0.30;
+      } else if (hourDecimal >= 7.5 && hourDecimal < 16.5) {
+        // Deep Royal Sapphire Ocean Daytime
+        targetTop = new THREE.Color(0x0a1931);
+        targetMid = new THREE.Color(0x1d4ed8);
+        targetHoriz = new THREE.Color(0x2563eb);
+        targetBottom = new THREE.Color(0x93c5fd);
+        stars = 0.05;
+      } else if (hourDecimal >= 16.5 && hourDecimal < 19.5) {
+        // Indigo & Phosphor Dusk Sunset
+        targetTop = new THREE.Color(0x1e1b4b);
+        targetMid = new THREE.Color(0x312e81);
+        targetHoriz = new THREE.Color(0x6366f1);
+        targetBottom = new THREE.Color(0x38bdf8);
+        stars = 0.35;
+      } else {
+        // Deep Sea Twilight
+        targetTop = new THREE.Color(0x040b18);
+        targetMid = new THREE.Color(0x0c1d38);
+        targetHoriz = new THREE.Color(0x1d3e6e);
+        targetBottom = new THREE.Color(0x061122);
+        stars = 0.75;
+      }
     } else {
-      // Nocturna (Pluto Counterpart): Pitch cosmic void with infinite brilliant stars
-      targetTop = new THREE.Color(0x020206);
-      targetMid = new THREE.Color(0x090514);
-      targetHoriz = new THREE.Color(0x241442);
-      targetBottom = new THREE.Color(0x7E22CE);
-      stars = 1.0;
+      // Nocturna (Pluto Counterpart): Obsidian Void & Nitrogen Plains
+      if (hourDecimal >= 21.5 || hourDecimal < 4.5) {
+        // Pure Obsidian Void Night with Infinite Brilliant Stars
+        targetTop = new THREE.Color(0x010103);
+        targetMid = new THREE.Color(0x06030a);
+        targetHoriz = new THREE.Color(0x180b2b);
+        targetBottom = new THREE.Color(0x6b21a8);
+        stars = 1.0;
+      } else if (hourDecimal >= 4.5 && hourDecimal < 7.5) {
+        // Amethyst Frost Dawn
+        targetTop = new THREE.Color(0x0a0514);
+        targetMid = new THREE.Color(0x241442);
+        targetHoriz = new THREE.Color(0x7e22ce);
+        targetBottom = new THREE.Color(0xe9d5ff);
+        stars = 0.40;
+      } else if (hourDecimal >= 7.5 && hourDecimal < 16.5) {
+        // Silver Nitrogen Ice Daytime
+        targetTop = new THREE.Color(0x110a1f);
+        targetMid = new THREE.Color(0x3b185f);
+        targetHoriz = new THREE.Color(0x9333ea);
+        targetBottom = new THREE.Color(0xf3e8ff);
+        stars = 0.15;
+      } else if (hourDecimal >= 16.5 && hourDecimal < 19.5) {
+        // Magenta & Violet Outer-Rim Sunset
+        targetTop = new THREE.Color(0x08040f);
+        targetMid = new THREE.Color(0x2e1065);
+        targetHoriz = new THREE.Color(0xa855f7);
+        targetBottom = new THREE.Color(0xf472b6);
+        stars = 0.45;
+      } else {
+        // Crystalline Twilight
+        targetTop = new THREE.Color(0x030207);
+        targetMid = new THREE.Color(0x130722);
+        targetHoriz = new THREE.Color(0x3d1761);
+        targetBottom = new THREE.Color(0x10051d);
+        stars = 0.85;
+      }
     }
 
     // Apply Weather Climate Overlays
@@ -651,53 +892,61 @@ export class Planet {
       }
 
     } else if (this.type === "Cinderfell") {
-      // Mercury: Dark volcanic basalt + glowing magma seams
-      if (isRoad) return new THREE.Color(0.32, 0.26, 0.24); // Dark ash road
-      if (elevation < -1.0) return new THREE.Color(0.95, 0.28, 0.08); // Magma glow
-      if (elevation > 2.0) return new THREE.Color(0.12, 0.12, 0.14); // Black obsidian
-      return new THREE.Color(0.22, 0.20, 0.22);
+      // Mercury: Volcanic basalt, glowing magma veins & obsidian spires
+      if (isRoad) return new THREE.Color(0.48, 0.44, 0.42); // Distinct crushed basalt road ribbon
+      if (elevation < -0.8) return new THREE.Color(0.98, 0.32, 0.08); // Incandescent magma seams
+      if (elevation > 1.6) return new THREE.Color(0.12, 0.11, 0.14); // Dark obsidian peaks
+      if (elevation > 0.4) return new THREE.Color(0.28, 0.24, 0.26); // Mid-tier scorched basalt
+      return new THREE.Color(0.20, 0.17, 0.18); // Low-tier shadow ash floor
 
     } else if (this.type === "Aetheria") {
-      // Venus: Golden amber dunes & glass
-      if (isRoad) return new THREE.Color(0.98, 0.88, 0.62);
-      if (elevation > 1.8) return new THREE.Color(0.92, 0.72, 0.32);
-      return new THREE.Color(0.82, 0.58, 0.20);
+      // Venus: Golden amber dunes, silica glasslands & crystalline ridges
+      if (isRoad) return new THREE.Color(1.00, 0.96, 0.82); // Pale silica glass road ribbon
+      if (elevation > 1.8) return new THREE.Color(0.98, 0.82, 0.42); // Brilliant sunlit silica ridge peaks
+      if (elevation > 0.4) return new THREE.Color(0.88, 0.64, 0.22); // Warm golden amber dunes
+      return new THREE.Color(0.65, 0.40, 0.14); // Deep bronze canyon shadow floor
 
     } else if (this.type === "Rustvale") {
-      // Mars: Crimson red oxide
-      if (isRoad) return new THREE.Color(0.88, 0.45, 0.32);
-      if (elevation > 3.0) return new THREE.Color(0.48, 0.12, 0.08);
-      return new THREE.Color(0.72, 0.18, 0.12);
+      // Mars: Crimson red oxide, butterscotch ridges & iron canyon shadows
+      if (isRoad) return new THREE.Color(0.99, 0.89, 0.58); // Packed-sand high-readability road ribbon
+      if (elevation > 1.7) return new THREE.Color(0.98, 0.64, 0.16); // Sunlit butterscotch ridge peaks
+      if (elevation > 0.3) return new THREE.Color(0.80, 0.28, 0.10); // Rich warm terracotta mid-slopes
+      return new THREE.Color(0.34, 0.08, 0.08); // Deep iron-shadow canyon floors
 
     } else if (this.type === "Stormhaven") {
-      // Jupiter: Jovian banded indigo and electric cobalt
-      if (isRoad) return new THREE.Color(0.22, 0.78, 0.92); // Ionized runway
-      if (elevation > 1.5) return new THREE.Color(0.18, 0.22, 0.48);
-      return new THREE.Color(0.12, 0.38, 0.72);
+      // Jupiter: Jovian electric cobalt, neon ionized track & cloud ridges
+      if (isRoad) return new THREE.Color(0.38, 0.92, 0.98); // Luminous ionized neon cyan runway ribbon
+      if (elevation > 1.8) return new THREE.Color(0.42, 0.46, 0.85); // Electric indigo-lavender cloud crests
+      if (elevation > 0.4) return new THREE.Color(0.16, 0.34, 0.68); // Saturated cobalt mid-slopes
+      return new THREE.Color(0.08, 0.12, 0.32); // Deep midnight trench shadow floor
 
     } else if (this.type === "Ringhaven") {
-      // Saturn: Golden butterscotch ice
-      if (isRoad) return new THREE.Color(0.98, 0.88, 0.65);
-      if (elevation > 1.8) return new THREE.Color(0.92, 0.78, 0.52);
-      return new THREE.Color(0.78, 0.60, 0.35);
+      // Saturn: Golden butterscotch ice, champagne crests & umber ring shadows
+      if (isRoad) return new THREE.Color(0.99, 0.94, 0.78); // Polished ivory-gold causeway ribbon
+      if (elevation > 1.8) return new THREE.Color(0.96, 0.85, 0.62); // Radiant champagne ice crests
+      if (elevation > 0.4) return new THREE.Color(0.82, 0.65, 0.40); // Warm butterscotch ice slopes
+      return new THREE.Color(0.48, 0.32, 0.18); // Deep umber ring-shadow floor
 
     } else if (this.type === "Frostveil") {
-      // Uranus: Azure methane ice & glacier cliffs
-      if (isRoad) return new THREE.Color(0.85, 0.95, 0.99);
-      if (elevation > 3.0) return new THREE.Color(0.15, 0.48, 0.68);
-      return new THREE.Color(0.32, 0.72, 0.88);
+      // Uranus: Azure methane ice, crystalline frost peaks & crevasse teal
+      if (isRoad) return new THREE.Color(0.96, 0.99, 1.00); // Pure glacial blue-ice road ribbon
+      if (elevation > 1.8) return new THREE.Color(0.68, 0.92, 0.98); // Sunlit crystalline frost peaks
+      if (elevation > 0.4) return new THREE.Color(0.24, 0.62, 0.82); // Rich azure methane ice mid-slopes
+      return new THREE.Color(0.08, 0.28, 0.42); // Deep abyssal crevasse teal shadow floor
 
     } else if (this.type === "Thalassa") {
-      // Neptune: Deep sapphire oceanic continents
-      if (isRoad) return new THREE.Color(0.25, 0.65, 0.95);
-      if (elevation > 2.0) return new THREE.Color(0.08, 0.22, 0.52);
-      return new THREE.Color(0.05, 0.15, 0.38);
+      // Neptune: Deep royal sapphire, bioluminescent crests & oceanic trench
+      if (isRoad) return new THREE.Color(0.45, 0.88, 0.96); // Luminous aquamarine reef causeway ribbon
+      if (elevation > 1.8) return new THREE.Color(0.28, 0.58, 0.92); // Bioluminescent cobalt-cyan crests
+      if (elevation > 0.4) return new THREE.Color(0.12, 0.28, 0.62); // Vibrant royal sapphire mid-slopes
+      return new THREE.Color(0.04, 0.10, 0.28); // Ultra-deep midnight oceanic trench shadow floor
 
     } else {
-      // Nocturna (Pluto): Charcoal-violet nitrogen plains
-      if (isRoad) return new THREE.Color(0.65, 0.55, 0.78);
-      if (elevation > 2.0) return new THREE.Color(0.28, 0.22, 0.38);
-      return new THREE.Color(0.14, 0.12, 0.20);
+      // Nocturna (Pluto): Charcoal-violet nitrogen plains, silver-lilac frost & obsidian craters
+      if (isRoad) return new THREE.Color(0.90, 0.86, 0.98); // Stark nitrogen-frost crystal road ribbon
+      if (elevation > 1.8) return new THREE.Color(0.72, 0.60, 0.88); // Luminous silver-lilac frost ridges
+      if (elevation > 0.4) return new THREE.Color(0.32, 0.22, 0.46); // Rich amethyst violet mid-slopes
+      return new THREE.Color(0.10, 0.08, 0.15); // Deep pitch obsidian crater floor
     }
   }
 
