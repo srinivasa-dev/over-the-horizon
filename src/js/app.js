@@ -11,6 +11,7 @@ import { AudioManager } from './audio.js';
 import { ComicPostProcessor } from './postprocessing.js';
 import { HUDController } from './hud.js';
 import { ArcadeEngine } from './arcade_engine.js';
+import { PresenceTracker } from './presence.js';
 
 window.THREE = THREE;
 
@@ -58,9 +59,10 @@ class App {
     // 4. Tri-Mode Arcade Engine (Celestial Cascade & Crossy Odyssey)
     this.arcadeEngine = new ArcadeEngine(this.scene, this.planet, this.vehiclePhysics, this.audio, null);
 
-    // 5. HUD & Input Handling
+    // 5. HUD, Presence & Input Handling
     this.hud = new HUDController(this);
     this.arcadeEngine.hud = this.hud;
+    this.presence = new PresenceTracker();
     this._bindKeyboardEvents();
     this._bindResizeObserver();
     this._initCameraOrbitDrag();

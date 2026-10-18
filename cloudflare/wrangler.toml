@@ -1,0 +1,12 @@
+name = "overthehorizon-presence"
+main = "src/index.js"
+compatibility_date = "2024-04-01"
+
+[durable_objects]
+bindings = [
+  { name = "PRESENCE_ROOM", class_name = "PresenceRoom" }
+]
+
+[[migrations]]
+tag = "v1"
+new_classes = ["PresenceRoom"]

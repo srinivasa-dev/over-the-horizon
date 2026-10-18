@@ -7,6 +7,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [2.5.1] - 2026-10-18
+
+### Added
+- **Cloudflare Serverless Presence Gateway (`cloudflare/`)**:
+  - Implemented zero-database, edge-native active player tracking on Cloudflare Workers and Durable Objects using WebSocket Hibernation.
+  - Hardened with strict Origin header validation (`overthehorizon.srinivasa.dev`, `srinivasa.dev`) to prevent hotlinking and third-party abuse.
+  - Added hardware IP concurrency cap (max 3 connections per `CF-Connecting-IP`) to block automated bot flooding.
+  - Zero financial risk: operates completely within Cloudflare's free tier with automated cut-off and zero overages.
+- **Client-Side Live Explorer Indicator with Silent Fail-Safe (`src/js/presence.js`)**:
+  - Added subtle, animated emerald green live status pill (`#carousel-presence-pill` and `#hud-presence-pill`) showing real-time concurrent explorers.
+  - Built-in **Silent Fail-Safe**: if the WebSocket connection drops, errors, or hits Cloudflare's free quota, the indicator quietly hides itself (`display: none`) with zero UI errors, zero modals, and zero disruption to the 60 FPS Three.js render loop.
+
+---
+
 ## [2.5.0] - 2026-10-18
 
 ### Added

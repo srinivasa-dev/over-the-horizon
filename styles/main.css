@@ -1649,6 +1649,49 @@ body:has(#welcome-modal:not(.hidden)) #mobile-controls {
   z-index: 30;
 }
 
+/* Live Online Presence Pill & Pulse Dot (Silent Fail-Safe) */
+.carousel-presence-pill,
+.hud-presence-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  background: rgba(10, 18, 30, 0.72);
+  border: 1px solid rgba(16, 185, 129, 0.35);
+  color: #E2E8F0;
+  border-radius: 9999px;
+  padding: 6px 12px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.6px;
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  user-select: none;
+  pointer-events: auto;
+  transition: opacity 0.3s ease, border-color 0.3s ease;
+}
+
+.carousel-presence-pill:hover,
+.hud-presence-pill:hover {
+  border-color: rgba(16, 185, 129, 0.6);
+  background: rgba(16, 185, 129, 0.12);
+}
+
+.presence-pulse-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #10B981;
+  box-shadow: 0 0 6px rgba(16, 185, 129, 0.8);
+  animation: presencePulse 2.2s infinite ease-in-out;
+  flex-shrink: 0;
+}
+
+@keyframes presencePulse {
+  0% { transform: scale(0.9); opacity: 0.65; box-shadow: 0 0 4px rgba(16, 185, 129, 0.6); }
+  50% { transform: scale(1.2); opacity: 1; box-shadow: 0 0 10px rgba(16, 185, 129, 0.9); }
+  100% { transform: scale(0.9); opacity: 0.65; box-shadow: 0 0 4px rgba(16, 185, 129, 0.6); }
+}
+
 /* Audio Volume Controller Pill & Calibration Popover */
 .carousel-volume-container {
   position: relative;
