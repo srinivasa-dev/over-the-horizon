@@ -12,6 +12,20 @@
  * - Graceful fallback HTTP status endpoint
  */
 
+function isAllowedOrigin(origin) {
+  if (!origin) return true;
+  try {
+    const url = new URL(origin);
+    const host = url.hostname;
+    if (host === "overthehorizon.srinivasa.dev" || host === "srinivasa.dev" || host.endsWith(".srinivasa.dev")) return true;
+    if (host === "localhost" || host === "127.0.0.1" || host === "0.0.0.0") return true;
+    if (/^192\.168\.\d+\.\d+$/.test(host) || /^10\.\d+\.\d+\.\d+$/.test(host) || /^172\.(1[6-9]|2\d|3[0-1])\.\d+\.\d+$/.test(host)) return true;
+    return false;
+  } catch (e) {
+    return false;
+  }
+}
+
 export class PresenceRoom {
   constructor(state, env) {
     this.state = state;
@@ -21,15 +35,9 @@ export class PresenceRoom {
 
   async fetch(request) {
     const origin = request.headers.get("Origin");
-    const allowedOrigins = [
-      "https://overthehorizon.srinivasa.dev",
-      "https://srinivasa.dev",
-      "http://localhost:8080",
-      "http://127.0.0.1:8080"
-    ];
 
-    // 1. Security: Block Unauthorized Origins
-    if (origin && !allowedOrigins.includes(origin)) {
+    // 1. Security: Block Unauthorized Origins (allows production domains, localhost & LAN IPs)
+    if (origin && !isAllowedOrigin(origin)) {
       return new Response("Forbidden: Invalid Origin", { 
         status: 403,
         headers: { "Content-Type": "text/plain" }

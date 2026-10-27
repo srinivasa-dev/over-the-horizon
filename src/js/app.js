@@ -170,6 +170,10 @@ class App {
       if (this.dirLight) this.dirLight.castShadow = true;
       this.renderer.shadowMap.enabled = true;
     }
+    this.renderer.setSize(window.innerWidth, window.innerHeight);
+    if (this.postProcessor) {
+      this.postProcessor.setSize(window.innerWidth, window.innerHeight);
+    }
   }
 
   _initScene() {
@@ -989,6 +993,18 @@ class App {
 
   _bindKeyboardEvents() {
     window.addEventListener('keydown', (e) => {
+      // Toggle Settings modal on [O] anytime
+      if (e.code === 'KeyO') {
+        this.hud.toggleSettingsModal();
+        return;
+      }
+
+      // Close Settings modal on [Escape] if open
+      if (e.code === 'Escape' && this.hud?.settingsModal && !this.hud.settingsModal.classList.contains('hidden')) {
+        this.hud.settingsModal.classList.add('hidden');
+        return;
+      }
+
       const isMenuOpen = !this.isGameStarted || (this.hud?.welcomeModal && !this.hud.welcomeModal.classList.contains('hidden'));
       if (isMenuOpen) {
         // While start menu is open, forbid all driving controls

@@ -6,6 +6,19 @@
  * and persistent keyboard remapping.
  */
 
+const DEFAULT_KEY_BINDINGS = Object.freeze({
+  forward: 'KeyW',
+  backward: 'KeyS',
+  left: 'KeyA',
+  right: 'KeyD',
+  boost: 'Space',
+  camera: 'KeyC',
+  autopilot: 'KeyP',
+  horn: 'KeyH',
+  recover: 'KeyR',
+  menu: 'KeyM'
+});
+
 export class SettingsManager {
   constructor() {
     this.STORAGE_KEY = 'oth_settings_v1';
@@ -15,24 +28,13 @@ export class SettingsManager {
       window.matchMedia && 
       window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-    this.defaults = {
+    this.defaults = Object.freeze({
       graphicsQuality: 'high', // 'high' | 'low'
       reducedMotion: Boolean(prefersReducedMotion),
       colorblindMode: false,
       tiltSteering: false,
-      keyBindings: {
-        forward: 'KeyW',
-        backward: 'KeyS',
-        left: 'KeyA',
-        right: 'KeyD',
-        boost: 'Space',
-        camera: 'KeyC',
-        autopilot: 'KeyP',
-        horn: 'KeyH',
-        recover: 'KeyR',
-        menu: 'KeyM'
-      }
-    };
+      keyBindings: DEFAULT_KEY_BINDINGS
+    });
 
     this.state = this._load();
   }
@@ -46,7 +48,7 @@ export class SettingsManager {
           ...this.defaults,
           ...parsed,
           keyBindings: {
-            ...this.defaults.keyBindings,
+            ...DEFAULT_KEY_BINDINGS,
             ...(parsed.keyBindings || {})
           }
         };
@@ -54,7 +56,10 @@ export class SettingsManager {
     } catch (e) {
       // localStorage may fail in strict private browsing
     }
-    return { ...this.defaults };
+    return {
+      ...this.defaults,
+      keyBindings: { ...DEFAULT_KEY_BINDINGS }
+    };
   }
 
   save() {
@@ -76,13 +81,13 @@ export class SettingsManager {
   }
 
   setKeyBinding(action, code) {
-    if (!this.state.keyBindings) this.state.keyBindings = { ...this.defaults.keyBindings };
+    if (!this.state.keyBindings) this.state.keyBindings = { ...DEFAULT_KEY_BINDINGS };
     this.state.keyBindings[action] = code;
     this.save();
   }
 
   resetKeys() {
-    this.state.keyBindings = { ...this.defaults.keyBindings };
+    this.state.keyBindings = { ...DEFAULT_KEY_BINDINGS };
     this.save();
   }
 

@@ -46,12 +46,7 @@ export class PresenceTracker {
       return metaTag.content;
     }
 
-    // 3. Localhost development fallback
-    if (typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')) {
-      return 'ws://localhost:8787';
-    }
-
-    // 4. Production Cloudflare Worker default endpoint
+    // 3. Live Cloudflare Serverless WebSocket Presence Gateway
     return 'wss://overthehorizon-presence.srinivasa-yadav-b.workers.dev';
   }
 
