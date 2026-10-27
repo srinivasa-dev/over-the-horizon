@@ -1,0 +1,8 @@
+# Treat external libraries as vendored code to prevent metric dilution
+libs/** linguist-vendored
+
+# Documentation and concept media
+docs/** linguist-documentation
+concept_art/** linguist-documentation
+OVER_THE_HORIZON_Game_Design_Document.docx -diff -merge
+OVER_THE_HORIZON_Game_Design_Document.pdf -diff -merge
