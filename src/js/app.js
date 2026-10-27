@@ -1161,6 +1161,11 @@ function initGame() {
     } catch (err) {
       console.error("FATAL App init error:", err);
       window.__INIT_ERROR__ = err.stack || err.message;
+      try {
+        window.__GAME_HUD__ = new HUDController(null);
+      } catch (hudErr) {
+        console.warn("Fallback HUD initialization warning:", hudErr);
+      }
     }
   }
 }

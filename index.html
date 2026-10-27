@@ -122,7 +122,7 @@
   ]
   </script>
 
-  <link rel="stylesheet" href="styles/main.css?v=2.4.9">
+  <link rel="stylesheet" href="styles/main.css?v=2.5.6">
   
   <!-- Import Map Polyfill for older mobile browsers & iOS WebKit -->
   <script async src="./libs/es-module-shims.js"></script>
@@ -643,264 +643,277 @@
 
   <!-- Expedition Manual / Ranger Handbook & Dev Dossier Modal -->
   <div class="modal-overlay hidden" id="about-modal">
-    <div class="handbook-container hud-interactive">
+    <div class="glass-panel modal-card hud-interactive about-card handbook-container">
       
-      <!-- Top Tab Switcher -->
-      <div class="handbook-tabs-nav" role="tablist">
-        <button class="handbook-tab-btn active" id="tab-btn-guide" type="button" role="tab" aria-selected="true" aria-controls="panel-handbook-guide">
-          <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2">
-            <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
-          </svg>
-          <span>EXPEDITION GUIDE</span>
-        </button>
-        <button class="handbook-tab-btn" id="tab-btn-dev" type="button" role="tab" aria-selected="false" aria-controls="panel-handbook-dev">
-          <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2">
-            <circle cx="12" cy="12" r="9"/>
-            <path d="M10 8l4 4-4 4"/>
-          </svg>
-          <span>DEV DOSSIER &amp; CREATOR</span>
+      <!-- Top Modal Header (Matches Settings Modal) -->
+      <div class="settings-modal-header about-modal-header">
+        <div class="settings-header-text">
+          <h2 class="settings-modal-title">EXPEDITION MANUAL &amp; DOSSIER</h2>
+          <span class="settings-modal-sub">Flight Dynamics, Planetary Systems &amp; Creator Story</span>
+        </div>
+        <button class="settings-close-pill-btn" id="btn-close-about" type="button" aria-label="Close About">
+          <span>CLOSE</span>
         </button>
       </div>
 
-      <!-- Tab 1: Expedition Guide & Controls -->
-      <div class="handbook-tab-panel" id="panel-handbook-guide" role="tabpanel">
-        <div class="handbook-binder">
-          <!-- Left Page: Vehicle Dynamics & Controls -->
-          <div class="handbook-page left-page">
-            <div class="page-header">
-              <div class="park-stamp">
-                <svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="#1B3629" stroke-width="1.8"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" fill="rgba(217,130,43,0.15)" stroke="#C07A2B"/></svg>
-              </div>
-              <div>
-                <h2 class="handbook-title">OFFICIAL EXPEDITION MANUAL</h2>
-                <span class="handbook-sub">National Park Ranger Field Guide</span>
-              </div>
-            </div>
+      <!-- Segmented Pill Tab Switcher (Matches Settings style) -->
+      <div class="setting-pill-row about-tab-row" role="tablist">
+        <button class="setting-pill-btn handbook-tab-btn active" id="tab-btn-guide" type="button" role="tab" aria-selected="true" aria-controls="panel-handbook-guide">
+          <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align: -2px; margin-right: 5px;">
+            <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+          </svg>
+          EXPEDITION GUIDE
+        </button>
+        <button class="setting-pill-btn handbook-tab-btn" id="tab-btn-dev" type="button" role="tab" aria-selected="false" aria-controls="panel-handbook-dev">
+          <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align: -2px; margin-right: 5px;">
+            <circle cx="12" cy="12" r="9"/>
+            <path d="M10 8l4 4-4 4"/>
+          </svg>
+          DEV DOSSIER
+        </button>
+      </div>
 
-            <div class="handbook-section-title">VEHICLE DYNAMICS &amp; CONTROLS</div>
-            <div class="controls-keycaps-grid">
-              <div class="keycap-item"><span class="keycap">W / UP</span> Accelerate Forward</div>
-              <div class="keycap-item"><span class="keycap">S / DOWN</span> Dynamic Brakes / Reverse</div>
-              <div class="keycap-item"><span class="keycap">A / D</span> Momentum Steering</div>
-              <div class="keycap-item"><span class="keycap">SPACE</span> Nitro Trail Boost</div>
-              <div class="keycap-item"><span class="keycap">C</span> Camera Modes (POV / Diorama)</div>
-              <div class="keycap-item"><span class="keycap">P</span> Autopilot Cruise Control</div>
-              <div class="keycap-item"><span class="keycap">H</span> Auxiliary Fog Lamps &amp; Horn</div>
-              <div class="keycap-item"><span class="keycap">M</span> Solar System Expedition Map</div>
-              <div class="keycap-item"><span class="keycap">I</span> Toggle About &amp; Guide</div>
-              <div class="keycap-item"><span class="keycap">DRAG</span> 360° Camera View Orbit</div>
-            </div>
-
-            <div class="handbook-blueprint-box">
-              <div class="blueprint-label">VEHICLE CHASSIS SPECIFICATION • TRAILSCOUT 4x4</div>
-              <svg viewBox="0 0 320 110" width="100%" height="80" style="display: block; margin: 4px auto;">
-                <rect x="25" y="30" width="260" height="42" rx="6" fill="rgba(35,78,56,0.06)" stroke="#1B3629" stroke-width="1.8" stroke-dasharray="4,2"/>
-                <rect x="65" y="12" width="155" height="24" rx="4" fill="none" stroke="#1B3629" stroke-width="1.8"/>
-                <line x1="125" y1="12" x2="125" y2="36" stroke="#1B3629" stroke-width="1.2"/>
-                <line x1="175" y1="12" x2="175" y2="36" stroke="#1B3629" stroke-width="1.2"/>
-                <rect x="75" y="6" width="135" height="6" rx="2" fill="none" stroke="#C07A2B" stroke-width="1.4"/>
-                <rect x="90" y="2" width="30" height="4" fill="rgba(192,122,43,0.3)" stroke="#C07A2B" stroke-width="1"/>
-                <rect x="130" y="2" width="45" height="4" fill="rgba(192,122,43,0.3)" stroke="#C07A2B" stroke-width="1"/>
-                <circle cx="75" cy="74" r="16" fill="#FAF6EE" stroke="#1B3629" stroke-width="2.5"/>
-                <circle cx="75" cy="74" r="8" fill="rgba(35,78,56,0.15)" stroke="#1B3629" stroke-width="1.5"/>
-                <circle cx="235" cy="74" r="16" fill="#FAF6EE" stroke="#1B3629" stroke-width="2.5"/>
-                <circle cx="235" cy="74" r="8" fill="rgba(35,78,56,0.15)" stroke="#1B3629" stroke-width="1.5"/>
-                <rect x="12" y="36" width="12" height="30" rx="3" fill="#FAF6EE" stroke="#1B3629" stroke-width="1.8"/>
-                <line x1="25" y1="98" x2="285" y2="98" stroke="#C07A2B" stroke-width="1"/>
-                <text x="155" y="106" font-size="8" font-family="sans-serif" font-weight="bold" fill="#C07A2B" text-anchor="middle">3.85M WHEELBASE • 4-LINK SOLID AXLE</text>
-              </svg>
-            </div>
-          </div>
-
-          <!-- Right Page: Expedition Modes & Field Rules -->
-          <div class="handbook-page right-page">
-            <div class="handbook-section-title">PLANETARY EXPEDITION MODES</div>
-            
-            <div class="handbook-mode-card">
-              <div class="handbook-mode-header">
-                <span class="mode-bullet-badge">1</span>
-                <strong>Cosy Cruise:</strong>
+      <!-- Scrollable Content Area -->
+      <div class="about-sections-scroll">
+        <!-- Tab 1: Expedition Guide & Controls -->
+        <div class="about-tab-panel handbook-tab-panel" id="panel-handbook-guide" role="tabpanel">
+          <div class="about-content-grid">
+            <!-- Left Column: Controls & Vehicle Blueprint -->
+            <div class="about-content-col">
+              <!-- Vehicle Dynamics & Controls -->
+              <div class="setting-group">
+                <label class="setting-label">VEHICLE DYNAMICS &amp; CONTROLS</label>
+                <p class="setting-desc">Primary rover telemetry, steering dynamics, and system key bindings.</p>
+                <div class="about-keycaps-grid">
+                  <div class="about-keycap-item"><span class="about-keycap-label">Accelerate Forward</span><span class="rebind-key">W / UP</span></div>
+                  <div class="about-keycap-item"><span class="about-keycap-label">Dynamic Brakes / Reverse</span><span class="rebind-key">S / DOWN</span></div>
+                  <div class="about-keycap-item"><span class="about-keycap-label">Momentum Steering</span><span class="rebind-key">A / D</span></div>
+                  <div class="about-keycap-item"><span class="about-keycap-label">Nitro Trail Boost</span><span class="rebind-key">SPACE</span></div>
+                  <div class="about-keycap-item"><span class="about-keycap-label">Camera (POV / Orbit)</span><span class="rebind-key">C</span></div>
+                  <div class="about-keycap-item"><span class="about-keycap-label">Autopilot Cruise</span><span class="rebind-key">P</span></div>
+                  <div class="about-keycap-item"><span class="about-keycap-label">Aux Fog Lamps / Horn</span><span class="rebind-key">H</span></div>
+                  <div class="about-keycap-item"><span class="about-keycap-label">Expedition Map</span><span class="rebind-key">M</span></div>
+                  <div class="about-keycap-item"><span class="about-keycap-label">Toggle About &amp; Guide</span><span class="rebind-key">I</span></div>
+                  <div class="about-keycap-item"><span class="about-keycap-label">360° Camera Orbit</span><span class="rebind-key">DRAG</span></div>
+                </div>
               </div>
-              <p>Freeform exploration across planetary biomes. Soak in dynamic time-of-day atmospheres and deliver supplies to remote outposts with zero timers.</p>
-            </div>
 
-            <div class="handbook-mode-card">
-              <div class="handbook-mode-header">
-                <span class="mode-bullet-badge">2</span>
-                <strong>Celestial Cascade:</strong>
-              </div>
-              <p>Orbital hazard survival. Astrolabes illuminate impending meteor impact sites. Weave within 2.5m for CLOSE CALL bonuses (+150 pts) and gather stardust shards to charge your 5x combo multiplier!</p>
-            </div>
-
-            <div class="handbook-mode-card">
-              <div class="handbook-mode-header">
-                <span class="mode-bullet-badge">3</span>
-                <strong>Crossy Odyssey:</strong>
-              </div>
-              <p>Traverse perilous mountain passes. Slalom cleanly through crossing transport convoys and evade rolling boulders for massive weave score streaks!</p>
-            </div>
-
-            <div class="handbook-section-title" style="margin-top: 10px;">FIELD RANGER RULES &amp; INTEGRITY</div>
-            <div class="handbook-rules-box">
-              <div class="rule-item">
-                <span class="rule-icon">
-                  <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#2563EB" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" fill="rgba(37,99,235,0.15)"/></svg>
-                </span>
-                <span><strong>3 Shield Charges:</strong> Shields absorb impact energy and deflect incoming hazards.</span>
-              </div>
-              <div class="rule-item">
-                <span class="rule-icon">
-                  <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#16A34A" stroke-width="2"><rect x="3" y="7" width="18" height="13" rx="2" fill="rgba(22,163,74,0.15)"/><path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="12" y1="12" x2="12" y2="15"/></svg>
-                </span>
-                <span><strong>Toolbox Repairs:</strong> Green field toolboxes scattered on routes restore depleted shields.</span>
+              <!-- Vehicle Blueprint Specification -->
+              <div class="about-blueprint-card">
+                <div class="about-blueprint-header">
+                  <span class="blueprint-tag">CAD SPECIFICATION</span>
+                  <span class="blueprint-code">TRAILSCOUT 4x4 ALL-TERRAIN</span>
+                </div>
+                <div class="blueprint-canvas-wrap">
+                  <svg viewBox="0 0 320 110" width="100%" height="84" style="display: block; margin: 4px auto;">
+                    <defs>
+                      <pattern id="blueprint-grid" width="10" height="10" patternUnits="userSpaceOnUse">
+                        <path d="M 10 0 L 0 0 0 10" fill="none" stroke="rgba(56, 189, 248, 0.08)" stroke-width="0.5"/>
+                      </pattern>
+                    </defs>
+                    <rect width="320" height="110" fill="url(#blueprint-grid)" rx="6"/>
+                    <rect x="25" y="30" width="260" height="42" rx="6" fill="rgba(56, 189, 248, 0.05)" stroke="#38BDF8" stroke-width="1.8" stroke-dasharray="4,2"/>
+                    <rect x="65" y="12" width="155" height="24" rx="4" fill="none" stroke="#38BDF8" stroke-width="1.8"/>
+                    <line x1="125" y1="12" x2="125" y2="36" stroke="#38BDF8" stroke-width="1.2" stroke-opacity="0.6"/>
+                    <line x1="175" y1="12" x2="175" y2="36" stroke="#38BDF8" stroke-width="1.2" stroke-opacity="0.6"/>
+                    <rect x="75" y="6" width="135" height="6" rx="2" fill="none" stroke="#F5A623" stroke-width="1.4"/>
+                    <rect x="90" y="2" width="30" height="4" fill="rgba(245, 166, 35, 0.3)" stroke="#F5A623" stroke-width="1"/>
+                    <rect x="130" y="2" width="45" height="4" fill="rgba(245, 166, 35, 0.3)" stroke="#F5A623" stroke-width="1"/>
+                    <circle cx="75" cy="74" r="16" fill="#0E121A" stroke="#38BDF8" stroke-width="2.5"/>
+                    <circle cx="75" cy="74" r="8" fill="rgba(56, 189, 248, 0.2)" stroke="#F5A623" stroke-width="1.5"/>
+                    <circle cx="235" cy="74" r="16" fill="#0E121A" stroke="#38BDF8" stroke-width="2.5"/>
+                    <circle cx="235" cy="74" r="8" fill="rgba(56, 189, 248, 0.2)" stroke="#F5A623" stroke-width="1.5"/>
+                    <rect x="12" y="36" width="12" height="30" rx="3" fill="#0E121A" stroke="#38BDF8" stroke-width="1.8"/>
+                    <line x1="25" y1="98" x2="285" y2="98" stroke="#F5A623" stroke-width="1"/>
+                    <text x="155" y="106" font-size="8.5" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-weight="800" fill="#F5A623" text-anchor="middle" letter-spacing="0.8">3.85M WHEELBASE • 4-LINK SOLID AXLE • DUAL DIFFERENTIAL</text>
+                  </svg>
+                </div>
               </div>
             </div>
 
-            <div class="handbook-page-footer">
-              <button class="btn-timber-action" id="btn-close-about" type="button">
-                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+            <!-- Right Column: Modes & Field Rules -->
+            <div class="about-content-col">
+              <!-- Planetary Expedition Modes -->
+              <div class="setting-group">
+                <label class="setting-label">PLANETARY EXPEDITION MODES</label>
+                <p class="setting-desc">Three tailored flight and exploration disciplines across the celestial system.</p>
+                
+                <div class="about-mode-item">
+                  <div class="about-mode-head">
+                    <span class="about-mode-badge">1</span>
+                    <strong class="about-mode-name">Cosy Cruise</strong>
+                  </div>
+                  <p class="about-mode-desc">Freeform planetary exploration. Dynamic solar time-of-day, procedural ambient chords, and remote outpost deliveries with zero timers or stress.</p>
+                </div>
+
+                <div class="about-mode-item">
+                  <div class="about-mode-head">
+                    <span class="about-mode-badge badge-cascade">2</span>
+                    <strong class="about-mode-name">Celestial Cascade</strong>
+                  </div>
+                  <p class="about-mode-desc">Orbital hazard survival. Astrolabes illuminate impending meteor impact sites. Weave within 2.5m for CLOSE CALL bonuses (+150 pts) and gather stardust shards to charge your 5x combo multiplier!</p>
+                </div>
+
+                <div class="about-mode-item">
+                  <div class="about-mode-head">
+                    <span class="about-mode-badge badge-odyssey">3</span>
+                    <strong class="about-mode-name">Crossy Odyssey</strong>
+                  </div>
+                  <p class="about-mode-desc">Traverse treacherous alpine passes. Slalom cleanly through crossing transport convoys and evade rolling boulders for massive weave score streaks!</p>
+                </div>
+              </div>
+
+              <!-- Field Ranger Rules & Integrity -->
+              <div class="setting-group">
+                <label class="setting-label">FIELD EXPEDITION INTEGRITY</label>
+                <div class="about-rule-item">
+                  <span class="about-rule-icon rule-shield">
+                    <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#38BDF8" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" fill="rgba(56, 189, 248, 0.15)"/></svg>
+                  </span>
+                  <div>
+                    <strong style="color: #FFFFFF;">3 Shield Charges:</strong>
+                    <span style="color: #94A3B8;"> Shields absorb impact energy and deflect incoming orbital hazards without losing momentum.</span>
+                  </div>
+                </div>
+                <div class="about-rule-item" style="margin-top: 10px;">
+                  <span class="about-rule-icon rule-repair">
+                    <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#10B981" stroke-width="2"><rect x="3" y="7" width="18" height="13" rx="2" fill="rgba(16, 185, 129, 0.15)"/><path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="12" y1="12" x2="12" y2="15"/></svg>
+                  </span>
+                  <div>
+                    <strong style="color: #FFFFFF;">Toolbox Repairs:</strong>
+                    <span style="color: #94A3B8;"> Green field emergency toolboxes scattered along planetary highways restore depleted shields.</span>
+                  </div>
+                </div>
+              </div>
+
+              <button class="settings-close-pill-btn about-bottom-return" id="btn-close-about-2" type="button" style="width: 100%; height: 38px; border-radius: 10px; margin-top: 4px;">
                 <span>RETURN TO EXPEDITION</span>
               </button>
             </div>
           </div>
         </div>
-      </div>
 
-      <!-- Tab 2: Dev Dossier & Creator Story -->
-      <div class="handbook-tab-panel hidden" id="panel-handbook-dev" role="tabpanel">
-        <div class="handbook-binder dev-binder">
-          
-          <!-- Left Page: The Vision, Creator & Antigravity Journey -->
-          <div class="handbook-page left-page">
-            <div class="page-header">
-              <div class="park-stamp dev-stamp">
-                <svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="#C07A2B" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+        <!-- Tab 2: Dev Dossier & Creator Story -->
+        <div class="about-tab-panel handbook-tab-panel hidden" id="panel-handbook-dev" role="tabpanel">
+          <div class="about-content-grid">
+            <!-- Left Column: Creator, Story & Platform -->
+            <div class="about-content-col">
+              <!-- Creator Card -->
+              <div class="setting-group">
+                <label class="setting-label">DEVELOPED &amp; DIRECTED BY</label>
+                <div class="about-author-header">
+                  <a href="https://srinivasa.dev" target="_blank" rel="noopener noreferrer" class="about-author-link" title="Visit Developer Portfolio">
+                    <strong>Srinivasa</strong>
+                    <span class="dev-site-pill">srinivasa.dev</span>
+                    <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6M15 3h6v6M10 14L21 3"/></svg>
+                  </a>
+                </div>
+                <div class="dev-badge-row" style="margin-top: 8px;">
+                  <span class="about-tag-badge">Solitary Indie Project</span>
+                  <span class="about-tag-badge highlight">AI-Augmented Engineering</span>
+                </div>
               </div>
-              <div>
-                <h2 class="handbook-title">CREATOR &amp; DEV DOSSIER</h2>
-                <span class="handbook-sub">The Making of Over The Horizon</span>
+
+              <!-- The Vision & Origin -->
+              <div class="setting-group">
+                <label class="setting-label">THE VISION &amp; ORIGIN</label>
+                <p class="about-quote-lead">"I always imagined this game."</p>
+                <p class="setting-desc" style="color: #CBD5E1; margin-bottom: 8px;">
+                  I've always loved the concept of tiny spherical planets and richly textured low-poly diorama games (inspired by <strong>Over the Hill</strong>, <strong>Art of Rally</strong>, and <strong>The Little Prince</strong>).
+                </p>
+                <p class="setting-desc" style="color: #94A3B8; margin-bottom: 0;">
+                  Now that we have advanced agentic AI, I wanted to test the frontier: <em>How far can a solitary developer go by vibe coding in pure creative flow with an AI coding partner?</em>
+                </p>
+              </div>
+
+              <!-- Vibe Coded With Antigravity -->
+              <div class="setting-group about-platform-card">
+                <div class="antigravity-crest">
+                  <svg viewBox="0 0 24 24" width="22" height="22" fill="none"><circle cx="12" cy="12" r="10" stroke="#F5A623" stroke-width="1.8"/><path d="M12 6v12M6 12h12" stroke="#38BDF8" stroke-width="1.8" stroke-linecap="round"/></svg>
+                </div>
+                <div class="about-platform-meta">
+                  <strong style="color: #FFFFFF; font-size: 13px;">Google Antigravity</strong>
+                  <span style="color: #94A3B8; font-size: 11px;">Powered by <strong style="color: #38BDF8;">Gemini 3.8 Flash (High)</strong></span>
+                </div>
               </div>
             </div>
 
-            <!-- Author Card -->
-            <div class="dev-author-card">
-              <div class="dev-author-meta">
-                <span class="dev-label">DEVELOPED &amp; DIRECTED BY</span>
-                <a href="https://srinivasa.dev" target="_blank" rel="noopener noreferrer" class="dev-author-link" title="Visit Developer Portfolio">
-                  <strong>Srinivasa</strong>
-                  <span class="dev-site-pill">srinivasa.dev</span>
-                  <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6M15 3h6v6M10 14L21 3"/></svg>
+            <!-- Right Column: Telemetry, Architecture & External Links -->
+            <div class="about-content-col">
+              <!-- Project Telemetry & AI Compute Stats -->
+              <div class="setting-group">
+                <label class="setting-label">PROJECT TELEMETRY &amp; AI COMPUTE STATS</label>
+                <p class="setting-desc">Real-world production engineering telemetry over development lifecycle.</p>
+                <div class="about-telemetry-grid">
+                  <div class="about-telemetry-card">
+                    <span class="about-telemetry-val" style="color: #FFFFFF;">36+ hrs</span>
+                    <span class="about-telemetry-lbl">Development Time</span>
+                  </div>
+                  <div class="about-telemetry-card">
+                    <span class="about-telemetry-val" style="color: #F5A623;">~780M</span>
+                    <span class="about-telemetry-lbl">Tokens Processed</span>
+                  </div>
+                  <div class="about-telemetry-card">
+                    <span class="about-telemetry-val" style="color: #FFFFFF;">5,200+</span>
+                    <span class="about-telemetry-lbl">Reasoning Turns</span>
+                  </div>
+                  <div class="about-telemetry-card">
+                    <span class="about-telemetry-val" style="color: #FFFFFF;">145+</span>
+                    <span class="about-telemetry-lbl">Prompt Iterations</span>
+                  </div>
+                  <div class="about-telemetry-card">
+                    <span class="about-telemetry-val" style="color: #10B981;">&lt; $28</span>
+                    <span class="about-telemetry-lbl">AI Compute Cost</span>
+                  </div>
+                  <div class="about-telemetry-card">
+                    <span class="about-telemetry-val" style="color: #38BDF8;">14,900+</span>
+                    <span class="about-telemetry-lbl">Lines of Vanilla Code</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Technical Architecture & Systems -->
+              <div class="setting-group">
+                <label class="setting-label">TECHNICAL ARCHITECTURE &amp; SYSTEMS</label>
+                <div class="about-arch-list">
+                  <div class="about-arch-item">
+                    <span class="about-arch-dot"></span>
+                    <span><strong style="color: #FFFFFF;">Three.js WebGL:</strong> Procedural spherical planet geometry, low-poly facet lighting, and atmospheric diorama.</span>
+                  </div>
+                  <div class="about-arch-item">
+                    <span class="about-arch-dot"></span>
+                    <span><strong style="color: #FFFFFF;">Gemini Procedural Web Audio:</strong> 100% mathematical real-time synthesis for vehicle, hazards, and planetary soundscapes.</span>
+                  </div>
+                  <div class="about-arch-item">
+                    <span class="about-arch-dot"></span>
+                    <span><strong style="color: #FFFFFF;">Edge-to-Edge Mobile &amp; PWA:</strong> Thumb-docked speedometer, virtual touch controls, notch/island safe areas.</span>
+                  </div>
+                  <div class="about-arch-item">
+                    <span class="about-arch-dot"></span>
+                    <span><strong style="color: #FFFFFF;">Interactive 360° Camera:</strong> Touch &amp; mouse orbit drag with inertial momentum, restricted cockpit view.</span>
+                  </div>
+                  <div class="about-arch-item">
+                    <span class="about-arch-dot"></span>
+                    <span><strong style="color: #FFFFFF;">Analytical Spherical Physics:</strong> Ackermann steering, 3D surface-normal gravity, and ground radar astrolabe.</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- External Action Cluster -->
+              <div class="about-actions-cluster">
+                <a href="https://srinivasa.dev" target="_blank" rel="noopener noreferrer" class="about-action-pill" title="Visit Developer Portfolio">
+                  <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+                  <span>srinivasa.dev</span>
+                </a>
+                <a href="https://twitter.com/TheSyntaxSinner" target="_blank" rel="noopener noreferrer" class="about-action-pill" title="Follow @TheSyntaxSinner on Twitter / X">
+                  <svg viewBox="0 0 24 24" width="12" height="12" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
+                  <span>@TheSyntaxSinner</span>
+                </a>
+                <a href="https://github.com/srinivasa-dev/over-the-horizon" target="_blank" rel="noopener noreferrer" class="about-action-pill" title="Explore Source Code on GitHub">
+                  <svg viewBox="0 0 24 24" width="13" height="13" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0 0 24 12c0-6.63-5.37-12-12-12z"/></svg>
+                  <span>GitHub</span>
                 </a>
               </div>
-              <div class="dev-badge-row">
-                <span class="dev-tech-badge">Solitary Indie Project</span>
-                <span class="dev-tech-badge highlight">AI-Augmented Engineering</span>
-              </div>
-            </div>
-
-            <!-- The Vision & Origin Story -->
-            <div class="handbook-section-title">THE VISION &amp; ORIGIN</div>
-            <div class="dev-story-box">
-              <p class="dev-story-lead">
-                <em>"I always imagined this game."</em>
-              </p>
-              <p>
-                I've always loved the concept of tiny spherical planets and richly textured low-poly diorama games (inspired by <strong>Over the Hill</strong>, <strong>Art of Rally</strong>, and <strong>The Little Prince</strong>).
-              </p>
-              <p>
-                Now that we have advanced agentic AI, I wanted to test the frontier: <em>How far can a solitary developer go by vibe coding in pure creative flow with an AI coding partner?</em>
-              </p>
-            </div>
-
-            <!-- AI Engine & Platform Badge -->
-            <div class="handbook-section-title">VIBE CODED WITH</div>
-            <div class="dev-antigravity-badge">
-              <div class="antigravity-crest">
-                <svg viewBox="0 0 24 24" width="22" height="22" fill="none"><circle cx="12" cy="12" r="10" stroke="#F59E0B" stroke-width="1.8"/><path d="M12 6v12M6 12h12" stroke="#38BDF8" stroke-width="1.8" stroke-linecap="round"/></svg>
-              </div>
-              <div class="antigravity-meta">
-                <strong>Google Antigravity</strong>
-                <span>Powered by <strong>Gemini 3.8 Flash (High)</strong></span>
-              </div>
-            </div>
-          </div>
-
-          <!-- Right Page: Live Telemetry, Stats & Architecture -->
-          <div class="handbook-page right-page">
-            <div class="handbook-section-title">PROJECT TELEMETRY &amp; AI COMPUTE STATS</div>
-            
-            <div class="dev-telemetry-grid">
-              <div class="telemetry-card">
-                <span class="telemetry-val">36+ hrs</span>
-                <span class="telemetry-lbl">Total Development Time</span>
-              </div>
-              <div class="telemetry-card highlight-token">
-                <span class="telemetry-val">~780M</span>
-                <span class="telemetry-lbl">Total Tokens Processed</span>
-              </div>
-              <div class="telemetry-card">
-                <span class="telemetry-val">5,200+</span>
-                <span class="telemetry-lbl">AI Reasoning Turns</span>
-              </div>
-              <div class="telemetry-card">
-                <span class="telemetry-val">145+</span>
-                <span class="telemetry-lbl">Human Prompt Iterations</span>
-              </div>
-              <div class="telemetry-card highlight-cost">
-                <span class="telemetry-val">&lt; $28</span>
-                <span class="telemetry-lbl">Estimated Compute Cost</span>
-              </div>
-              <div class="telemetry-card">
-                <span class="telemetry-val">14,900+</span>
-                <span class="telemetry-lbl">Lines of Vanilla Code</span>
-              </div>
-            </div>
-
-            <div class="handbook-section-title" style="margin-top: 8px;">TECHNICAL ARCHITECTURE &amp; LATEST SYSTEMS</div>
-            <div class="dev-arch-box">
-              <div class="arch-item">
-                <span class="arch-dot"></span>
-                <span><strong>Three.js WebGL:</strong> Procedural spherical planet geometry, low-poly facet lighting, golden hour gradients, and fog diorama.</span>
-              </div>
-              <div class="arch-item">
-                <span class="arch-dot"></span>
-                <span><strong>Gemini Procedural Web Audio:</strong> 100% mathematical real-time synthesis for vehicle, hazards, and planetary soundscapes with calibration drawer.</span>
-              </div>
-              <div class="arch-item">
-                <span class="arch-dot"></span>
-                <span><strong>Edge-to-Edge Mobile &amp; PWA:</strong> Left-docked speedometer thumb zone, virtual pedals, notch/island safe areas, and zero top blur.</span>
-              </div>
-              <div class="arch-item">
-                <span class="arch-dot"></span>
-                <span><strong>Interactive 360° Camera:</strong> Touch &amp; mouse orbit drag with inertial momentum, restricted wide-angle driver cockpit view.</span>
-              </div>
-              <div class="arch-item">
-                <span class="arch-dot"></span>
-                <span><strong>Analytical Spherical Physics:</strong> Ackermann steering, 3D surface-normal gravity, and ground-projected astrolabe hazard radar.</span>
-              </div>
-            </div>
-
-            <!-- External Action Links -->
-            <div class="dev-actions-cluster">
-              <a href="https://srinivasa.dev" target="_blank" rel="noopener noreferrer" class="btn-dev-action btn-dev-portfolio" title="Visit Developer Portfolio">
-                <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
-                <span>srinivasa.dev</span>
-              </a>
-              <a href="https://twitter.com/TheSyntaxSinner" target="_blank" rel="noopener noreferrer" class="btn-dev-action btn-dev-twitter" title="Follow @TheSyntaxSinner on Twitter / X">
-                <svg viewBox="0 0 24 24" width="13" height="13" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
-                <span>@TheSyntaxSinner</span>
-              </a>
-              <a href="https://github.com/srinivasa-dev/over-the-horizon" target="_blank" rel="noopener noreferrer" class="btn-dev-action btn-dev-github" title="Explore Source Code on GitHub">
-                <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0 0 24 12c0-6.63-5.37-12-12-12z"/></svg>
-                <span>GitHub Source</span>
-              </a>
-            </div>
-
-            <div class="handbook-page-footer">
-              <button class="btn-timber-action" id="btn-close-about-2" type="button">
-                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
-                <span>RETURN TO EXPEDITION</span>
-              </button>
             </div>
           </div>
         </div>
@@ -1037,6 +1050,6 @@
   </script>
 
   <!-- Main Application Entrypoint -->
-  <script type="module" src="src/js/app.js?v=2.4.9"></script>
+  <script type="module" src="src/js/app.js?v=2.5.6"></script>
 </body>
 </html>

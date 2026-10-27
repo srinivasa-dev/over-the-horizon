@@ -2755,133 +2755,281 @@ body:has(#welcome-modal:not(.hidden)) #mobile-controls {
 }
 
 /* -----------------------------------------------------------------
-   National Park Field Handbook Modal (#about-modal)
+   Expedition Manual & Dev Dossier Modal (#about-modal)
+   Sleek dark glassmorphic styling matching Settings Modal
    ----------------------------------------------------------------- */
+.about-card,
 .handbook-container {
-  width: 100%;
-  max-width: 820px;
+  max-width: 840px;
+  width: min(94%, 840px);
+  background: rgba(14, 18, 26, 0.96);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 18px;
+  padding: 22px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.85);
+  touch-action: pan-y pinch-zoom;
   box-sizing: border-box;
   max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Modal Header */
+.about-modal-header {
+  margin-bottom: 14px;
+}
+
+/* Tab Switcher (Segmented Pill Row matching Settings) */
+.about-tab-row,
+.handbook-tabs-nav {
+  display: flex !important;
+  flex-direction: row !important;
+  gap: 8px;
+  margin-bottom: 14px;
+  width: 100%;
+}
+
+.about-tab-row .setting-pill-btn,
+.handbook-tab-btn {
+  flex: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  padding: 9px 16px;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.6px;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  background: rgba(255, 255, 255, 0.05);
+  color: #CBD5E1;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  outline: none;
+}
+
+.about-tab-row .setting-pill-btn:hover,
+.handbook-tab-btn:hover {
+  background: rgba(255, 255, 255, 0.09);
+  color: #FFFFFF;
+}
+
+.about-tab-row .setting-pill-btn.active,
+.handbook-tab-btn.active {
+  background: #2563EB;
+  color: #FFFFFF;
+  border-color: #3B82F6;
+  box-shadow: 0 2px 8px rgba(37, 99, 235, 0.4);
+}
+
+/* Scrollable Container */
+.about-sections-scroll {
+  flex: 1;
+  min-height: 0;
+  max-height: calc(88vh - 120px);
   overflow-y: auto;
-  position: relative;
+  padding-right: 6px;
   display: flex;
   flex-direction: column;
   touch-action: pan-y pinch-zoom;
   -webkit-overflow-scrolling: touch;
 }
 
-/* Handbook & Dev Dossier Tabs */
-.handbook-tabs-nav {
-  display: flex;
-  gap: 8px;
-  margin-bottom: -3px;
-  position: relative;
-  z-index: 10;
-  padding-left: 14px;
-}
-
-.handbook-tab-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 7px;
-  background: #E8DECA;
-  border: 2px solid #8C531B;
-  border-bottom: none;
-  border-radius: 12px 12px 0 0;
-  padding: 8px 16px;
-  font-size: 11px;
-  font-weight: 800;
-  letter-spacing: 0.8px;
-  color: #4A3018;
-  cursor: pointer;
-  box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.15);
-  transition: all 0.15s ease;
-  touch-action: manipulation;
-  outline: none;
-}
-
-.handbook-tab-btn:hover {
-  background: #F3EBDD;
-  color: #1B3629;
-}
-
-.handbook-tab-btn.active {
-  background: #FAF6EE;
-  color: #1B3629;
-  border-color: #8C531B;
-  padding-top: 10px;
-  margin-top: -2px;
-  box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.22);
-}
-
+/* Two-column Grid */
+.about-content-grid,
 .handbook-binder {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 18px;
-  background: linear-gradient(175deg, #FAF6EE 0%, #F5EEDB 100%);
-  border: 3px solid #8C531B;
-  border-radius: 16px;
-  padding: 22px;
-  color: #1B3629;
-  box-shadow: 0 25px 70px rgba(10, 22, 16, 0.8), inset 0 0 30px rgba(140, 83, 27, 0.08);
+  gap: 14px;
+  align-items: start;
 }
 
-.dev-binder {
-  background: linear-gradient(175deg, #FAF6EE 0%, #F4ECE0 100%);
-}
-
-.dev-stamp {
-  border-color: #C07A2B;
-  background: rgba(192, 122, 43, 0.12);
-}
-
-.dev-author-card {
-  background: #FFFFFF;
-  border: 1.5px solid rgba(140, 83, 27, 0.25);
-  border-radius: 10px;
-  padding: 10px 14px;
-  box-shadow: 0 2px 8px rgba(27, 54, 41, 0.05);
+.about-content-col,
+.handbook-page {
   display: flex;
   flex-direction: column;
+  gap: 12px;
+}
+
+/* Controls Grid & Keycaps */
+.about-keycaps-grid,
+.controls-keycaps-grid {
+  display: grid;
+  grid-template-columns: 1fr;
   gap: 6px;
 }
 
-.dev-author-meta {
+.about-keycap-item,
+.keycap-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: rgba(0, 0, 0, 0.35);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 8px;
+  padding: 5px 10px;
+}
+
+.about-keycap-label {
+  font-size: 11px;
+  font-weight: 600;
+  color: #CBD5E1;
+}
+
+.about-keycap-item .rebind-key,
+.keycap {
+  font-family: monospace;
+  font-size: 11px;
+  font-weight: 800;
+  background: #1E293B;
+  color: #F5A623;
+  padding: 2px 8px;
+  border-radius: 4px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+/* CAD Blueprint Specification Box */
+.about-blueprint-card,
+.handbook-blueprint-box {
+  background: rgba(10, 16, 26, 0.85);
+  border: 1px solid rgba(56, 189, 248, 0.25);
+  border-radius: 12px;
+  padding: 10px 12px;
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: 6px;
+  box-shadow: inset 0 0 20px rgba(56, 189, 248, 0.04);
 }
 
-.dev-label {
-  font-size: 8px;
+.about-blueprint-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid rgba(56, 189, 248, 0.15);
+  padding-bottom: 4px;
+}
+
+.blueprint-tag {
+  font-size: 8.5px;
   font-weight: 800;
-  letter-spacing: 1.2px;
-  text-transform: uppercase;
-  color: #8C531B;
+  letter-spacing: 1px;
+  color: #38BDF8;
 }
 
+.blueprint-code,
+.blueprint-label {
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 0.6px;
+  color: #F5A623;
+}
+
+/* Planetary Modes */
+.about-mode-item,
+.handbook-mode-card {
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 8px;
+  padding: 8px 10px;
+  margin-bottom: 6px;
+}
+
+.about-mode-head,
+.handbook-mode-header {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.about-mode-badge,
+.mode-bullet-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 17px;
+  height: 17px;
+  border-radius: 50%;
+  background: #2563EB;
+  color: #FFFFFF;
+  font-size: 9.5px;
+  font-weight: 800;
+  flex-shrink: 0;
+}
+
+.about-mode-badge.badge-cascade {
+  background: #F59E0B;
+}
+
+.about-mode-badge.badge-odyssey {
+  background: #10B981;
+}
+
+.about-mode-name {
+  font-size: 11.5px;
+  font-weight: 800;
+  color: #FFFFFF;
+}
+
+.about-mode-desc,
+.handbook-mode-card p {
+  font-size: 10.5px;
+  line-height: 1.45;
+  color: #94A3B8;
+  margin: 4px 0 0 0;
+}
+
+/* Rules */
+.about-rule-item,
+.rule-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  font-size: 11px;
+  line-height: 1.45;
+  color: #CBD5E1;
+}
+
+.about-rule-icon,
+.rule-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+/* Author Card, Story & Google Antigravity */
+.about-author-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.about-author-link,
 .dev-author-link {
   display: inline-flex;
   align-items: center;
   gap: 8px;
   text-decoration: none;
-  color: #1B3629;
-  font-size: 15px;
+  color: #FFFFFF;
+  font-size: 16px;
   font-weight: 900;
   transition: color 0.15s ease;
 }
 
+.about-author-link:hover,
 .dev-author-link:hover {
-  color: #C07A2B;
+  color: #F5A623;
 }
 
 .dev-site-pill {
   font-size: 10px;
   font-weight: 800;
   letter-spacing: 0.5px;
-  color: #2563EB;
-  background: rgba(37, 99, 235, 0.10);
-  border: 1px solid rgba(37, 99, 235, 0.25);
+  color: #60A5FA;
+  background: rgba(37, 99, 235, 0.15);
+  border: 1px solid rgba(37, 99, 235, 0.35);
   border-radius: 9999px;
   padding: 1px 8px;
 }
@@ -2892,531 +3040,204 @@ body:has(#welcome-modal:not(.hidden)) #mobile-controls {
   gap: 6px;
 }
 
+.about-tag-badge,
 .dev-tech-badge {
-  font-size: 8.5px;
+  font-size: 9px;
   font-weight: 800;
   letter-spacing: 0.6px;
   text-transform: uppercase;
-  padding: 2px 7px;
+  padding: 3px 8px;
   border-radius: 9999px;
-  background: rgba(27, 54, 41, 0.08);
-  color: #1B3629;
-  border: 1px solid rgba(27, 54, 41, 0.15);
+  background: rgba(255, 255, 255, 0.06);
+  color: #E2E8F0;
+  border: 1px solid rgba(255, 255, 255, 0.12);
 }
 
+.about-tag-badge.highlight,
 .dev-tech-badge.highlight {
-  background: rgba(245, 158, 11, 0.15);
-  color: #B45309;
-  border-color: rgba(245, 158, 11, 0.35);
+  background: rgba(245, 166, 35, 0.15);
+  color: #F5A623;
+  border-color: rgba(245, 166, 35, 0.35);
 }
 
-.dev-story-box {
-  background: #FFFFFF;
-  border: 1px solid rgba(27, 54, 41, 0.14);
-  border-radius: 8px;
-  padding: 10px 12px;
-  font-size: 10.5px;
-  line-height: 1.45;
-  color: #2D3748;
-  box-shadow: 0 1px 4px rgba(27, 54, 41, 0.04);
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-
+.about-quote-lead,
 .dev-story-lead {
-  font-size: 12px;
-  font-weight: 800;
-  color: #1B3629;
-  margin: 0;
+  font-size: 12.5px;
+  font-weight: 700;
+  font-style: italic;
+  color: #F5A623;
+  margin: 0 0 6px 0;
 }
 
+.about-platform-card,
 .dev-antigravity-badge {
   display: flex;
   align-items: center;
-  gap: 10px;
-  background: #FFFFFF;
-  border: 1.5px solid #F59E0B;
-  border-radius: 10px;
-  padding: 8px 12px;
-  box-shadow: 0 2px 8px rgba(245, 158, 11, 0.15);
+  gap: 12px;
 }
 
 .antigravity-crest {
-  width: 32px;
-  height: 32px;
+  width: 34px;
+  height: 34px;
   border-radius: 50%;
-  background: rgba(245, 158, 11, 0.12);
+  background: rgba(245, 166, 35, 0.12);
+  border: 1px solid rgba(245, 166, 35, 0.3);
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
 }
 
-.antigravity-meta {
-  display: flex;
-  flex-direction: column;
-  font-size: 11px;
-  color: #1B3629;
-  line-height: 1.25;
-}
-
-.antigravity-meta span {
-  font-size: 9.5px;
-  color: #64748B;
-}
-
-
-
-.dev-telemetry-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 6px;
-}
-
-.telemetry-card {
-  background: #FFFFFF;
-  border: 1px solid rgba(27, 54, 41, 0.15);
-  border-radius: 8px;
-  padding: 8px 10px;
+.about-platform-meta {
   display: flex;
   flex-direction: column;
   gap: 2px;
-  box-shadow: 0 1px 3px rgba(27, 54, 41, 0.04);
 }
 
-.telemetry-val {
-  font-size: 16px;
-  font-weight: 900;
-  color: #1B3629;
-  font-variant-numeric: tabular-nums;
-  line-height: 1.1;
-}
-
-.telemetry-lbl {
-  font-size: 8px;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.6px;
-  color: #8C531B;
-}
-
-.telemetry-card.highlight-token .telemetry-val {
-  color: #D97706;
-}
-
-.telemetry-card.highlight-cost .telemetry-val {
-  color: #16A34A;
-}
-
-.dev-arch-box {
-  background: #FFFFFF;
-  border: 1px solid rgba(27, 54, 41, 0.14);
-  border-radius: 8px;
-  padding: 8px 10px;
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  font-size: 9.5px;
-  line-height: 1.35;
-  color: #334155;
-  box-shadow: 0 1px 4px rgba(27, 54, 41, 0.04);
-}
-
-.arch-item {
-  display: flex;
-  align-items: flex-start;
+/* Project Telemetry & Architecture */
+.about-telemetry-grid,
+.dev-telemetry-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
   gap: 6px;
 }
 
+.about-telemetry-card,
+.telemetry-card {
+  background: rgba(0, 0, 0, 0.35);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 8px;
+  padding: 6px 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.about-telemetry-val,
+.telemetry-val {
+  font-size: 15px;
+  font-weight: 900;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.15;
+}
+
+.about-telemetry-lbl,
+.telemetry-lbl {
+  font-size: 8px;
+  font-weight: 800;
+  letter-spacing: 0.6px;
+  text-transform: uppercase;
+  color: #94A3B8;
+}
+
+.about-arch-list,
+.dev-arch-box {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.about-arch-item,
+.arch-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  font-size: 10px;
+  line-height: 1.35;
+  color: #CBD5E1;
+}
+
+.about-arch-dot,
 .arch-dot {
   width: 5px;
   height: 5px;
   border-radius: 50%;
-  background: #C07A2B;
-  margin-top: 4px;
+  background: #38BDF8;
+  box-shadow: 0 0 6px rgba(56, 189, 248, 0.6);
+  margin-top: 5px;
   flex-shrink: 0;
 }
 
+/* External Action Links */
+.about-actions-cluster,
 .dev-actions-cluster {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: repeat(3, 1fr);
   gap: 8px;
-  margin-top: 6px;
+  margin-top: 2px;
 }
 
+.about-action-pill,
 .btn-dev-action {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 8px;
+  padding: 8px 6px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 6px;
-  padding: 8px 12px;
-  border-radius: 8px;
+  color: #CBD5E1;
   font-size: 10.5px;
-  font-weight: 800;
-  letter-spacing: 0.6px;
+  font-weight: 700;
   text-decoration: none;
   transition: all 0.15s ease;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
 }
 
-.btn-dev-portfolio {
-  background: #1B3629;
-  color: #FAF6EE;
-  border: 1.5px solid #1B3629;
-}
-
-.btn-dev-portfolio:hover {
-  background: #234E38;
-  color: #FFFFFF;
+.about-action-pill:hover,
+.btn-dev-action:hover {
+  background: rgba(245, 166, 35, 0.15);
+  border-color: #F5A623;
+  color: #F5A623;
   transform: translateY(-1px);
 }
 
-.btn-dev-github {
-  background: #24292F;
-  color: #FFFFFF;
-  border: 1.5px solid #24292F;
+.about-bottom-return,
+.btn-timber-action {
+  width: 100%;
+  margin-top: 6px;
 }
 
-.btn-dev-github:hover {
-  background: #000000;
-  transform: translateY(-1px);
-}
-
+/* Responsive Breakpoints */
 @media (max-width: 720px) {
+  .about-content-grid,
   .handbook-binder {
     grid-template-columns: 1fr;
-    gap: 14px;
-    padding: 16px;
+    gap: 12px;
   }
-
-  .dev-telemetry-grid {
+  .about-actions-cluster,
+  .dev-actions-cluster {
     grid-template-columns: 1fr 1fr;
   }
 }
 
-@media (max-width: 480px) {
+@media (max-width: 520px) {
+  .about-card,
   .handbook-container {
+    padding: 16px 14px;
+    border-radius: 16px;
     width: 100%;
-    max-height: 92vh;
   }
-
-  .handbook-tabs-nav {
-    padding-left: 6px;
-    gap: 4px;
-  }
-
-  .handbook-tab-btn {
-    padding: 6px 9px;
-    font-size: 9.5px;
-    letter-spacing: 0.4px;
-    gap: 5px;
-  }
-
-  .handbook-tab-btn svg {
-    width: 12px;
-    height: 12px;
-  }
-
-  .handbook-binder {
-    padding: 12px 10px;
-    border-radius: 12px;
-    border-width: 2px;
-    gap: 10px;
-  }
-
-  .handbook-title {
-    font-size: 12.5px;
-    letter-spacing: 0.5px;
-  }
-
-  .handbook-sub {
-    font-size: 9.5px;
-  }
-
-  .park-stamp {
-    width: 28px;
-    height: 28px;
-  }
-
-  .park-stamp svg {
-    width: 18px;
-    height: 18px;
-  }
-
-  .page-header {
+  .about-modal-header {
     gap: 8px;
-    padding-bottom: 5px;
+    padding-bottom: 10px;
+    margin-bottom: 12px;
   }
-
-  .handbook-section-title {
-    font-size: 8.5px;
-    letter-spacing: 0.8px;
+  .about-actions-cluster,
+  .dev-actions-cluster {
+    grid-template-columns: 1fr;
   }
-
-  .controls-keycaps-grid {
-    gap: 3px;
-  }
-
-  .keycap-item {
-    font-size: 10px;
-  }
-
-  .handbook-mode-card {
-    padding: 8px 10px;
-  }
-
-  .handbook-mode-header {
-    font-size: 11px;
-  }
-
-  .handbook-mode-card p {
-    font-size: 10px;
-    line-height: 1.4;
-  }
-
-  .rule-item {
-    font-size: 10px;
-  }
-
-  .dev-telemetry-grid {
-    grid-template-columns: 1fr 1fr;
+  .about-tab-row {
+    flex-direction: row !important;
     gap: 6px;
+    margin-bottom: 10px;
   }
-
-  .telemetry-card {
-    padding: 6px 8px;
+  .about-tab-row .setting-pill-btn,
+  .handbook-tab-btn {
+    font-size: 10px;
+    padding: 7px 6px;
+    white-space: nowrap;
   }
-
-  .telemetry-val {
-    font-size: 14px;
-  }
-
-  .telemetry-lbl {
-    font-size: 8px;
-  }
-
-  .btn-timber-action {
-    min-height: 42px;
-    height: 42px;
-    font-size: 11.5px;
-    padding: 8px 14px;
-    margin-top: 6px;
-  }
-}
-
-.handbook-page {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  text-align: left;
-}
-
-.page-header {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  border-bottom: 1.5px solid rgba(27, 54, 41, 0.15);
-  padding-bottom: 7px;
-}
-
-.park-stamp {
-  width: 36px;
-  height: 36px;
-  flex-shrink: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: #FAF6EE;
-  border: 1.5px solid #C07A2B;
-  border-radius: 50%;
-}
-
-.handbook-title {
-  font-size: 15px;
-  font-weight: 900;
-  letter-spacing: 1.2px;
-  color: #1B3629;
-  margin: 0;
-}
-
-.handbook-sub {
-  font-size: 8.5px;
-  font-weight: 700;
-  text-transform: uppercase;
-  color: #8C531B;
-  letter-spacing: 0.8px;
-}
-
-.handbook-section-title {
-  font-size: 9px;
-  font-weight: 800;
-  letter-spacing: 1.2px;
-  text-transform: uppercase;
-  color: #8C531B;
-  margin-top: 4px;
-}
-
-.controls-keycaps-grid {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 4px;
-}
-
-.keycap-item {
-  font-size: 10.5px;
-  font-weight: 600;
-  color: #1B3629;
-  display: flex;
-  align-items: center;
-  gap: 7px;
-}
-
-.handbook-modal .keycap,
-.controls-keycaps-grid .keycap {
-  display: inline-block;
-  background: #EAE3D2;
-  border: 1.5px solid #8C531B;
-  border-radius: 5px;
-  padding: 1px 6px;
-  font-family: monospace;
-  font-weight: 800;
-  font-size: 9.5px;
-  color: #1B3629;
-  box-shadow: 0 2px 0 #8C531B;
-  min-width: 55px;
-  text-align: center;
-  flex-shrink: 0;
-}
-
-.handbook-blueprint-box {
-  background: rgba(27, 54, 41, 0.05);
-  border: 1.5px dashed rgba(27, 54, 41, 0.3);
-  border-radius: 8px;
-  padding: 6px;
-  margin-top: 4px;
-}
-
-.blueprint-label {
-  font-size: 8px;
-  font-weight: 800;
-  letter-spacing: 1px;
-  color: #8C531B;
-  text-align: center;
-  margin-bottom: 2px;
-}
-
-.handbook-mode-card {
-  background: #FFFFFF;
-  border: 1px solid rgba(27, 54, 41, 0.14);
-  border-radius: 8px;
-  padding: 7px 10px;
-  font-size: 10px;
-  line-height: 1.35;
-  box-shadow: 0 1px 4px rgba(27, 54, 41, 0.04);
-}
-
-.handbook-mode-header {
-  display: flex;
-  align-items: center;
-  gap: 5px;
-  font-size: 11px;
-  font-weight: 800;
-  color: #1B3629;
-  margin-bottom: 2px;
-}
-
-.mode-bullet-badge {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 15px;
-  height: 15px;
-  border-radius: 50%;
-  background: #1B3629;
-  color: #FAF6EE;
-  font-size: 8.5px;
-  font-weight: 800;
-}
-
-.handbook-rules-box {
-  background: #FFFFFF;
-  border: 1px solid rgba(27, 54, 41, 0.14);
-  border-radius: 8px;
-  padding: 8px 10px;
-  display: flex;
-  flex-direction: column;
-  gap: 5px;
-  font-size: 10px;
-  box-shadow: 0 1px 4px rgba(27, 54, 41, 0.04);
-}
-
-.rule-item {
-  display: flex;
-  align-items: center;
-  gap: 7px;
-  color: #1B3629;
-}
-
-.rule-icon {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-}
-
-.handbook-page-footer {
-  margin-top: auto;
-}
-
-/* Tactile Vibrant Return Action Button (Field Handbook & Dev Dossier) */
-.btn-timber-action {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  width: 100%;
-  margin-top: 10px;
-  min-height: 48px;
-  padding: 11px 22px;
-  background: linear-gradient(135deg, #F59E0B 0%, #D97706 100%);
-  color: #07151D;
-  border: 1.5px solid #FDE68A;
-  border-radius: 10px;
-  font-family: inherit;
-  font-size: 13px;
-  font-weight: 900;
-  letter-spacing: 1.2px;
-  text-transform: uppercase;
-  cursor: pointer;
-  box-shadow: 0 4px 16px rgba(217, 119, 6, 0.38), inset 0 1px 0 rgba(255, 255, 255, 0.55);
-  transition: all 0.16s cubic-bezier(0.16, 1, 0.3, 1);
-  outline: none;
-  user-select: none;
-  -webkit-user-select: none;
-  touch-action: manipulation;
-}
-
-.btn-timber-action svg {
-  stroke: #07151D;
-  transition: transform 0.16s ease;
-  flex-shrink: 0;
-}
-
-.btn-timber-action:hover {
-  background: linear-gradient(135deg, #FBBF24 0%, #EA580C 100%);
-  color: #000000;
-  transform: translateY(-1.5px);
-  box-shadow: 0 6px 22px rgba(217, 119, 6, 0.55), inset 0 1px 0 rgba(255, 255, 255, 0.7);
-}
-
-.btn-timber-action:hover svg {
-  transform: translateX(-3px);
-}
-
-.btn-timber-action:active {
-  transform: translateY(1px);
-  box-shadow: 0 2px 8px rgba(217, 119, 6, 0.3);
 }
 
 /* General SVG Icon Sizing */

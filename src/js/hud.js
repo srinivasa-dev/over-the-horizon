@@ -67,7 +67,7 @@ export class HUDController {
     if (this.timeSlider) {
       this.timeSlider.addEventListener('input', (e) => {
         const val = parseFloat(e.target.value);
-        this.app.setAtmosphereTime(val);
+        this.app?.setAtmosphereTime(val);
       });
     }
 
@@ -81,7 +81,7 @@ export class HUDController {
         const modeId = btn.getAttribute('data-weather');
         const modes = ["Clear", "Rain", "Snow", "Sandstorm"];
         const mode = modes[parseInt(modeId)] || "Clear";
-        this.app.setWeather(mode);
+        this.app?.setWeather(mode);
         this.showBanner(`WEATHER: ${mode.toUpperCase()}`, `Atmospheric precipitation updated`);
       });
     });
@@ -354,7 +354,7 @@ export class HUDController {
 
   setGameMode(mode) {
     this.currentMode = mode;
-    this.app.setGameMode(mode);
+    this.app?.setGameMode(mode);
 
     // Update Mode Cards Active State
     if (this.cardCosy) this.cardCosy.classList.toggle('active', mode === "cosy");
