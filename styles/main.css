@@ -1574,8 +1574,8 @@ body.camera-dragging * {
 }
 
 /* While welcome menu is active, hide in-game HUD and mobile controls */
-body:has(#welcome-modal:not(.hidden)) #hud-layer,
-body:has(#welcome-modal:not(.hidden)) #mobile-controls {
+#hud-layer.hidden,
+#mobile-controls.hidden {
   display: none !important;
   opacity: 0 !important;
   pointer-events: none !important;
