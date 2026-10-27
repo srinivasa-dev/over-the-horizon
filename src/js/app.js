@@ -12,6 +12,7 @@ import { ComicPostProcessor } from './postprocessing.js';
 import { HUDController } from './hud.js';
 import { ArcadeEngine } from './arcade_engine.js';
 import { PresenceTracker } from './presence.js';
+import { settings } from './settings.js';
 
 window.THREE = THREE;
 
@@ -40,6 +41,13 @@ class App {
     this.initialPinchDist = null;
     this.initialPinchDistMult = 1.0;
 
+    // Preferences & Accessibility Settings
+    this.reducedMotion = settings.get('reducedMotion');
+    this.colorblindMode = settings.get('colorblindMode');
+    this.graphicsQuality = settings.get('graphicsQuality');
+    this.tiltSteering = settings.get('tiltSteering');
+    this._updateKeyMapFromSettings(settings.get('keyBindings'));
+
     this.clock = new THREE.Clock();
 
     // 1. Initialize Core Systems
@@ -58,6 +66,9 @@ class App {
 
     // 4. Tri-Mode Arcade Engine (Celestial Cascade & Crossy Odyssey)
     this.arcadeEngine = new ArcadeEngine(this.scene, this.planet, this.vehiclePhysics, this.audio, null);
+    if (this.colorblindMode) {
+      this.arcadeEngine.setColorblindMode(true);
+    }
 
     // 5. HUD, Presence & Input Handling
     this.hud = new HUDController(this);
@@ -66,6 +77,17 @@ class App {
     this._bindKeyboardEvents();
     this._bindResizeObserver();
     this._initCameraOrbitDrag();
+    this._bindDeviceOrientation();
+
+    // Apply settings changes dynamically
+    settings.onChange((state) => {
+      this.reducedMotion = state.reducedMotion;
+      this.colorblindMode = state.colorblindMode;
+      if (this.arcadeEngine) this.arcadeEngine.setColorblindMode(state.colorblindMode);
+      this.setGraphicsQuality(state.graphicsQuality);
+      this.tiltSteering = state.tiltSteering;
+      this._updateKeyMapFromSettings(state.keyBindings);
+    });
 
     // 6. Start Render Loop
     this.animate = this.animate.bind(this);
@@ -131,9 +153,23 @@ class App {
 
     this.renderer = renderer;
     this.renderer.setSize(window.innerWidth, window.innerHeight);
-    this.renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
     this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
     this.renderer.toneMappingExposure = 1.05;
+    this.setGraphicsQuality(this.graphicsQuality || 'high');
+  }
+
+  setGraphicsQuality(quality) {
+    this.graphicsQuality = quality;
+    if (!this.renderer) return;
+    if (quality === 'low') {
+      this.renderer.setPixelRatio(1.0);
+      if (this.dirLight) this.dirLight.castShadow = false;
+      this.renderer.shadowMap.enabled = false;
+    } else {
+      this.renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+      if (this.dirLight) this.dirLight.castShadow = true;
+      this.renderer.shadowMap.enabled = true;
+    }
   }
 
   _initScene() {
@@ -866,7 +902,7 @@ class App {
       // Apply Arcade Camera Shake
       if (this.arcadeEngine) {
         const shake = this.arcadeEngine.getCameraShake();
-        if (shake > 0.0) {
+        if (shake > 0.0 && !this.reducedMotion) {
           this.camera.position.x += (Math.random() - 0.5) * shake * 12.0;
           this.camera.position.y += (Math.random() - 0.5) * shake * 12.0;
           this.camera.position.z += (Math.random() - 0.5) * shake * 12.0;
@@ -905,21 +941,58 @@ class App {
   // ---------------------------------------------------------------
   // 5. USER INPUT & KEYBOARD BINDINGS
   // ---------------------------------------------------------------
-  _bindKeyboardEvents() {
-    const keyMap = {
-      KeyW: 'forward', ArrowUp: 'forward',
-      KeyS: 'backward', ArrowDown: 'backward',
-      KeyA: 'left', ArrowLeft: 'left',
-      KeyD: 'right', ArrowRight: 'right',
-      Space: 'boost',
-      ShiftLeft: 'boost', ShiftRight: 'boost'
+  _updateKeyMapFromSettings(bindings) {
+    bindings = bindings || {};
+    this.keyMap = {
+      [bindings.forward || 'KeyW']: 'forward',
+      ArrowUp: 'forward',
+      [bindings.backward || 'KeyS']: 'backward',
+      ArrowDown: 'backward',
+      [bindings.left || 'KeyA']: 'left',
+      ArrowLeft: 'left',
+      [bindings.right || 'KeyD']: 'right',
+      ArrowRight: 'right',
+      [bindings.boost || 'Space']: 'boost',
+      ShiftLeft: 'boost',
+      ShiftRight: 'boost'
     };
+    this.actionKeys = {
+      camera: bindings.camera || 'KeyC',
+      autopilot: bindings.autopilot || 'KeyP',
+      horn: bindings.horn || 'KeyH',
+      recover: bindings.recover || 'KeyR',
+      menu: bindings.menu || 'KeyM'
+    };
+  }
 
+  _bindDeviceOrientation() {
+    window.addEventListener('deviceorientation', (e) => {
+      if (!this.tiltSteering || !this.vehiclePhysics) return;
+      let tilt = 0;
+      const orientation = window.orientation ?? (screen.orientation ? screen.orientation.angle : 0);
+      if (orientation === 90) {
+        tilt = -e.beta;
+      } else if (orientation === -90 || orientation === 270) {
+        tilt = e.beta;
+      } else {
+        tilt = e.gamma;
+      }
+      if (typeof tilt === 'number' && !isNaN(tilt)) {
+        if (Math.abs(tilt) > 3) {
+          this.vehiclePhysics.inputs.tiltSteer = Math.max(-1, Math.min(1, tilt / 22));
+        } else {
+          this.vehiclePhysics.inputs.tiltSteer = 0;
+        }
+      }
+    });
+  }
+
+  _bindKeyboardEvents() {
     window.addEventListener('keydown', (e) => {
       const isMenuOpen = !this.isGameStarted || (this.hud?.welcomeModal && !this.hud.welcomeModal.classList.contains('hidden'));
       if (isMenuOpen) {
         // While start menu is open, forbid all driving controls
-        if ((e.code === 'KeyM' || e.code === 'Escape') && this.isGameStarted) {
+        if ((e.code === (this.actionKeys?.menu || 'KeyM') || e.code === 'Escape') && this.isGameStarted) {
           this.hud.toggleWelcomeModal();
         }
         return;
@@ -927,27 +1000,30 @@ class App {
 
       if (!this.audio.ctx) this.audio.init();
 
-      if (keyMap[e.code]) {
-        if (keyMap[e.code] === 'boost' && !this.vehiclePhysics.inputs.boost && !this.vehiclePhysics.isNitroLockedOut()) {
+      if (this.keyMap && this.keyMap[e.code]) {
+        const action = this.keyMap[e.code];
+        if (action === 'boost' && !this.vehiclePhysics.inputs.boost && !this.vehiclePhysics.isNitroLockedOut()) {
           this.audio.playNitroSound();
         }
-        this.vehiclePhysics.inputs[keyMap[e.code]] = true;
+        this.vehiclePhysics.inputs[action] = true;
         this.vehiclePhysics.autopilotActive = false;
         this.hud.setAutopilotStatus(false);
       }
 
-      if (e.code === 'KeyC') {
+      if (e.code === (this.actionKeys?.camera || 'KeyC')) {
         this.cycleCameraMode();
-      } else if (e.code === 'KeyP') {
+      } else if (e.code === (this.actionKeys?.autopilot || 'KeyP')) {
         const isAuto = this.vehiclePhysics.toggleAutopilot();
         this.hud.setAutopilotStatus(isAuto);
         this.hud.showBanner("AUTOPILOT", isAuto ? "Autonomous Road Cruise Active" : "Manual Control Restored");
-      } else if (e.code === 'KeyH') {
+      } else if (e.code === (this.actionKeys?.horn || 'KeyH')) {
         this.audio.playHorn();
         this.hud.showBanner("HORN", "Beep beep!");
-      } else if (e.code === 'KeyR') {
+      } else if (e.code === (this.actionKeys?.recover || 'KeyR')) {
         this.vehiclePhysics.teleportToRoad();
         this.hud.showBanner("RECOVERED", "Vehicle uprighted on road");
+      } else if (e.code === 'KeyO') {
+        this.hud.toggleSettingsModal();
       } else if (e.code === 'KeyB') {
         const isComic = this.postProcessor.toggleComicMode();
         this.hud.showBanner("COMIC SHADER", isComic ? "Moebius Ligne-Claire Inking Enabled" : "Flat-Shaded Natural 3D");
@@ -956,7 +1032,7 @@ class App {
         if (about) {
           about.classList.toggle('hidden');
         }
-      } else if (e.code === 'KeyM' || e.code === 'Escape') {
+      } else if (e.code === (this.actionKeys?.menu || 'KeyM') || e.code === 'Escape') {
         this.hud.toggleWelcomeModal();
       }
     });
@@ -964,14 +1040,14 @@ class App {
     window.addEventListener('keyup', (e) => {
       const isMenuOpen = !this.isGameStarted || (this.hud?.welcomeModal && !this.hud.welcomeModal.classList.contains('hidden'));
       if (isMenuOpen) {
-        if (keyMap[e.code]) {
-          this.vehiclePhysics.inputs[keyMap[e.code]] = false;
+        if (this.keyMap && this.keyMap[e.code]) {
+          this.vehiclePhysics.inputs[this.keyMap[e.code]] = false;
         }
         return;
       }
 
-      if (keyMap[e.code]) {
-        this.vehiclePhysics.inputs[keyMap[e.code]] = false;
+      if (this.keyMap && this.keyMap[e.code]) {
+        this.vehiclePhysics.inputs[this.keyMap[e.code]] = false;
       }
     });
   }

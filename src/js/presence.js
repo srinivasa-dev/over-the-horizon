@@ -25,6 +25,9 @@ export class PresenceTracker {
     this.hudPill = document.getElementById('hud-presence-pill');
     this.hudCount = document.getElementById('hud-online-count');
 
+    // Ensure presence pills remain hidden until live server broadcasts real presence
+    this.hideUI();
+
     // Only attempt connection if a valid endpoint is configured or in dev
     if (this.endpoint) {
       this.connect();

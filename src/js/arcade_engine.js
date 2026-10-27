@@ -57,6 +57,7 @@ export class ArcadeEngine {
     this.maxComboTime = 4.0;
     this.invulnerableTimer = 0.0;
     this.cameraShake = 0.0;
+    this.colorblindMode = false;
 
     // Floating notification toasts
     this.toasts = [];
@@ -118,6 +119,7 @@ export class ArcadeEngine {
     this.comboTimer = 0.0;
     this.invulnerableTimer = 0.0;
     this.cameraShake = 0.0;
+    this.colorblindMode = false;
     this.toasts = [];
 
     this.stationaryTimer = 0.0;
@@ -400,7 +402,7 @@ export class ArcadeEngine {
     this.arcadeGroup.add(meteorMesh);
 
     // Create Sacred Geometry Astrolabe Ground Warning Reticle
-    const reticleMesh = buildCelestialAstrolabeReticle(planetType);
+    const reticleMesh = buildCelestialAstrolabeReticle(planetType, this.colorblindMode);
     reticleMesh.position.copy(targetPos).add(targetNormal.clone().multiplyScalar(0.08));
     reticleMesh.quaternion.setFromUnitVectors(new THREE.Vector3(0, 0, 1), targetNormal);
     reticleMesh.scale.set(0.2, 0.2, 0.2);
@@ -1060,7 +1062,7 @@ export class ArcadeEngine {
     for (let k = 0; k < count; k++) {
       const spawnPos = targetRoadPos.clone().add(carRight.clone().multiplyScalar(uphillSide * (22.0 + k * 5.0)));
       const spawnPlacement = this.planet.getSurfacePlacement(spawnPos.clone().normalize(), 0.95);
-      const boulderMesh = buildRollingBoulder(planetType);
+      const boulderMesh = buildRollingBoulder(planetType, this.colorblindMode);
       boulderMesh.position.copy(spawnPlacement.position);
       this.arcadeGroup.add(boulderMesh);
 
@@ -1384,6 +1386,10 @@ export class ArcadeEngine {
       life: 2.2
     });
     if (this.toasts.length > 3) this.toasts.shift();
+  }
+
+  setColorblindMode(enabled) {
+    this.colorblindMode = Boolean(enabled);
   }
 
   getCameraShake() {

@@ -7,6 +7,41 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [2.5.3] - 2026-10-27
+
+### Added
+- **Dedicated Static SEO Pages**:
+  - Created `/planets.html`: Complete guide to all 9 miniature planetary worlds with geological compositions, vehicle chassis specs, and gravitational metrics.
+  - Created `/modes.html`: Complete breakdown of Cosy Cruise, Celestial Cascade, and Crossy Odyssey game modes, rules, and controls.
+  - Created `/about.html`: Complete solo creator dossier (Srinivasa Yadav), compute telemetry, Three.js architecture, and links.
+  - Updated `sitemap.xml` with priority indexing for all dedicated pages.
+- **Progressive Web App Service Worker (`sw.js`)**:
+  - Implemented offline play support with a Cache-First strategy for static 3D assets, procedural audio scripts, and CSS.
+- **Settings & Accessibility Panel (`#settings-modal` / `src/js/settings.js`)**:
+  - Graphics Quality toggle: High (Retina DPR + Shadows) vs Low (1x DPR, low-power mode for older mobile devices).
+  - Reduced Motion accessibility toggle: Eliminates camera screen shake, respects `prefers-reduced-motion`.
+  - Colorblind-Safe Hazard Mode: High-contrast cyan/amber/white palette and geometric chevrons on meteor astrolabes and rolling boulders.
+  - Mobile Tilt Steering with Apple-compliant `DeviceOrientationEvent.requestPermission()` prompt for iOS Safari/Chrome.
+  - Fully customizable keyboard controls remapping with persistent `localStorage` storage.
+- **Expedition Score Card Sharing**:
+  - Integrated native `navigator.share` / clipboard copy in the Game Over summary modal.
+
+### Fixed
+- **Mobile Pinch-Zoom Accessibility**:
+  - Removed `user-scalable=no` and `maximum-scale=1.0` from `<meta name="viewport">` in `index.html`.
+  - Removed document-level `touch-action: none;` from `html, body`. Confined `touch-action: none;` strictly to `#webgl-canvas` and virtual joystick controls while enabling `touch-action: pan-y pinch-zoom;` on all modals and handbook panels.
+- **Dev-Only Text Removal**:
+  - Removed player-facing local Wi-Fi / Chrome on iPhone debug notices from the fatal error screen. Replaced with clean, player-friendly WebGL support notice.
+- **Presence Count Duplicate Cleanup**:
+  - Removed duplicate hardcoded static text "1 Explorer Online" from raw HTML markup. Pills remain hidden by default until live Cloudflare WebSocket presence establishes connection.
+- **Anti-Cloaking & SEO Cleanups**:
+  - Removed cloaked `<article class="sr-only">` block beneath canvas in `index.html`.
+  - Dropped obsolete `<meta name="keywords">` tag, eliminating trademark and spam risk.
+  - Aligned author metadata and Schema.org JSON-LD to Srinivasa Yadav (Solo Creator).
+  - Configured official Twitter / X handle `@TheSyntaxSinner` across all cards, meta tags, and creator dossier.
+
+---
+
 ## [2.5.2] - 2026-10-18
 
 ### Changed

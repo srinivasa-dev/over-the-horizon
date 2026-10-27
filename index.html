@@ -2,15 +2,14 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   
   <!-- Tab Title (Search & Browser Optimized) -->
   <title>Over The Horizon — 3D Low-Poly Planetary Driving Odyssey</title>
 
   <!-- Primary SEO Meta Tags -->
   <meta name="description" content="Drive across 9 miniature spherical planets in Over The Horizon, an indie 3D low-poly driving odyssey. Cruise alpine trails, dodge meteor cascades & conquer crossing convoys right in your browser. Free to play, zero download.">
-  <meta name="keywords" content="over the horizon, 3d driving game, low poly game, browser game, indie game, three.js game, webgl driving simulator, cozy games, solar system game, space rover, art of rally web, free online games, relaxing driving game, html5 game, off-road overland, procedural soundscape, miniature planets">
-  <meta name="author" content="Over The Horizon Team">
+  <meta name="author" content="Srinivasa Yadav">
   <meta name="application-name" content="Over The Horizon">
   <meta name="generator" content="Three.js WebGL">
   <link rel="canonical" href="https://overthehorizon.srinivasa.dev/">
@@ -36,8 +35,8 @@
 
   <!-- Twitter / X Card Meta Tags -->
   <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:site" content="@OverTheHorizon">
-  <meta name="twitter:creator" content="@OverTheHorizon">
+  <meta name="twitter:site" content="@TheSyntaxSinner">
+  <meta name="twitter:creator" content="@TheSyntaxSinner">
   <meta name="twitter:title" content="Over The Horizon — 3D Low-Poly Planetary Driving Odyssey">
   <meta name="twitter:description" content="Explore 9 miniature spherical planets in an off-road overland rover. Free 3D browser driving game with cozy organic soundtracks.">
   <meta name="twitter:image" content="https://overthehorizon.srinivasa.dev/assets/og-cover.png">
@@ -102,9 +101,9 @@
         "category": "Free to Play"
       },
       "author": {
-        "@type": "Organization",
-        "name": "Over The Horizon Studio",
-        "url": "https://overthehorizon.srinivasa.dev/"
+        "@type": "Person",
+        "name": "Srinivasa Yadav",
+        "url": "https://srinivasa.dev"
       },
       "screenshot": [
         "https://overthehorizon.srinivasa.dev/assets/og-cover.png",
@@ -163,13 +162,13 @@
         </div>
 
         <!-- Live Explorers Online Indicator (Full pill placed at right-most end of same line) -->
-        <div class="hud-pill-card hud-presence-pill hidden" id="hud-presence-pill" title="Live Explorers Online" aria-label="Live Explorers Online">
+        <div class="hud-pill-card hud-presence-pill hidden" id="hud-presence-pill" style="display: none;" title="Live Explorers Online" aria-label="Live Explorers Online">
           <span class="presence-pulse-dot" aria-hidden="true"></span>
-          <span class="presence-text" id="hud-online-count">1 Explorer Online</span>
+          <span class="presence-text" id="hud-online-count"></span>
         </div>
       </div>
 
-      <!-- Mobile Quick-Actions Bar (Camera POV, Solar Map, Climate/Time Console) -->
+      <!-- Mobile Quick-Actions Bar (Camera POV, Solar Map, Settings, Climate/Time Console) -->
       <div class="mobile-quick-actions" id="mobile-quick-actions">
         <button class="mobile-action-pill" id="btn-touch-menu" type="button" title="Solar System Expedition Map">
           <span class="mobile-action-icon">
@@ -188,6 +187,15 @@
             </svg>
           </span>
           <span class="mobile-action-label">CAM</span>
+        </button>
+        <button class="mobile-action-pill" id="btn-hud-settings" type="button" title="Game Settings &amp; Accessibility">
+          <span class="mobile-action-icon">
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="#CBD5E1" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="3"/>
+              <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+            </svg>
+          </span>
+          <span class="mobile-action-label">OPT</span>
         </button>
         <button class="mobile-action-pill" id="btn-touch-atmo" type="button" title="Toggle Atmosphere &amp; Time Scrubbing">
           <span class="mobile-action-icon">
@@ -416,12 +424,20 @@
 
         <div class="carousel-top-actions">
           <!-- Live Online Explorers Pill (Option 1: Compact [● 2] on Mobile, Full on Desktop) -->
-          <div class="carousel-presence-pill hidden" id="carousel-presence-pill" title="Live Explorers Online" aria-label="Live Explorers Online">
+          <div class="carousel-presence-pill hidden" id="carousel-presence-pill" style="display: none;" title="Live Explorers Online" aria-label="Live Explorers Online">
             <span class="presence-pulse-dot" aria-hidden="true"></span>
-            <span class="presence-num" id="presence-online-num">1</span>
-            <span class="presence-label-full" id="presence-online-label">Explorer Online</span>
-            <span class="presence-text sr-only" id="presence-online-count">1 Explorer Online</span>
+            <span class="presence-num" id="presence-online-num"></span>
+            <span class="presence-label-full" id="presence-online-label"></span>
+            <span class="presence-text sr-only" id="presence-online-count"></span>
           </div>
+
+          <!-- Settings & Accessibility Shortcut -->
+          <button class="btn-carousel-settings" id="btn-menu-settings" type="button" title="Game Settings &amp; Accessibility" aria-label="Game Settings and Accessibility">
+            <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="3"/>
+              <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+            </svg>
+          </button>
 
           <!-- Audio Calibration & Volume Control (Menu Screen Only) -->
           <div class="carousel-volume-container" id="carousel-volume-container">
@@ -555,6 +571,15 @@
           <button class="planet-dot planet-card" data-planet="Thalassa" title="Thalassa (Neptune)" type="button" aria-label="Select Thalassa"></button>
           <button class="planet-dot planet-card" data-planet="Nocturna" title="Nocturna (Pluto)" type="button" aria-label="Select Nocturna"></button>
         </div>
+
+        <!-- Public Navigation Links (Direct access to dedicated Almanac, Modes & About pages) -->
+        <nav class="carousel-site-nav" aria-label="Game Knowledge and Almanac">
+          <a href="planets.html" class="site-nav-link" title="Planetary Almanac">Planets</a>
+          <span class="site-nav-sep" aria-hidden="true">•</span>
+          <a href="modes.html" class="site-nav-link" title="Expedition Game Modes">Modes</a>
+          <span class="site-nav-sep" aria-hidden="true">•</span>
+          <a href="about.html" class="site-nav-link" title="About &amp; Solo Creator">About</a>
+        </nav>
       </footer>
 
       <!-- Hidden backward-compatibility elements -->
@@ -605,6 +630,12 @@
 
       <div class="modal-menu">
         <button class="btn-primary" id="btn-retry-arcade" type="button" tabindex="0">PLAY AGAIN</button>
+        <button class="btn-share" id="btn-share-score" type="button" tabindex="0" title="Share expedition score card">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/>
+          </svg>
+          <span>SHARE SCORE CARD</span>
+        </button>
         <button class="btn-secondary" id="btn-change-mode" type="button" tabindex="0">SELECT GAME MODE</button>
       </div>
     </div>
@@ -855,6 +886,10 @@
                 <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
                 <span>srinivasa.dev</span>
               </a>
+              <a href="https://twitter.com/TheSyntaxSinner" target="_blank" rel="noopener noreferrer" class="btn-dev-action btn-dev-twitter" title="Follow @TheSyntaxSinner on Twitter / X">
+                <svg viewBox="0 0 24 24" width="13" height="13" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
+                <span>@TheSyntaxSinner</span>
+              </a>
               <a href="https://github.com/srinivasa-dev/over-the-horizon" target="_blank" rel="noopener noreferrer" class="btn-dev-action btn-dev-github" title="Explore Source Code on GitHub">
                 <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0 0 24 12c0-6.63-5.37-12-12-12z"/></svg>
                 <span>GitHub Source</span>
@@ -874,82 +909,131 @@
     </div>
   </div>
 
-  <!-- Semantic Indexable Overview for Search Engines & Assistive Technology -->
-  <article class="sr-only" aria-label="Game Overview and Indexing Information">
-    <h1>Over The Horizon: 3D Low-Poly Planetary Driving Odyssey</h1>
-    <p>
-      Over The Horizon is a free-to-play indie 3D low-poly driving simulator and planetary exploration odyssey built with WebGL and Three.js.
-      Players pilot the vintage TrailScout 4x4 Rig overland exploration vehicle across 9 miniature spherical planets orbiting throughout the solar system.
+  <!-- Settings & Accessibility Modal -->
+  <div class="modal-overlay hidden" id="settings-modal">
+    <div class="glass-panel modal-card hud-interactive settings-card">
+      <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.12); padding-bottom: 12px; margin-bottom: 16px;">
+        <div>
+          <h2 style="font-size: 20px; margin: 0; text-align: left;">SETTINGS &amp; ACCESSIBILITY</h2>
+          <span style="font-size: 11px; color: var(--text-dim); letter-spacing: 0.5px; text-align: left; display: block;">Performance, Accessibility &amp; Controls</span>
+        </div>
+        <button class="btn-timber-action" id="btn-close-settings" type="button" style="padding: 6px 14px; font-size: 11px;">
+          <span>CLOSE</span>
+        </button>
+      </div>
+
+      <div class="settings-sections-scroll">
+        <!-- Graphics Quality -->
+        <div class="setting-group">
+          <label class="setting-label">GRAPHICS QUALITY</label>
+          <p class="setting-desc">High enables full Retina resolution and shadows. Low locks to 1x DPR and disables shadows for smooth 60 FPS on older phones.</p>
+          <div class="setting-pill-row">
+            <button class="setting-pill-btn active" id="btn-quality-high" type="button">HIGH (Retina + Shadows)</button>
+            <button class="setting-pill-btn" id="btn-quality-low" type="button">LOW (Performance 1x DPR)</button>
+          </div>
+        </div>
+
+        <!-- Reduced Motion -->
+        <div class="setting-group">
+          <div style="display: flex; justify-content: space-between; align-items: center;">
+            <div>
+              <label class="setting-label">REDUCED MOTION</label>
+              <p class="setting-desc">Disables camera shake, impact vibrations, and high-intensity motion effects.</p>
+            </div>
+            <button class="setting-toggle-btn" id="btn-motion-toggle" type="button" aria-pressed="false">OFF</button>
+          </div>
+        </div>
+
+        <!-- Colorblind Hazard Mode -->
+        <div class="setting-group">
+          <div style="display: flex; justify-content: space-between; align-items: center;">
+            <div>
+              <label class="setting-label">COLORBLIND-SAFE HAZARDS</label>
+              <p class="setting-desc">Replaces terrain-blending colors on meteors and boulders with high-contrast cyan/amber palettes and geometric chevrons.</p>
+            </div>
+            <button class="setting-toggle-btn" id="btn-colorblind-toggle" type="button" aria-pressed="false">OFF</button>
+          </div>
+        </div>
+
+        <!-- Mobile Tilt Steering & iOS Permission -->
+        <div class="setting-group">
+          <div style="display: flex; justify-content: space-between; align-items: center;">
+            <div>
+              <label class="setting-label">DEVICE TILT STEERING (MOBILE)</label>
+              <p class="setting-desc">Steer your rover by physically tilting your phone or tablet left and right.</p>
+            </div>
+            <button class="setting-toggle-btn" id="btn-tilt-toggle" type="button" aria-pressed="false">OFF</button>
+          </div>
+          <div id="ios-permission-row" style="margin-top: 10px; display: none;">
+            <button class="btn-primary" id="btn-request-ios-motion" type="button" style="font-size: 12px; padding: 10px 16px; width: 100%;">
+              GRANT IOS MOTION SENSOR PERMISSION
+            </button>
+          </div>
+        </div>
+
+        <!-- Keyboard Key Remapping -->
+        <div class="setting-group">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+            <label class="setting-label">KEYBOARD CONTROLS REMAPPING</label>
+            <button class="btn-text-action" id="btn-reset-keys" type="button" style="font-size: 11px; color: #F59E0B; background: none; border: none; cursor: pointer;">
+              Reset to Defaults
+            </button>
+          </div>
+          <p class="setting-desc" style="margin-bottom: 10px;">Click any action key below, then press any key on your keyboard to assign it.</p>
+          <div class="rebind-keys-grid">
+            <div class="rebind-item" data-action="forward"><span class="rebind-label">Accelerate</span><span class="rebind-key" id="key-bind-forward">W</span></div>
+            <div class="rebind-item" data-action="backward"><span class="rebind-label">Reverse / Brake</span><span class="rebind-key" id="key-bind-backward">S</span></div>
+            <div class="rebind-item" data-action="left"><span class="rebind-label">Steer Left</span><span class="rebind-key" id="key-bind-left">A</span></div>
+            <div class="rebind-item" data-action="right"><span class="rebind-label">Steer Right</span><span class="rebind-key" id="key-bind-right">D</span></div>
+            <div class="rebind-item" data-action="boost"><span class="rebind-label">Nitro Boost</span><span class="rebind-key" id="key-bind-boost">SPACE</span></div>
+            <div class="rebind-item" data-action="camera"><span class="rebind-label">Camera POV</span><span class="rebind-key" id="key-bind-camera">C</span></div>
+            <div class="rebind-item" data-action="autopilot"><span class="rebind-label">Autopilot Cruise</span><span class="rebind-key" id="key-bind-autopilot">P</span></div>
+            <div class="rebind-item" data-action="horn"><span class="rebind-label">Horn / Fog Lamps</span><span class="rebind-key" id="key-bind-horn">H</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- WebGL Graphics Fallback Card (Visible only when browser lacks WebGL support) -->
+  <div id="webgl-error-card" style="display: none; position: fixed; inset: 24px; z-index: 9999; max-width: 480px; margin: auto; height: fit-content; background: rgba(14, 18, 26, 0.98); border: 1.5px solid #EF4444; border-radius: 16px; padding: 24px; color: #FFF; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; box-shadow: 0 16px 48px rgba(0,0,0,0.85); text-align: center;">
+    <div style="font-size: 17px; font-weight: 800; color: #EF4444; margin-bottom: 12px; display: flex; align-items: center; justify-content: center; gap: 8px;">
+      <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="#EF4444" stroke-width="2.5"><polygon points="12,2 2,22 22,22"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12" y2="17"/></svg>
+      <span>WEBGL GRAPHICS REQUIRED</span>
+    </div>
+    <p style="font-size: 14px; line-height: 1.6; color: #E2E8F0; margin-bottom: 14px;">
+      Your browser or graphics device does not support WebGL or hardware acceleration. Over The Horizon requires WebGL to render miniature planetary worlds.
     </p>
-
-    <section>
-      <h2>Planetary Destinations</h2>
-      <ul>
-        <li><strong>Planet Oakhaven (Earth):</strong> Lush alpine diorama with towering emerald pine forests, rustic wooden bridges, cascading waterfalls, and drifting cumulus clouds.</li>
-        <li><strong>Planet Cinderfell (Mercury):</strong> Scorched volcanic basalt calderas, molten magma streams, and glowing thermal vents.</li>
-        <li><strong>Planet Aetheria (Venus):</strong> Sulfuric glasslands, glowing acid sand dunes, and serene twilight atmospheres.</li>
-        <li><strong>Planet Rustvale (Mars):</strong> Crimson canyons, ancient dried riverbeds, iron sand dunes, and monumental rock arches.</li>
-        <li><strong>Planet Stormhaven (Jupiter):</strong> Tempestuous gas giant peaks, colossal cloud vortexes, and floating ion pylons.</li>
-        <li><strong>Planet Ringhaven (Saturn):</strong> Golden ringed horizon, celestial dust fields, and cosmic solar skimmers.</li>
-        <li><strong>Planet Frostveil (Uranus):</strong> Azure methane glaciers, steep tilted planetary rings, and sub-zero crystal spires.</li>
-        <li><strong>Planet Thalassa (Neptune):</strong> Deep cobalt ocean world, abyssal monoliths, and rolling tidal sub-swells.</li>
-        <li><strong>Planet Nocturna (Pluto):</strong> Outer-rim frozen nitrogen plains, dark crystalline peaks, and glittering starlight.</li>
-      </ul>
-    </section>
-
-    <section>
-      <h2>Game Modes</h2>
-      <ul>
-        <li><strong>Cosy Cruise:</strong> Peaceful, relaxing open-trail exploration with dynamic time-of-day transitions, warm sunlight, and scenic vistas.</li>
-        <li><strong>Celestial Cascade:</strong> Action-packed celestial survival dodging falling meteorites tracked by glowing ground astrolabes, earning near-miss combo score multipliers.</li>
-        <li><strong>Crossy Odyssey:</strong> High-stakes mountain transit dodging rolling boulders, crossing utility convoys, and dynamic traffic hazards across busy planetary arteries.</li>
-      </ul>
-    </section>
-
-    <section>
-      <h2>Vehicle & Controls</h2>
-      <p>
-        Drive the TrailScout 4x4 Rig using keyboard controls [W/A/S/D or Arrow keys] to accelerate, steer, and brake.
-        Press [SPACE] for nitro boost, [C] to cycle between Chase, Free Orbit, and Cockpit camera modes, [H] for auxiliary fog lamps, and [P] for cruise control.
-        Full mobile touch steering, virtual pedals, and accelerometer support available on phones and tablets.
-      </p>
-    </section>
-
-    <section>
-      <h2>Audio & Soundscapes</h2>
-      <p>
-        Features 100% organic, zero-beep procedural acoustic and analog soundscapes synthesized live in your browser using the Web Audio API.
-        Includes nylon-string acoustic guitars, concert harps, wooden marimbas, kalimbas, Rhodes electric pianos, and warm analog cello swells tailored to each world.
-      </p>
-    </section>
-  </article>
-
-  <!-- Mobile Diagnostic & Safe-Mode Overlay (Visible only on Fatal Startup Errors) -->
-  <div id="mobile-boot-error-card" style="display: none; position: fixed; inset: 20px; z-index: 9999; background: rgba(14, 18, 26, 0.96); border: 2px solid #EF4444; border-radius: 16px; padding: 24px; color: #FFF; font-family: -apple-system, sans-serif; box-shadow: 0 10px 40px rgba(0,0,0,0.8); overflow-y: auto;">
-    <div style="font-size: 18px; font-weight: 800; color: #EF4444; margin-bottom: 12px; display: flex; align-items: center; gap: 8px;">
-      <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="#EF4444" stroke-width="2.5"><polygon points="12,2 2,22 22,22"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12" y2="17"/></svg>
-      <span>GRAPHICS ENGINE NOTICE</span>
-    </div>
-    <p id="mobile-boot-error-msg" style="font-size: 13px; line-height: 1.5; color: #CBD5E1; margin-bottom: 16px;"></p>
-    <div style="background: rgba(0,0,0,0.4); border-radius: 8px; padding: 12px; margin-bottom: 16px; font-size: 12px; line-height: 1.6; color: #94A3B8;">
-      <strong style="color: #F59E0B; display: block; margin-bottom: 4px;">For Chrome on iPhone:</strong>
-      If testing on a local Wi-Fi server (IP address), iOS requires Local Network access:<br>
-      Open <strong>Settings &gt; Chrome &gt; Toggle "Local Network" ON</strong>, then reload this page.
-    </div>
-    <button onclick="location.reload();" style="width: 100%; height: 44px; border-radius: 22px; background: #2563EB; border: none; color: #FFF; font-weight: 800; font-size: 14px; cursor: pointer;">RETRY CONNECTION</button>
+    <p style="font-size: 13px; line-height: 1.5; color: #94A3B8; margin-bottom: 20px;">
+      Please ensure hardware acceleration is enabled in your browser settings or try using the latest version of Chrome, Safari, Firefox, or Edge.
+    </p>
+    <button onclick="location.reload();" style="width: 100%; height: 44px; border-radius: 22px; background: #2563EB; border: none; color: #FFF; font-weight: 700; font-size: 14px; cursor: pointer;">RELOAD PAGE</button>
   </div>
 
   <script>
-    window.addEventListener('error', function(e) {
-      if (!window.__GAME_APP__) {
-        var card = document.getElementById('mobile-boot-error-card');
-        var msg = document.getElementById('mobile-boot-error-msg');
-        if (card && msg) {
-          card.style.display = 'block';
-          msg.textContent = (e.message || 'Unable to initialize 3D WebGL context.') + (e.filename ? ' (' + e.filename.split('/').pop() + ':' + e.lineno + ')' : '');
+    // Lightweight WebGL capability check
+    (function() {
+      try {
+        var testCanvas = document.createElement('canvas');
+        var gl = testCanvas.getContext('webgl2') || testCanvas.getContext('webgl') || testCanvas.getContext('experimental-webgl');
+        if (!gl) {
+          var card = document.getElementById('webgl-error-card');
+          if (card) card.style.display = 'block';
         }
+      } catch (e) {
+        var card = document.getElementById('webgl-error-card');
+        if (card) card.style.display = 'block';
       }
-    });
+
+      // Register Progressive Web App Service Worker
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', function() {
+          navigator.serviceWorker.register('./sw.js').catch(function(err) {
+            console.warn('Service worker registration:', err);
+          });
+        });
+      }
+    })();
   </script>
 
   <!-- Main Application Entrypoint -->

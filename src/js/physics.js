@@ -561,6 +561,9 @@ export class VehiclePhysics {
       let targetSteer = 0.0;
       if (this.inputs.left)  targetSteer += this.maxSteerAngle;
       if (this.inputs.right) targetSteer -= this.maxSteerAngle;
+      if (typeof this.inputs.tiltSteer === 'number' && Math.abs(this.inputs.tiltSteer) > 0.05) {
+        targetSteer -= this.inputs.tiltSteer * this.maxSteerAngle;
+      }
       this.steerAngle = THREE.MathUtils.lerp(this.steerAngle, targetSteer, this.steerSpeed * dt);
 
       // Manual Throttle & Braking

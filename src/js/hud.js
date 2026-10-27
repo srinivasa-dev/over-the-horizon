@@ -1,4 +1,5 @@
 import { ICONS } from './icons.js';
+import { settings } from './settings.js';
 
 const PLANET_KEYS = [
   "Cinderfell", "Aetheria", "Oakhaven", "Rustvale",
@@ -19,6 +20,7 @@ export class HUDController {
     this.bannerSubtitle = document.getElementById('banner-subtitle');
     this.welcomeModal = document.getElementById('welcome-modal');
     this.aboutModal = document.getElementById('about-modal');
+    this.settingsModal = document.getElementById('settings-modal');
     this.planetStatusLabel = document.getElementById('label-planet-status');
 
     // Headers
@@ -243,7 +245,7 @@ export class HUDController {
       });
     }
 
-    // 5. Game Over Modal Controls
+    // 5. Game Over Modal Controls & Score Sharing
     attachButton('btn-retry-arcade', () => {
       this.hideGameOverModal();
       this.app.restartArcadeMode();
@@ -253,6 +255,43 @@ export class HUDController {
       this.hideGameOverModal();
       this.showWelcomeModal();
     });
+
+    attachButton('btn-share-score', () => {
+      const score = this.goFinalScore ? this.goFinalScore.textContent : '0';
+      const rank = this.goRank ? this.goRank.textContent : 'RANK A';
+      const planet = this.app.currentPlanetType || 'Oakhaven';
+      const mode = this.app.gameMode === 'cascade' ? 'Celestial Cascade' : (this.app.gameMode === 'crossy' ? 'Crossy Odyssey' : 'Cosy Cruise');
+      const shareText = `Over The Horizon — Planetary Driving Odyssey\nScore: ${score} pts (${rank})\nPlanet: ${planet} | Mode: ${mode}\nPlay free in your browser: https://overthehorizon.srinivasa.dev`;
+      
+      if (navigator.share) {
+        navigator.share({
+          title: 'Over The Horizon Score Card',
+          text: shareText,
+          url: 'https://overthehorizon.srinivasa.dev'
+        }).catch(() => {});
+      } else if (navigator.clipboard) {
+        navigator.clipboard.writeText(shareText).then(() => {
+          this.showBanner('SCORE CARD COPIED', 'Expedition score card copied to clipboard.');
+        }).catch(() => {});
+      } else {
+        this.showBanner('EXPEDITION SCORE', `${score} PTS (${rank})`);
+      }
+    });
+
+    // 5b. Settings Modal Controls
+    attachButton('btn-menu-settings', () => {
+      this.toggleSettingsModal();
+    });
+
+    attachButton('btn-hud-settings', () => {
+      this.toggleSettingsModal();
+    });
+
+    attachButton('btn-close-settings', () => {
+      this.settingsModal?.classList.add('hidden');
+    });
+
+    this._bindSettingsControls();
 
     // 6. Mobile Virtual Controls & Quick Actions
     const touchLeft = document.getElementById('btn-touch-left');
@@ -939,6 +978,179 @@ export class HUDController {
     }
     if (odoEl) {
       odoEl.textContent = `ODOMETER: ${distKm.toFixed(2)} KM / ${totalKm.toFixed(2)} KM`;
+    }
+  }
+
+  _bindSettingsControls() {
+    const qHigh = document.getElementById('btn-quality-high');
+    const qLow = document.getElementById('btn-quality-low');
+    const motionToggle = document.getElementById('btn-motion-toggle');
+    const cbToggle = document.getElementById('btn-colorblind-toggle');
+    const tiltToggle = document.getElementById('btn-tilt-toggle');
+    const iosRow = document.getElementById('ios-permission-row');
+    const btnIos = document.getElementById('btn-request-ios-motion');
+    const btnResetKeys = document.getElementById('btn-reset-keys');
+
+    if (qHigh) {
+      qHigh.addEventListener('click', () => {
+        settings.set('graphicsQuality', 'high');
+        this._updateSettingsUI();
+        this.showBanner('GRAPHICS SETTING', 'High Quality (Retina + Full Shadows)');
+      });
+    }
+    if (qLow) {
+      qLow.addEventListener('click', () => {
+        settings.set('graphicsQuality', 'low');
+        this._updateSettingsUI();
+        this.showBanner('GRAPHICS SETTING', 'Performance Mode (1x DPR, Low Power)');
+      });
+    }
+
+    if (motionToggle) {
+      motionToggle.addEventListener('click', () => {
+        const next = !settings.get('reducedMotion');
+        settings.set('reducedMotion', next);
+        this._updateSettingsUI();
+        this.showBanner('REDUCED MOTION', next ? 'Enabled (No Camera Shakes)' : 'Disabled');
+      });
+    }
+
+    if (cbToggle) {
+      cbToggle.addEventListener('click', () => {
+        const next = !settings.get('colorblindMode');
+        settings.set('colorblindMode', next);
+        this._updateSettingsUI();
+        this.showBanner('COLORBLIND HAZARDS', next ? 'Enabled (High-Contrast Markers)' : 'Disabled');
+      });
+    }
+
+    if (tiltToggle) {
+      tiltToggle.addEventListener('click', async () => {
+        const current = settings.get('tiltSteering');
+        if (!current) {
+          if (typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function') {
+            if (iosRow) iosRow.style.display = 'block';
+            const res = await settings.requestMotionPermission();
+            if (res.granted) {
+              if (iosRow) iosRow.style.display = 'none';
+              this.showBanner('TILT STEERING', 'Motion steering active. Tilt device to steer.');
+            }
+          } else {
+            settings.set('tiltSteering', true);
+            this.showBanner('TILT STEERING', 'Motion steering active. Tilt device to steer.');
+          }
+        } else {
+          settings.set('tiltSteering', false);
+          if (iosRow) iosRow.style.display = 'none';
+          this.showBanner('TILT STEERING', 'Disabled (Touch / Keyboard steering restored)');
+        }
+        this._updateSettingsUI();
+      });
+    }
+
+    if (btnIos) {
+      btnIos.addEventListener('click', async () => {
+        const res = await settings.requestMotionPermission();
+        if (res.granted) {
+          if (iosRow) iosRow.style.display = 'none';
+          this.showBanner('PERMISSION GRANTED', 'iOS motion sensor enabled.');
+        } else {
+          this.showBanner('PERMISSION DENIED', res.error || 'Permission denied.');
+        }
+        this._updateSettingsUI();
+      });
+    }
+
+    if (btnResetKeys) {
+      btnResetKeys.addEventListener('click', () => {
+        settings.resetKeys();
+        this._updateSettingsUI();
+        this.showBanner('CONTROLS RESET', 'Keyboard controls restored to defaults.');
+      });
+    }
+
+    const rebindItems = document.querySelectorAll('.rebind-item');
+    rebindItems.forEach(item => {
+      item.addEventListener('click', () => {
+        const action = item.getAttribute('data-action');
+        rebindItems.forEach(i => i.classList.remove('listening'));
+        item.classList.add('listening');
+        const keySpan = item.querySelector('.rebind-key');
+        if (keySpan) keySpan.textContent = 'PRESS KEY...';
+
+        const onKey = (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          window.removeEventListener('keydown', onKey, true);
+          item.classList.remove('listening');
+          settings.setKeyBinding(action, e.code);
+          this._updateSettingsUI();
+          this.showBanner('CONTROL BOUND', `${action.toUpperCase()} -> ${e.code}`);
+        };
+        window.addEventListener('keydown', onKey, { once: true, capture: true });
+      });
+    });
+
+    this._updateSettingsUI();
+  }
+
+  _updateSettingsUI() {
+    const q = settings.get('graphicsQuality') || 'high';
+    const qHigh = document.getElementById('btn-quality-high');
+    const qLow = document.getElementById('btn-quality-low');
+    if (qHigh && qLow) {
+      qHigh.classList.toggle('active', q === 'high');
+      qLow.classList.toggle('active', q === 'low');
+    }
+
+    const motion = settings.get('reducedMotion');
+    const motionBtn = document.getElementById('btn-motion-toggle');
+    if (motionBtn) {
+      motionBtn.classList.toggle('active', Boolean(motion));
+      motionBtn.textContent = motion ? 'ON' : 'OFF';
+      motionBtn.setAttribute('aria-pressed', motion ? 'true' : 'false');
+    }
+
+    const cb = settings.get('colorblindMode');
+    const cbBtn = document.getElementById('btn-colorblind-toggle');
+    if (cbBtn) {
+      cbBtn.classList.toggle('active', Boolean(cb));
+      cbBtn.textContent = cb ? 'ON' : 'OFF';
+      cbBtn.setAttribute('aria-pressed', cb ? 'true' : 'false');
+    }
+
+    const tilt = settings.get('tiltSteering');
+    const tiltBtn = document.getElementById('btn-tilt-toggle');
+    if (tiltBtn) {
+      tiltBtn.classList.toggle('active', Boolean(tilt));
+      tiltBtn.textContent = tilt ? 'ON' : 'OFF';
+      tiltBtn.setAttribute('aria-pressed', tilt ? 'true' : 'false');
+    }
+
+    const bindings = settings.get('keyBindings') || {};
+    const keyLabels = {
+      forward: bindings.forward || 'KeyW',
+      backward: bindings.backward || 'KeyS',
+      left: bindings.left || 'KeyA',
+      right: bindings.right || 'KeyD',
+      boost: bindings.boost || 'Space',
+      camera: bindings.camera || 'KeyC',
+      autopilot: bindings.autopilot || 'KeyP',
+      horn: bindings.horn || 'KeyH'
+    };
+    for (const [action, code] of Object.entries(keyLabels)) {
+      const el = document.getElementById(`key-bind-${action}`);
+      if (el) {
+        el.textContent = code.replace('Key', '').replace('Arrow', '');
+      }
+    }
+  }
+
+  toggleSettingsModal() {
+    if (!this.settingsModal) return;
+    const isHidden = this.settingsModal.classList.toggle('hidden');
+    if (!isHidden) {
+      this._updateSettingsUI();
     }
   }
 }

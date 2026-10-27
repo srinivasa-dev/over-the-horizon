@@ -1769,12 +1769,14 @@ export const buildStardustMeteor = buildStardustCelestial;
  * Builds sacred geometry astrolabe ground warning reticle:
  * Outer orbital degree ring + inner compass rose + 4 cardinal celestial glyphs
  */
-export function buildCelestialAstrolabeReticle(planetType = "Oakhaven") {
+export function buildCelestialAstrolabeReticle(planetType = "Oakhaven", isColorblind = false) {
   const reticle = new THREE.Group();
   reticle.name = "CelestialAstrolabeReticle";
 
   let ringColor = 0xF59E0B;
-  if (planetType === "Cinderfell") ringColor = 0xF97316;
+  if (isColorblind) {
+    ringColor = 0x00E5FF;
+  } else if (planetType === "Cinderfell") ringColor = 0xF97316;
   else if (planetType === "Aetheria") ringColor = 0xEAB308;
   else if (planetType === "Rustvale") ringColor = 0xEF4444;
   else if (planetType === "Stormhaven") ringColor = 0x06B6D4;
@@ -1786,7 +1788,7 @@ export function buildCelestialAstrolabeReticle(planetType = "Oakhaven") {
   const matReticle = new THREE.MeshBasicMaterial({
     color: ringColor,
     transparent: true,
-    opacity: 0.85,
+    opacity: isColorblind ? 0.95 : 0.85,
     side: THREE.DoubleSide,
     depthWrite: false
   });
@@ -1798,6 +1800,22 @@ export function buildCelestialAstrolabeReticle(planetType = "Oakhaven") {
   // Middle Astrological Ring
   const midRing = new THREE.Mesh(new THREE.RingGeometry(0.72, 0.78, 24), matReticle);
   reticle.add(midRing);
+
+  // If colorblind, add high-contrast cardinal warning markers
+  if (isColorblind) {
+    const matChevrons = new THREE.MeshBasicMaterial({
+      color: 0xFFD700,
+      side: THREE.DoubleSide,
+      depthWrite: false
+    });
+    for (let c = 0; c < 4; c++) {
+      const angle = (c * Math.PI) / 2 + Math.PI / 4;
+      const ch = new THREE.Mesh(new THREE.PlaneGeometry(0.35, 0.35), matChevrons);
+      ch.position.set(Math.cos(angle) * 1.55, Math.sin(angle) * 1.55, 0);
+      ch.rotation.z = angle;
+      reticle.add(ch);
+    }
+  }
 
   // 4 Cardinal Celestial Cross Ticks
   const tickH = new THREE.Mesh(new THREE.PlaneGeometry(2.9, 0.06), matReticle);
@@ -1899,14 +1917,17 @@ export function buildStardustShard(planetType = "Oakhaven") {
  * Builds rolling boulders that tumble down mountain slopes in Crossy Odyssey:
  * Adapts to each planet's geological composition (granite, basalt, sulfur, iron, ice)
  */
-export function buildRollingBoulder(planetType = "Oakhaven") {
+export function buildRollingBoulder(planetType = "Oakhaven", isColorblind = false) {
   const boulder = new THREE.Group();
   boulder.name = "RollingBoulder";
 
   let rockColor = 0x4B5563; // Default Alpine Granite (Oakhaven)
   let accentColor = 0x365314; // Moss
 
-  if (planetType === true || planetType === "Aetheria") {
+  if (isColorblind) {
+    rockColor = 0x1E293B;
+    accentColor = 0xF59E0B;
+  } else if (planetType === true || planetType === "Aetheria") {
     rockColor = 0xD97706; accentColor = 0xFDE68A; // Golden sulfur geode
   } else if (planetType === "Cinderfell") {
     rockColor = 0x18181B; accentColor = 0xEF4444; // Volcanic obsidian with lava vein
@@ -1941,6 +1962,13 @@ export function buildRollingBoulder(planetType = "Oakhaven") {
   accent.position.set(0.65, 0.35, 0.5);
   accent.rotation.set(0.4, 0.5, 0.2);
   boulder.add(accent);
+
+  if (isColorblind) {
+    const matBeacon = new THREE.MeshBasicMaterial({ color: 0xF59E0B, wireframe: true });
+    const beacon = new THREE.Mesh(new THREE.OctahedronGeometry(0.4, 0), matBeacon);
+    beacon.position.set(0, 1.45, 0);
+    boulder.add(beacon);
+  }
 
   return boulder;
 }
