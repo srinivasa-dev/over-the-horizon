@@ -10,6 +10,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [2.5.8] - 2026-10-27
 
 ### Added
+- **Automated Test Suite & Code Coverage (`test/`)**:
+  - Implemented zero-dependency headless unit test suite with 30 tests across 6 test suites (`planet.test.js`, `physics.test.js`, `models.test.js`, `weather.test.js`, `settings.test.js`, `icons.test.js`).
+  - Achieved **90.7% line coverage** and **96.2% function coverage** across `src/js/` simulation modules.
+- **GitHub Actions Continuous Integration (`.github/workflows/ci.yml`)**:
+  - Configured automated PR and branch validation matrix on Node 20.x and 22.x with syntax verification and coverage reporting.
 - **Astronomical Tiered Planetary Sizing (`src/js/planet.js`)**:
   - Expanded planetary scale from a uniform 65m globe to tiered astronomical radii:
     - Dwarf worlds: `Nocturna` ($R = 90\text{ m}$), `Cinderfell` ($R = 95\text{ m}$)

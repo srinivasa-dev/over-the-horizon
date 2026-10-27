@@ -1,0 +1,25 @@
+{
+  "name": "over-the-horizon",
+  "version": "2.5.8",
+  "description": "Dynamic low-poly planetary racing simulator and exploration game built with Three.js and WebGL",
+  "type": "module",
+  "main": "src/js/app.js",
+  "scripts": {
+    "test": "node --test test/*.test.js",
+    "test:coverage": "node --test --experimental-test-coverage --test-coverage-include=\"src/js/**\" test/*.test.js",
+    "lint": "node --check src/js/*.js test/*.test.js"
+  },
+  "keywords": [
+    "threejs",
+    "webgl",
+    "racing-game",
+    "physics-engine",
+    "low-poly",
+    "procedural-generation"
+  ],
+  "author": "Srinivasa Yadav",
+  "license": "MIT",
+  "dependencies": {
+    "three": "^0.160.0"
+  }
+}
