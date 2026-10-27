@@ -462,8 +462,8 @@ export class VehiclePhysics {
     }
 
     // Predictive lookahead: evaluate target tangent ahead of the vehicle
-    const planetR = this.planet.baseRadius || 65.0;
-    const lookaheadArc = 4.5 / planetR;
+    const planetR = this.planet.baseRadius || 115.0;
+    const lookaheadArc = 4.8 / planetR;
     const thetaLookahead = theta + lookaheadArc;
     const lookaheadTangent = this.planet._getRoadTangent(thetaLookahead);
 

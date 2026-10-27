@@ -189,16 +189,16 @@ class App {
       3500
     );
 
-    // Initial camera position looking down at miniature globe (Diorama framing)
-    this.camera.position.set(0, 85, 125);
+    // Initial camera position looking down at globe (Diorama framing)
+    this.camera.position.set(0, 155, 215);
     this.camera.lookAt(0, 0, 0);
 
     // Orbit controls for Diorama Mode
     this.orbitControls = new OrbitControls(this.camera, this.renderer.domElement);
     this.orbitControls.enableDamping = true;
     this.orbitControls.dampingFactor = 0.08;
-    this.orbitControls.minDistance = 75;
-    this.orbitControls.maxDistance = 320;
+    this.orbitControls.minDistance = 90;
+    this.orbitControls.maxDistance = 550;
     this.orbitControls.enabled = false;
   }
 
@@ -231,10 +231,10 @@ class App {
     this.hud?.updateTimeLabel(hourDecimal);
 
     const sunAngle = (hourDecimal / 24.0) * Math.PI * 2 - Math.PI / 2;
-    const sunDist = 240.0;
+    const sunDist = Math.max(380.0, (this.planet?.baseRadius || 115.0) * 3.2);
     const sunX = Math.cos(sunAngle) * sunDist;
     const sunY = Math.sin(sunAngle) * sunDist;
-    const sunZ = Math.sin(sunAngle * 0.5) * 120.0;
+    const sunZ = Math.sin(sunAngle * 0.5) * (sunDist * 0.5);
 
     this.sunLight.position.set(sunX, sunY, sunZ);
 
@@ -399,8 +399,8 @@ class App {
   // 3. PLANETARY & VEHICLE INITIALIZATION
   // ---------------------------------------------------------------
   _initWorld() {
-    // 1. Build Miniature Planet (R = 65m)
-    this.planet = new Planet(this.currentPlanetType, 65.0);
+    // 1. Build Planetary World (Astronomical Tiered Scaling)
+    this.planet = new Planet(this.currentPlanetType);
     this.scene.add(this.planet.group);
 
     // 2. Build Vehicle
@@ -444,7 +444,7 @@ class App {
     this.currentPlanetType = planetType;
 
     this.scene.remove(this.planet.group);
-    this.planet = new Planet(planetType, 65.0);
+    this.planet = new Planet(planetType);
     this.scene.add(this.planet.group);
 
     // Planet-to-Vehicle Auto-Deployment
@@ -830,9 +830,10 @@ class App {
     }
 
     if (this.currentCameraMode === 1) {
-      // MODE 1: MINIATURE GLOBE DIORAMA (Centered on vehicle, looking in travel direction)
-      const dioramaElev = 48.0 * (this.cameraOrbitDistMult || 1.0);
-      const dioramaBack = 36.0 * (this.cameraOrbitDistMult || 1.0);
+      // MODE 1: GLOBE DIORAMA (Centered on vehicle, looking in travel direction)
+      const baseR = this.planet?.baseRadius || 115.0;
+      const dioramaElev = Math.max(54.0, baseR * 0.46) * (this.cameraOrbitDistMult || 1.0);
+      const dioramaBack = Math.max(42.0, baseR * 0.35) * (this.cameraOrbitDistMult || 1.0);
       const yaw = this.cameraOrbitYaw || 0;
       const pitch = this.cameraOrbitPitch || 0;
 
@@ -885,8 +886,8 @@ class App {
 
       // Terrain Ground-Clearance Clamp: Guarantee camera never penetrates below terrain or road surface
       const camNormal = targetCamPos.clone().normalize();
-      const terrainR = this.planet?.getTerrainRadiusAt ? this.planet.getTerrainRadiusAt(camNormal) : 65.0;
-      const minAltitude = terrainR + (isPortrait ? 2.5 : 2.0);
+      const terrainR = this.planet?.getTerrainRadiusAt ? this.planet.getTerrainRadiusAt(camNormal) : (this.planet?.baseRadius || 115.0);
+      const minAltitude = terrainR + (isPortrait ? 2.6 : 2.2);
       if (targetCamPos.length() < minAltitude) {
         targetCamPos.copy(camNormal.multiplyScalar(minAltitude));
       }

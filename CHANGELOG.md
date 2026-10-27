@@ -7,6 +7,30 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [2.5.8] - 2026-10-27
+
+### Added
+- **Astronomical Tiered Planetary Sizing (`src/js/planet.js`)**:
+  - Expanded planetary scale from a uniform 65m globe to tiered astronomical radii:
+    - Dwarf worlds: `Nocturna` ($R = 90\text{ m}$), `Cinderfell` ($R = 95\text{ m}$)
+    - Terrestrial worlds: `Rustvale` ($R = 110\text{ m}$), `Oakhaven` ($R = 115\text{ m}$), `Aetheria` ($R = 115\text{ m}$)
+    - Ice & Ocean giants: `Frostveil` ($R = 120\text{ m}$), `Thalassa` ($R = 125\text{ m}$)
+    - Gas & Ring giants: `Ringhaven` ($R = 130\text{ m}$), `Stormhaven` ($R = 135\text{ m}$)
+  - Scaled circuit circumferences from 408m to 565m-848m ($0.57\text{--}0.85\text{ km}$ per lap).
+- **High-Fidelity 5,120-Triangle Terrain Resolution**:
+  - Upgraded planetary surface mesh from 1,280 triangles to 5,120 triangles (`IcosahedronGeometry` detail 4) for crisp, tactile low-poly landscapes and smooth mountain summits.
+- **Handcrafted Multi-Biomes & Curated Landmarks for All 9 Planets**:
+  - Replaced generic 8-item alternating loops with 20–28 curated landmarks and environmental scatter items across 4 distinct named sectors per world.
+  - Populated Mars terraforming bio-domes, comms towers, obsidian spires, geothermal vents, sulfuric glass rotunda domes, lightning pylons, plasma relay rods, ring tracker stations, cryo-drills, abyssal beacons, oceanic monoliths, RTG power posts, and roadside warning bollards.
+- **Dynamic Planetary Rings & Alien Atmospheric Wisps**:
+  - Scaled double translucent rings for Ringhaven and perpendicular rings for Frostveil to match expanded radii.
+  - Implemented dynamic atmospheric drift particles tailored to each planet: volcanic ash embers, sulfuric smog, martian dust puffs, ion sparks, marine mist, and starlight void crystals.
+- **Camera, Lighting & Physics Calibration**:
+  - Dynamically calibrated initial diorama camera position, directional sun distance (380m-430m), diorama overview elevation (54m), and chase POV ground-clearance clamp.
+  - Tuned predictive steering lookahead arc (`4.8 / planetR`) and curved ground light pool geometry.
+
+---
+
 ## [2.5.3] - 2026-10-27
 
 ### Added

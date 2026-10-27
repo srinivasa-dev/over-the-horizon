@@ -3,7 +3,7 @@
  * Cache-First offline play support for static 3D assets, audio synthesis, and scripts.
  */
 
-const CACHE_NAME = 'oth-v2.5.3';
+const CACHE_NAME = 'oth-v2.5.8';
 
 const STATIC_ASSETS = [
   './',

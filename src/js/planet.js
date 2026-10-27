@@ -1,6 +1,6 @@
 // =================================================================
-// OVER THE HORIZON: Miniature Planet Generator (R = 65m)
-// Inspired by Tiny Skies toy diorama aesthetic & Little Prince globe
+// OVER THE HORIZON: Planetary World Generator
+// Dynamic Astronomical Scaling & Curated Low-Poly Diorama Biomes
 // =================================================================
 import * as THREE from 'three';
 import {
@@ -27,20 +27,39 @@ import {
   buildAbyssalBeacon,
   buildOceanicMonolith,
   buildRtgPowerPost,
-  buildVoidIceSpire
+  buildVoidIceSpire,
+  buildSandstoneRingArch,
+  buildLeaningObelisk,
+  buildMintCrystalCluster,
+  buildHazardWarningBollard
 } from './models.js';
 
+export const PLANET_CONFIGS = {
+  "Cinderfell": { radius: 95.0,  name: "Cinderfell", subtitle: "Volcanic Basalt & Magma Calderas" },
+  "Aetheria":   { radius: 115.0, name: "Aetheria",   subtitle: "Sulfuric Glasslands & Acid Dunes" },
+  "Oakhaven":   { radius: 115.0, name: "Oakhaven",   subtitle: "Alpine Forests & Whispering Pines" },
+  "Rustvale":   { radius: 110.0, name: "Rustvale",   subtitle: "Crimson Canyons & Iron Dunes" },
+  "Stormhaven": { radius: 135.0, name: "Stormhaven", subtitle: "Gas Giant Ridges & Lightning Pylons" },
+  "Ringhaven":  { radius: 130.0, name: "Ringhaven",  subtitle: "Golden Ringed Horizon & Solar Arrays" },
+  "Frostveil":  { radius: 120.0, name: "Frostveil",  subtitle: "Glacial Crevasses & Sub-Zero Spikes" },
+  "Thalassa":   { radius: 125.0, name: "Thalassa",   subtitle: "Oceanic Archipelago & Abyssal Trenches" },
+  "Nocturna":   { radius: 90.0,  name: "Nocturna",   subtitle: "Nitrogen Ice Plains & Obsidian Void" }
+};
+
 export class Planet {
-  constructor(type = "Oakhaven", baseRadius = 65.0) {
+  constructor(type = "Oakhaven", baseRadius = null) {
     this.type = type; // "Cinderfell", "Aetheria", "Oakhaven", "Rustvale", "Stormhaven", "Ringhaven", "Frostveil", "Thalassa", "Nocturna"
     this.planetType = type;
-    this.baseRadius = baseRadius;
-    this.circumference = 2.0 * Math.PI * baseRadius; // ~408.4 meters
+    const defaultRadius = PLANET_CONFIGS[type]?.radius || 115.0;
+    this.baseRadius = (baseRadius && baseRadius !== 65.0) ? baseRadius : defaultRadius;
+    this.circumference = 2.0 * Math.PI * this.baseRadius;
     this.group = new THREE.Group();
     this.group.name = `Planet_${type}`;
     
     this.cloudsGroup = null;
     this.clouds = [];
+    this.atmosphericWispsGroup = null;
+    this.atmosphericWisps = [];
     this.ringsGroup = null;
     this.meshInstance = null;
     this.oceanMesh = null;
@@ -56,12 +75,15 @@ export class Planet {
     this._generateFacetedPlanet();
     this._spawnLandmarks();
 
-    // CLOUD AUTHENTICITY: ONLY Earth/Oakhaven has water cumulus clouds!
+    // Atmospheric and celestial elements tailored per planet
     if (this.type === "Oakhaven") {
       this._spawnOrbitingClouds();
       this._spawnHotAirBalloons();
     } else if (this.type === "Ringhaven" || this.type === "Frostveil") {
       this._spawnPlanetaryRings();
+      this._spawnAtmosphericWisps();
+    } else {
+      this._spawnAtmosphericWisps();
     }
   }
 
@@ -94,7 +116,8 @@ export class Planet {
   // 2. DYNAMIC CELESTIAL SKYBOX (RESPONSIVE TO TIME & CLIMATE)
   // ---------------------------------------------------------------
   _generateCelestialSkybox() {
-    const skyGeo = new THREE.SphereGeometry(450.0, 32, 24);
+    const skyRadius = Math.max(680.0, this.baseRadius * 5.4);
+    const skyGeo = new THREE.SphereGeometry(skyRadius, 32, 24);
     
     this.skyUniforms = {
       topColor: { value: new THREE.Color(0x0e0a2a) },
@@ -148,12 +171,12 @@ export class Planet {
     this.skyDome.name = "CelestialSkyDome";
     this.group.add(this.skyDome);
 
-    this._generateStarField();
+    this._generateStarField(skyRadius);
   }
 
   // Generates rock-solid 3D vertex star points (eliminates subpixel shimmering/grain during camera motion)
-  _generateStarField() {
-    const starCount = 500;
+  _generateStarField(skyRadius = 680.0) {
+    const starCount = 650;
     const starGeo = new THREE.BufferGeometry();
     const positions = [];
     const colors = [];
@@ -168,7 +191,7 @@ export class Planet {
       const x = Math.cos(theta) * radiusAtY;
       const z = Math.sin(theta) * radiusAtY;
 
-      const r = 430.0 + (Math.sin(i * 12.0) * 12.0);
+      const r = (skyRadius * 0.94) + (Math.sin(i * 12.0) * 14.0);
       positions.push(x * r, y * r, z * r);
 
       // Star spectral variations
@@ -649,14 +672,14 @@ export class Planet {
   }
 
   // ---------------------------------------------------------------
-  // 5. PROCEDURAL MINIATURE GLOBE TERRAIN ELEVATION
+  // 5. PROCEDURAL GLOBE TERRAIN ELEVATION
   // ---------------------------------------------------------------
   getTerrainRadiusAt(u) {
     let elevation = 0.0;
     const baseR = this.baseRadius;
     const theta = Math.atan2(u.z, u.x);
 
-    // Continuous scenic road across the miniature globe
+    // Continuous scenic road across the globe
     const roadLat = Math.asin(u.y);
     const roadCurve = this.getRoadLat(theta);
     const distRoad = Math.abs(roadLat - roadCurve);
@@ -666,101 +689,101 @@ export class Planet {
       const peak1 = new THREE.Vector3(-0.72, 0.42, -0.55).normalize();
       const distPeak1 = u.distanceTo(peak1);
       if (distPeak1 < 0.52) {
-        elevation += Math.pow(1.0 - distPeak1 / 0.52, 1.8) * 12.5; // Pyramidal alpine summit
+        elevation += Math.pow(1.0 - distPeak1 / 0.52, 1.8) * 18.5; // Pyramidal alpine summit
       }
 
       const peak2 = new THREE.Vector3(-0.55, 0.52, -0.65).normalize();
       const distPeak2 = u.distanceTo(peak2);
       if (distPeak2 < 0.45) {
-        elevation += Math.pow(1.0 - distPeak2 / 0.45, 1.7) * 9.5;
+        elevation += Math.pow(1.0 - distPeak2 / 0.45, 1.7) * 14.0;
       }
 
       // 2. OCEAN BASIN & LAKES
       const oceanDir = new THREE.Vector3(0.65, -0.45, -0.60).normalize();
       if (u.distanceTo(oceanDir) < 0.65) {
-        elevation -= (1.0 - u.distanceTo(oceanDir) / 0.65) * 4.2; // Ocean trench
+        elevation -= (1.0 - u.distanceTo(oceanDir) / 0.65) * 5.8; // Ocean trench
       }
 
       // 3. MOUNTAIN RIVER STREAM
       const streamCurve = 0.36 * Math.cos(theta * 2.5 + 1.2);
       if (Math.abs(roadLat - streamCurve) < 0.08) {
-        elevation = Math.min(elevation, -1.2); // River trench
+        elevation = Math.min(elevation, -1.8); // River trench
       }
 
       // 4. ROLLING EMERALD HILLS
-      elevation += (Math.sin(u.x * 7.0) * Math.cos(u.z * 7.0) + 0.4 * Math.sin(u.y * 9.0)) * 2.2;
+      elevation += (Math.sin(u.x * 7.0) * Math.cos(u.z * 7.0) + 0.4 * Math.sin(u.y * 9.0)) * 3.4;
 
       // 5. ROAD BED SMOOTHING & LEVELING
-      const roadFactor = THREE.MathUtils.smoothstep(distRoad, 0.065, 0.145);
-      elevation = THREE.MathUtils.lerp(0.42, elevation, roadFactor);
+      const roadFactor = THREE.MathUtils.smoothstep(distRoad, 0.055, 0.125);
+      elevation = THREE.MathUtils.lerp(0.48, elevation, roadFactor);
 
     } else if (this.type === "Cinderfell") {
       // Mercury: Sharp basalt fissures and caldera
       const craterDir = new THREE.Vector3(0.45, 0.35, 0.82).normalize();
       if (u.distanceTo(craterDir) < 0.6) {
-        elevation -= (1.0 - u.distanceTo(craterDir) / 0.6) * 5.5; // Volcanic caldera
+        elevation -= (1.0 - u.distanceTo(craterDir) / 0.6) * 7.5; // Volcanic caldera
       }
-      elevation += (Math.sin(u.x * 8.5) * Math.cos(u.z * 8.5) + 0.6 * Math.sin(u.y * 11.0)) * 2.8;
-      const roadFactor = THREE.MathUtils.smoothstep(distRoad, 0.065, 0.145);
-      elevation = THREE.MathUtils.lerp(0.35, elevation, roadFactor);
+      elevation += (Math.sin(u.x * 8.5) * Math.cos(u.z * 8.5) + 0.6 * Math.sin(u.y * 11.0)) * 4.2;
+      const roadFactor = THREE.MathUtils.smoothstep(distRoad, 0.055, 0.125);
+      elevation = THREE.MathUtils.lerp(0.42, elevation, roadFactor);
 
     } else if (this.type === "Aetheria") {
       // Venus: Golden rolling sulfuric dunes
-      elevation += (Math.sin(u.x * 5.5) * Math.cos(u.z * 5.5) + 0.4 * Math.sin(u.y * 6.5)) * 2.6;
-      const roadFactor = THREE.MathUtils.smoothstep(distRoad, 0.065, 0.145);
-      elevation = THREE.MathUtils.lerp(0.32, elevation, roadFactor);
+      elevation += (Math.sin(u.x * 5.5) * Math.cos(u.z * 5.5) + 0.4 * Math.sin(u.y * 6.5)) * 3.8;
+      const roadFactor = THREE.MathUtils.smoothstep(distRoad, 0.055, 0.125);
+      elevation = THREE.MathUtils.lerp(0.38, elevation, roadFactor);
 
     } else if (this.type === "Rustvale") {
       // Mars: Valles Marineris canyon rift & Olympus Mons
       const canyonDir = new THREE.Vector3(-0.65, 0.25, -0.70).normalize();
       if (u.distanceTo(canyonDir) < 0.55) {
-        elevation += Math.pow(1.0 - u.distanceTo(canyonDir) / 0.55, 1.6) * 11.5; // Olympus Mons
+        elevation += Math.pow(1.0 - u.distanceTo(canyonDir) / 0.55, 1.6) * 17.5; // Olympus Mons
       }
-      elevation += (Math.sin(u.x * 6.8) * Math.cos(u.z * 6.8) + 0.4 * Math.sin(u.y * 8.0)) * 2.5;
-      const roadFactor = THREE.MathUtils.smoothstep(distRoad, 0.065, 0.145);
-      elevation = THREE.MathUtils.lerp(0.38, elevation, roadFactor);
+      elevation += (Math.sin(u.x * 6.8) * Math.cos(u.z * 6.8) + 0.4 * Math.sin(u.y * 8.0)) * 3.5;
+      const roadFactor = THREE.MathUtils.smoothstep(distRoad, 0.055, 0.125);
+      elevation = THREE.MathUtils.lerp(0.44, elevation, roadFactor);
 
     } else if (this.type === "Stormhaven") {
       // Jupiter: Atmospheric gas wave ridges
-      elevation += (Math.sin(u.y * 14.0) * 1.8 + Math.cos(theta * 6.0) * 1.2);
-      const roadFactor = THREE.MathUtils.smoothstep(distRoad, 0.065, 0.145);
-      elevation = THREE.MathUtils.lerp(0.35, elevation, roadFactor);
+      elevation += (Math.sin(u.y * 14.0) * 2.8 + Math.cos(theta * 6.0) * 1.8);
+      const roadFactor = THREE.MathUtils.smoothstep(distRoad, 0.055, 0.125);
+      elevation = THREE.MathUtils.lerp(0.40, elevation, roadFactor);
 
     } else if (this.type === "Ringhaven") {
       // Saturn: Glacial ice terraces
-      elevation += (Math.sin(u.x * 7.2) * Math.cos(u.z * 7.2) + 0.5 * Math.sin(u.y * 7.5)) * 2.4;
-      const roadFactor = THREE.MathUtils.smoothstep(distRoad, 0.065, 0.145);
-      elevation = THREE.MathUtils.lerp(0.36, elevation, roadFactor);
+      elevation += (Math.sin(u.x * 7.2) * Math.cos(u.z * 7.2) + 0.5 * Math.sin(u.y * 7.5)) * 3.6;
+      const roadFactor = THREE.MathUtils.smoothstep(distRoad, 0.055, 0.125);
+      elevation = THREE.MathUtils.lerp(0.42, elevation, roadFactor);
 
     } else if (this.type === "Frostveil") {
       // Uranus: Serrated cyan cryo-pinnacles
       const cryoPeak = new THREE.Vector3(-0.55, 0.58, -0.60).normalize();
       if (u.distanceTo(cryoPeak) < 0.48) {
-        elevation += Math.pow(1.0 - u.distanceTo(cryoPeak) / 0.48, 1.5) * 10.0;
+        elevation += Math.pow(1.0 - u.distanceTo(cryoPeak) / 0.48, 1.5) * 14.5;
       }
-      elevation += (Math.sin(u.x * 8.0) * Math.cos(u.z * 8.0) + 0.5 * Math.sin(u.y * 9.5)) * 2.9;
-      const roadFactor = THREE.MathUtils.smoothstep(distRoad, 0.065, 0.145);
-      elevation = THREE.MathUtils.lerp(0.35, elevation, roadFactor);
+      elevation += (Math.sin(u.x * 8.0) * Math.cos(u.z * 8.0) + 0.5 * Math.sin(u.y * 9.5)) * 3.8;
+      const roadFactor = THREE.MathUtils.smoothstep(distRoad, 0.055, 0.125);
+      elevation = THREE.MathUtils.lerp(0.40, elevation, roadFactor);
 
     } else if (this.type === "Thalassa") {
       // Neptune: Oceanic wave plateaus & oceanic shelf
       const oceanShelf = new THREE.Vector3(0.55, -0.35, -0.75).normalize();
       if (u.distanceTo(oceanShelf) < 0.65) {
-        elevation -= (1.0 - u.distanceTo(oceanShelf) / 0.65) * 4.8;
+        elevation -= (1.0 - u.distanceTo(oceanShelf) / 0.65) * 6.8;
       }
-      elevation += (Math.sin(u.x * 6.2) * Math.cos(u.z * 6.2) + 0.4 * Math.sin(u.y * 7.2)) * 2.3;
-      const roadFactor = THREE.MathUtils.smoothstep(distRoad, 0.065, 0.145);
-      elevation = THREE.MathUtils.lerp(0.40, elevation, roadFactor);
+      elevation += (Math.sin(u.x * 6.2) * Math.cos(u.z * 6.2) + 0.4 * Math.sin(u.y * 7.2)) * 3.4;
+      const roadFactor = THREE.MathUtils.smoothstep(distRoad, 0.055, 0.125);
+      elevation = THREE.MathUtils.lerp(0.45, elevation, roadFactor);
 
     } else {
       // Nocturna (Pluto): Cratered nitrogen ice plains
       const craterDir = new THREE.Vector3(0.35, 0.55, 0.75).normalize();
       if (u.distanceTo(craterDir) < 0.52) {
-        elevation -= (1.0 - u.distanceTo(craterDir) / 0.52) * 3.8;
+        elevation -= (1.0 - u.distanceTo(craterDir) / 0.52) * 5.6;
       }
-      elevation += (Math.sin(u.x * 7.5) * Math.cos(u.z * 7.5) + 0.3 * Math.sin(u.y * 8.5)) * 2.1;
-      const roadFactor = THREE.MathUtils.smoothstep(distRoad, 0.065, 0.145);
-      elevation = THREE.MathUtils.lerp(0.32, elevation, roadFactor);
+      elevation += (Math.sin(u.x * 7.5) * Math.cos(u.z * 7.5) + 0.3 * Math.sin(u.y * 8.5)) * 3.0;
+      const roadFactor = THREE.MathUtils.smoothstep(distRoad, 0.055, 0.125);
+      elevation = THREE.MathUtils.lerp(0.38, elevation, roadFactor);
     }
 
     return baseR + elevation;
@@ -773,78 +796,80 @@ export class Planet {
     const theta = Math.atan2(u.z, u.x);
     const thetaNorm = theta < 0 ? theta + Math.PI * 2 : theta;
     const totalKm = this.circumference / 1000.0;
-    const distKm = (thetaNorm / (Math.PI * 2)) * totalKm;
+    const progress = thetaNorm / (Math.PI * 2);
+    const distKm = progress * totalKm;
 
     let regionName = "";
     if (this.type === "Oakhaven") {
-      if (distKm < 0.08) regionName = "Pine Creek Outpost";
-      else if (distKm < 0.15) regionName = "Whispering Pines Grove";
-      else if (distKm < 0.24) regionName = "Snowpeak Glacial Pass";
-      else if (distKm < 0.31) regionName = "Granite Gorge Canyon";
-      else if (distKm < 0.37) regionName = "Golden Meadow Plateau";
+      if (progress < 0.16) regionName = "Pine Creek Outpost";
+      else if (progress < 0.33) regionName = "Whispering Pines Grove";
+      else if (progress < 0.50) regionName = "Snowpeak Glacial Pass";
+      else if (progress < 0.66) regionName = "Granite Gorge Canyon";
+      else if (progress < 0.83) regionName = "Golden Meadow Plateau";
       else regionName = "River Bend Approach";
     } else if (this.type === "Cinderfell") {
-      if (distKm < 0.08) regionName = "Magma Basalt Fissures";
-      else if (distKm < 0.15) regionName = "Scorched Obsidian Spire";
-      else if (distKm < 0.24) regionName = "Thermal Exhaust Caldera";
-      else if (distKm < 0.31) regionName = "Basalt Pillar Canyon";
-      else if (distKm < 0.37) regionName = "Smoldering Ash Flats";
+      if (progress < 0.16) regionName = "Magma Basalt Fissures";
+      else if (progress < 0.33) regionName = "Scorched Obsidian Spire";
+      else if (progress < 0.50) regionName = "Thermal Exhaust Caldera";
+      else if (progress < 0.66) regionName = "Basalt Pillar Canyon";
+      else if (progress < 0.83) regionName = "Smoldering Ash Flats";
       else regionName = "Solar Flare Basin";
     } else if (this.type === "Aetheria") {
-      if (distKm < 0.08) regionName = "Amber Sulfuric Dunes";
-      else if (distKm < 0.15) regionName = "Sulfuric Glass Rotunda";
-      else if (distKm < 0.24) regionName = "Vitrified Glass Arches";
-      else if (distKm < 0.31) regionName = "Golden Smog Plateau";
-      else if (distKm < 0.37) regionName = "Corrosive Acid Flats";
+      if (progress < 0.16) regionName = "Amber Sulfuric Dunes";
+      else if (progress < 0.33) regionName = "Sulfuric Glass Rotunda";
+      else if (progress < 0.50) regionName = "Vitrified Glass Arches";
+      else if (progress < 0.66) regionName = "Golden Smog Plateau";
+      else if (progress < 0.83) regionName = "Corrosive Acid Flats";
       else regionName = "The Gilded Sea";
     } else if (this.type === "Rustvale") {
-      if (distKm < 0.08) regionName = "Valles Marineris Rift";
-      else if (distKm < 0.15) regionName = "Red Oxide Canyons";
-      else if (distKm < 0.24) regionName = "Terraforming Bio-Dome";
-      else if (distKm < 0.31) regionName = "Crimson Dune Sea";
-      else if (distKm < 0.37) regionName = "Olympus Mons Ridge";
+      if (progress < 0.16) regionName = "Valles Marineris Rift";
+      else if (progress < 0.33) regionName = "Red Oxide Canyons";
+      else if (progress < 0.50) regionName = "Terraforming Bio-Dome Complex";
+      else if (progress < 0.66) regionName = "Crimson Dune Sea";
+      else if (progress < 0.83) regionName = "Olympus Mons Ridge";
       else regionName = "Iron Silt Basin";
     } else if (this.type === "Stormhaven") {
-      if (distKm < 0.08) regionName = "Ion Lightning Valley";
-      else if (distKm < 0.15) regionName = "Jovian Banded Ridges";
-      else if (distKm < 0.24) regionName = "Plasma Relays Alpha";
-      else if (distKm < 0.31) regionName = "The Great Red Rift";
-      else if (distKm < 0.37) regionName = "Metallic Hydrogen Crags";
+      if (progress < 0.16) regionName = "Ion Lightning Valley";
+      else if (progress < 0.33) regionName = "Jovian Banded Ridges";
+      else if (progress < 0.50) regionName = "Plasma Relays Alpha";
+      else if (progress < 0.66) regionName = "The Great Red Rift";
+      else if (progress < 0.83) regionName = "Metallic Hydrogen Crags";
       else regionName = "High-Voltage Sea";
     } else if (this.type === "Ringhaven") {
-      if (distKm < 0.08) regionName = "Golden Ring Arc Pass";
-      else if (distKm < 0.15) regionName = "Butterscotch Glaciers";
-      else if (distKm < 0.24) regionName = "Orbital Tracker Spire";
-      else if (distKm < 0.31) regionName = "Ice Shard Canyons";
-      else if (distKm < 0.37) regionName = "Cassini Rift Terrace";
+      if (progress < 0.16) regionName = "Golden Ring Arc Pass";
+      else if (progress < 0.33) regionName = "Butterscotch Glaciers";
+      else if (progress < 0.50) regionName = "Orbital Tracker Spire";
+      else if (progress < 0.66) regionName = "Ice Shard Canyons";
+      else if (progress < 0.83) regionName = "Cassini Rift Terrace";
       else regionName = "Liquid Ethane Basin";
     } else if (this.type === "Frostveil") {
-      if (distKm < 0.08) regionName = "Methane Ice Glaciers";
-      else if (distKm < 0.15) regionName = "Azure Cryo-Pinnacles";
-      else if (distKm < 0.24) regionName = "Sub-Zero Survey Rig";
-      else if (distKm < 0.31) regionName = "Cryo-Blizzard Pass";
-      else if (distKm < 0.37) regionName = "Perpendicular Ring Gap";
+      if (progress < 0.16) regionName = "Methane Ice Glaciers";
+      else if (progress < 0.33) regionName = "Azure Cryo-Pinnacles";
+      else if (progress < 0.50) regionName = "Sub-Zero Survey Rig";
+      else if (progress < 0.66) regionName = "Cryo-Blizzard Pass";
+      else if (progress < 0.83) regionName = "Perpendicular Ring Gap";
       else regionName = "Liquid Methane Sea";
     } else if (this.type === "Thalassa") {
-      if (distKm < 0.08) regionName = "Supersonic Wave Ridge";
-      else if (distKm < 0.15) regionName = "Sapphire Oceanic Shelf";
-      else if (distKm < 0.24) regionName = "Abyssal Sonic Beacon";
-      else if (distKm < 0.31) regionName = "Oceanic Monolith Way";
-      else if (distKm < 0.37) regionName = "Bioluminescent Trench";
+      if (progress < 0.16) regionName = "Supersonic Wave Ridge";
+      else if (progress < 0.33) regionName = "Sapphire Oceanic Shelf";
+      else if (progress < 0.50) regionName = "Abyssal Sonic Beacon";
+      else if (progress < 0.66) regionName = "Oceanic Monolith Way";
+      else if (progress < 0.83) regionName = "Bioluminescent Trench";
       else regionName = "The Deep Blue Abyss";
     } else {
-      if (distKm < 0.08) regionName = "Frozen Nitrogen Plains";
-      else if (distKm < 0.15) regionName = "Cold Starlight Spires";
-      else if (distKm < 0.24) regionName = "RTG Power Post Outpost";
-      else if (distKm < 0.31) regionName = "Cosmic Void Plateau";
-      else if (distKm < 0.37) regionName = "Tombaugh Crater Rim";
+      if (progress < 0.16) regionName = "Frozen Nitrogen Plains";
+      else if (progress < 0.33) regionName = "Cold Starlight Spires";
+      else if (progress < 0.50) regionName = "RTG Power Post Outpost";
+      else if (progress < 0.66) regionName = "Cosmic Void Plateau";
+      else if (progress < 0.83) regionName = "Tombaugh Crater Rim";
       else regionName = "Infinite Obsidian Sea";
     }
 
     return {
       name: regionName,
       distKm,
-      totalKm
+      totalKm,
+      progress
     };
   }
 
@@ -954,7 +979,7 @@ export class Planet {
   // 8. GENERATE FACETED GLOBE GEOMETRY
   // ---------------------------------------------------------------
   _generateFacetedPlanet() {
-    const ico = new THREE.IcosahedronGeometry(1.0, 3); // 1280 triangular faces
+    const ico = new THREE.IcosahedronGeometry(1.0, 4); // 5120 triangular faces for crisp low-poly faceting
     const posAttr = ico.attributes.position;
     const numTriangles = posAttr.count / 3;
 
@@ -1037,7 +1062,7 @@ export class Planet {
       this._raycaster = new THREE.Raycaster();
     }
     const normDir = dir.clone().normalize();
-    const origin = normDir.clone().multiplyScalar(this.baseRadius + 45.0);
+    const origin = normDir.clone().multiplyScalar(this.baseRadius + 65.0);
     const direction = normDir.clone().negate();
     this._raycaster.set(origin, direction);
 
@@ -1294,104 +1319,279 @@ export class Planet {
       this.group.add(obsLantern);
       this.addCollider(obsLantern.position, 0.15, 2.5, "lantern", "Street Lantern Post");
 
+    } else if (this.type === "Rustvale") {
+      this._spawnRustvaleLandmarks();
+    } else if (this.type === "Cinderfell") {
+      this._spawnCinderfellLandmarks();
+    } else if (this.type === "Aetheria") {
+      this._spawnAetheriaLandmarks();
+    } else if (this.type === "Stormhaven") {
+      this._spawnStormhavenLandmarks();
+    } else if (this.type === "Ringhaven") {
+      this._spawnRinghavenLandmarks();
+    } else if (this.type === "Frostveil") {
+      this._spawnFrostveilLandmarks();
+    } else if (this.type === "Thalassa") {
+      this._spawnThalassaLandmarks();
     } else {
-      // =============================================================
-      // THE 8 PLANETARY SOLAR COMPANIONS: BESPOKE LANDMARKS & COLLIDERS
-      // =============================================================
-      const angles = [0.38, 0.82, 1.45, 2.15, 2.85, 3.55, 4.35, 5.15];
-
-      for (let i = 0; i < angles.length; i++) {
-        const th = angles[i];
-        const dir = this._getRoadDir(th);
-        const right = this._getRoadRight(th);
-        const sideOffset = (i % 2 === 0 ? 0.155 : -0.155);
-        const worldDir = new THREE.Vector3().addVectors(dir, right.clone().multiplyScalar(sideOffset)).normalize();
-        const place = this.getSurfacePlacement(worldDir, -0.15);
-
-        let landmark = null;
-        let colRadius = 1.6;
-        let colHeight = 5.0;
-        let colName = "Planetary Landmark";
-
-        if (this.type === "Cinderfell") {
-          if (i % 2 === 0) {
-            landmark = buildObsidianSpire();
-            colRadius = 0.8; colHeight = 7.5; colName = "Obsidian Spire";
-          } else {
-            landmark = buildThermalVent();
-            colRadius = 1.2; colHeight = 3.5; colName = "Thermal Vent";
-          }
-        } else if (this.type === "Aetheria") {
-          if (i % 2 === 0) {
-            landmark = buildSulfuricGlassDome();
-            colRadius = 2.4; colHeight = 4.5; colName = "Sulfuric Glass Dome";
-          } else {
-            landmark = buildSulfuricArch();
-            colRadius = 1.8; colHeight = 5.0; colName = "Sulfuric Basalt Arch";
-          }
-        } else if (this.type === "Rustvale") {
-          if (i % 2 === 0) {
-            landmark = buildMarsTerraformDome();
-            colRadius = 2.5; colHeight = 4.5; colName = "Terraforming Dome";
-          } else {
-            landmark = buildMarsCommsTower();
-            colRadius = 0.9; colHeight = 6.5; colName = "Mars Comms Tower";
-          }
-        } else if (this.type === "Stormhaven") {
-          if (i % 2 === 0) {
-            landmark = buildLightningPylon();
-            colRadius = 0.8; colHeight = 8.0; colName = "Lightning Pylon";
-          } else {
-            landmark = buildPlasmaRod();
-            colRadius = 0.7; colHeight = 5.0; colName = "Plasma Relay Rod";
-          }
-        } else if (this.type === "Ringhaven") {
-          if (i % 2 === 0) {
-            landmark = buildRingTrackerStation();
-            colRadius = 2.2; colHeight = 4.5; colName = "Ring Tracker Station";
-          } else {
-            landmark = buildIceCrystalArch();
-            colRadius = 1.9; colHeight = 5.0; colName = "Golden Ice Arch";
-          }
-        } else if (this.type === "Frostveil") {
-          if (i % 2 === 0) {
-            landmark = buildCryoDrill();
-            colRadius = 1.4; colHeight = 6.0; colName = "Cryo-Drill Rig";
-          } else {
-            landmark = buildFrostPinnacle();
-            colRadius = 0.9; colHeight = 7.0; colName = "Methane Frost Pinnacle";
-          }
-        } else if (this.type === "Thalassa") {
-          if (i % 2 === 0) {
-            landmark = buildAbyssalBeacon();
-            colRadius = 0.8; colHeight = 5.5; colName = "Abyssal Sonic Beacon";
-          } else {
-            landmark = buildOceanicMonolith();
-            colRadius = 1.2; colHeight = 6.5; colName = "Oceanic Monolith";
-          }
-        } else {
-          // Nocturna (Pluto)
-          if (i % 2 === 0) {
-            landmark = buildRtgPowerPost();
-            colRadius = 0.6; colHeight = 4.0; colName = "RTG Nuclear Power Post";
-          } else {
-            landmark = buildVoidIceSpire();
-            colRadius = 0.8; colHeight = 6.8; colName = "Nitrogen Ice Spire";
-          }
-        }
-
-        if (landmark) {
-          landmark.position.copy(place.position);
-          this._alignToNormal(landmark, place.normal);
-          this.group.add(landmark);
-          this.addCollider(landmark.position, colRadius, colHeight, "landmark", colName);
-        }
-      }
+      this._spawnNocturnaLandmarks();
     }
   }
 
   // ---------------------------------------------------------------
-  // 9.5 PLANETARY RING SYSTEM (Ringhaven & Frostveil)
+  // 9.1 LANDMARK PLACEMENT CORE HELPER
+  // ---------------------------------------------------------------
+  _placeLandmark(mesh, theta, sideOffset, colRadius, colHeight, colType, colName, scale = 1.0, embedOffset = -0.15) {
+    if (!mesh) return null;
+    const dir = this._getRoadDir(theta);
+    const right = this._getRoadRight(theta);
+    const worldDir = new THREE.Vector3().addVectors(dir, right.clone().multiplyScalar(sideOffset)).normalize();
+    const place = this.getSurfacePlacement(worldDir, embedOffset);
+    if (scale !== 1.0) mesh.scale.set(scale, scale, scale);
+    mesh.position.copy(place.position);
+    this._alignToNormal(mesh, place.normal);
+    this.group.add(mesh);
+    if (colRadius > 0) {
+      this.addCollider(mesh.position, colRadius * scale, colHeight * scale, colType, colName);
+    }
+    return mesh;
+  }
+
+  // ---------------------------------------------------------------
+  // 9.2 RUSTVALE (MARS): 4 CURATED CANYON & BIO-DOME BIOMES
+  // ---------------------------------------------------------------
+  _spawnRustvaleLandmarks() {
+    // Sector 1: Valles Marineris Rift (theta 0.20 - 1.40)
+    this._placeLandmark(buildMarsCommsTower(), 0.32, -0.150, 0.9, 7.0, "tower", "Mars Comms Tower Alpha", 1.05);
+    this._placeLandmark(buildSandstoneRingArch(5.8), 0.60, 0.160, 1.8, 6.0, "arch", "Sandstone Canyon Arch", 0.95);
+    this._placeLandmark(buildHazardWarningBollard("Rustvale"), 0.85, -0.095, 0.2, 1.5, "bollard", "Warning Bollard");
+    this._placeLandmark(buildHazardWarningBollard("Rustvale"), 1.05, -0.095, 0.2, 1.5, "bollard", "Warning Bollard");
+    this._placeLandmark(buildMarsTerraformDome(), 1.25, 0.155, 2.5, 4.8, "dome", "Outpost Bio-Dome Alpha", 0.95);
+
+    // Sector 2: Red Oxide Canyons (theta 1.50 - 2.90)
+    this._placeLandmark(buildMarsCommsTower(), 1.70, 0.145, 0.9, 6.5, "tower", "Relay Pylon Beta", 0.95);
+    this._placeLandmark(buildSandstoneRingArch(6.5), 2.05, -0.165, 1.8, 6.0, "arch", "Great Marineris Arch", 1.0);
+    this._placeLandmark(buildHazardWarningBollard("Rustvale"), 2.30, 0.095, 0.2, 1.5, "bollard", "Warning Bollard");
+    this._placeLandmark(buildMarsTerraformDome(), 2.65, -0.155, 2.5, 4.8, "dome", "Hydroponics Dome Beta", 1.0);
+
+    // Sector 3: Terraforming Bio-Dome Complex & Olympus Mons (theta 3.00 - 4.40)
+    this._placeLandmark(buildMarsTerraformDome(), 3.15, 0.160, 2.6, 5.0, "dome", "Primary Habitat Dome Gamma", 1.15);
+    this._placeLandmark(buildMarsCommsTower(), 3.45, -0.150, 0.9, 7.5, "tower", "Deep Space Uplink", 1.1);
+    this._placeLandmark(buildLeaningObelisk(7.5), 3.80, 0.150, 0.8, 7.5, "obelisk", "Ancient Basalt Monolith", 0.9);
+    this._placeLandmark(buildHazardWarningBollard("Rustvale"), 4.10, -0.095, 0.2, 1.5, "bollard", "Warning Bollard");
+
+    // Sector 4: Iron Silt Basin (theta 4.50 - 6.10)
+    this._placeLandmark(buildMarsTerraformDome(), 4.65, -0.155, 2.5, 4.8, "dome", "Research Bio-Dome Delta", 0.95);
+    this._placeLandmark(buildSandstoneRingArch(5.5), 5.05, 0.160, 1.8, 5.5, "arch", "Basin Gateway Arch", 0.9);
+    this._placeLandmark(buildMarsCommsTower(), 5.45, 0.145, 0.9, 6.5, "tower", "Basin Radar Post", 0.9);
+    this._placeLandmark(buildHazardWarningBollard("Rustvale"), 5.80, 0.095, 0.2, 1.5, "bollard", "Warning Bollard");
+  }
+
+  // ---------------------------------------------------------------
+  // 9.3 CINDERFELL (MERCURY): 4 SCORCHED BASALT & CALDERA BIOMES
+  // ---------------------------------------------------------------
+  _spawnCinderfellLandmarks() {
+    // Sector 1: Magma Basalt Fissures (theta 0.20 - 1.40)
+    this._placeLandmark(buildObsidianSpire(), 0.35, -0.150, 0.8, 7.5, "spire", "Obsidian Spire Alpha", 1.05);
+    this._placeLandmark(buildThermalVent(), 0.65, 0.140, 1.2, 3.5, "vent", "Geothermal Vent Alpha");
+    this._placeLandmark(buildHazardWarningBollard("Cinderfell"), 0.90, -0.095, 0.2, 1.5, "bollard", "Warning Bollard");
+    this._placeLandmark(buildObsidianSpire(), 1.20, 0.150, 0.8, 7.0, "spire", "Obsidian Needle Beta", 0.9);
+
+    // Sector 2: Scorched Caldera (theta 1.50 - 2.90)
+    this._placeLandmark(buildThermalVent(), 1.65, -0.145, 1.2, 3.5, "vent", "Caldera Exhaust Vent");
+    this._placeLandmark(buildObsidianSpire(), 1.95, -0.160, 0.9, 8.5, "spire", "Great Caldera Spire", 1.2);
+    this._placeLandmark(buildThermalVent(), 2.30, 0.150, 1.2, 3.5, "vent", "Sulfur Vent Beta");
+    this._placeLandmark(buildHazardWarningBollard("Cinderfell"), 2.60, 0.095, 0.2, 1.5, "bollard", "Warning Bollard");
+
+    // Sector 3: Basalt Pillar Canyon (theta 3.00 - 4.40)
+    this._placeLandmark(buildObsidianSpire(), 3.15, 0.155, 0.8, 7.5, "spire", "Obsidian Pillar Gamma", 1.1);
+    this._placeLandmark(buildThermalVent(), 3.50, -0.140, 1.2, 3.5, "vent", "Thermal Crevasse Vent");
+    this._placeLandmark(buildObsidianSpire(), 3.85, -0.150, 0.8, 7.0, "spire", "Basalt Spire Delta", 0.95);
+    this._placeLandmark(buildHazardWarningBollard("Cinderfell"), 4.15, -0.095, 0.2, 1.5, "bollard", "Warning Bollard");
+
+    // Sector 4: Solar Flare Basin (theta 4.50 - 6.10)
+    this._placeLandmark(buildThermalVent(), 4.60, 0.145, 1.2, 3.5, "vent", "Basin Thermal Chimney");
+    this._placeLandmark(buildObsidianSpire(), 4.95, -0.155, 0.9, 8.0, "spire", "Solar Flare Spire", 1.1);
+    this._placeLandmark(buildThermalVent(), 5.35, -0.140, 1.2, 3.5, "vent", "Deep Crust Vent");
+    this._placeLandmark(buildObsidianSpire(), 5.75, 0.150, 0.8, 7.0, "spire", "Outpost Spire Epsilon", 0.9);
+  }
+
+  // ---------------------------------------------------------------
+  // 9.4 AETHERIA (VENUS): 4 AMBER DUNES & VITRIFIED GLASS BIOMES
+  // ---------------------------------------------------------------
+  _spawnAetheriaLandmarks() {
+    // Sector 1: Amber Sulfuric Dunes (theta 0.20 - 1.40)
+    this._placeLandmark(buildSulfuricGlassDome(), 0.35, 0.155, 2.4, 4.5, "dome", "Sulfuric Glass Dome Alpha", 1.0);
+    this._placeLandmark(buildSulfuricArch(), 0.70, -0.150, 1.8, 5.0, "arch", "Vitrified Basalt Arch Alpha");
+    this._placeLandmark(buildMintCrystalCluster(1.1), 1.05, 0.140, 0.6, 2.8, "crystal", "Silica Crystal Cluster Alpha");
+    this._placeLandmark(buildHazardWarningBollard("Aetheria"), 1.25, -0.095, 0.2, 1.5, "bollard", "Warning Bollard");
+
+    // Sector 2: Vitrified Glass Rotunda (theta 1.50 - 2.90)
+    this._placeLandmark(buildSulfuricGlassDome(), 1.65, -0.160, 2.5, 4.8, "dome", "Glass Rotunda Beta", 1.1);
+    this._placeLandmark(buildMintCrystalCluster(1.3), 2.00, -0.145, 0.7, 3.2, "crystal", "Giant Silica Shard");
+    this._placeLandmark(buildSulfuricArch(), 2.35, 0.155, 1.8, 5.0, "arch", "Acid Canyon Arch Beta");
+    this._placeLandmark(buildHazardWarningBollard("Aetheria"), 2.70, 0.095, 0.2, 1.5, "bollard", "Warning Bollard");
+
+    // Sector 3: Golden Smog Plateau (theta 3.00 - 4.40)
+    this._placeLandmark(buildSulfuricGlassDome(), 3.15, 0.150, 2.4, 4.5, "dome", "Atmospheric Scrubber Dome", 1.0);
+    this._placeLandmark(buildSulfuricArch(), 3.55, -0.155, 1.8, 5.0, "arch", "Plateau Gateway Arch");
+    this._placeLandmark(buildMintCrystalCluster(1.0), 3.90, 0.140, 0.6, 2.6, "crystal", "Silica Shards Gamma");
+    this._placeLandmark(buildHazardWarningBollard("Aetheria"), 4.15, -0.095, 0.2, 1.5, "bollard", "Warning Bollard");
+
+    // Sector 4: The Gilded Sea Shoreline (theta 4.50 - 6.10)
+    this._placeLandmark(buildSulfuricGlassDome(), 4.65, -0.155, 2.5, 4.8, "dome", "Gilded Shoreline Lab", 1.05);
+    this._placeLandmark(buildMintCrystalCluster(1.2), 5.10, -0.145, 0.7, 3.0, "crystal", "Gilded Coast Crystals");
+    this._placeLandmark(buildSulfuricArch(), 5.45, 0.150, 1.8, 5.0, "arch", "Coastal Basalt Arch");
+    this._placeLandmark(buildHazardWarningBollard("Aetheria"), 5.80, 0.095, 0.2, 1.5, "bollard", "Warning Bollard");
+  }
+
+  // ---------------------------------------------------------------
+  // 9.5 STORMHAVEN (JUPITER): 4 ION LIGHTNING & PLASMA BIOMES
+  // ---------------------------------------------------------------
+  _spawnStormhavenLandmarks() {
+    // Sector 1: Ion Lightning Valley (theta 0.20 - 1.40)
+    this._placeLandmark(buildLightningPylon(), 0.35, -0.150, 0.8, 8.5, "pylon", "Lightning Pylon Alpha", 1.1);
+    this._placeLandmark(buildPlasmaRod(), 0.68, 0.145, 0.7, 5.0, "rod", "Plasma Relay Rod Alpha");
+    this._placeLandmark(buildHazardWarningBollard("Stormhaven"), 0.95, -0.095, 0.2, 1.5, "bollard", "Warning Bollard");
+    this._placeLandmark(buildLightningPylon(), 1.25, 0.155, 0.8, 8.0, "pylon", "Ion Pylon Beta", 1.0);
+
+    // Sector 2: Jovian Banded Ridges (theta 1.50 - 2.90)
+    this._placeLandmark(buildPlasmaRod(), 1.65, -0.145, 0.7, 5.0, "rod", "Plasma Relay Rod Beta");
+    this._placeLandmark(buildLightningPylon(), 2.05, -0.155, 0.9, 9.0, "pylon", "Great Jovian Pylon", 1.2);
+    this._placeLandmark(buildPlasmaRod(), 2.45, 0.150, 0.7, 5.2, "rod", "Plasma Harvester Gamma");
+    this._placeLandmark(buildHazardWarningBollard("Stormhaven"), 2.75, 0.095, 0.2, 1.5, "bollard", "Warning Bollard");
+
+    // Sector 3: The Great Red Rift (theta 3.00 - 4.40)
+    this._placeLandmark(buildLightningPylon(), 3.15, 0.150, 0.8, 8.5, "pylon", "Rift Lightning Pylon", 1.05);
+    this._placeLandmark(buildPlasmaRod(), 3.55, -0.150, 0.7, 5.0, "rod", "Plasma Relay Delta");
+    this._placeLandmark(buildLightningPylon(), 3.90, -0.155, 0.8, 8.0, "pylon", "Containment Pylon Delta", 1.0);
+    this._placeLandmark(buildHazardWarningBollard("Stormhaven"), 4.20, -0.095, 0.2, 1.5, "bollard", "Warning Bollard");
+
+    // Sector 4: High-Voltage Sea (theta 4.50 - 6.10)
+    this._placeLandmark(buildPlasmaRod(), 4.65, 0.145, 0.7, 5.0, "rod", "Sea Plasma Relay Epsilon");
+    this._placeLandmark(buildLightningPylon(), 5.05, -0.155, 0.9, 8.8, "pylon", "High-Voltage Terminal", 1.15);
+    this._placeLandmark(buildPlasmaRod(), 5.45, -0.145, 0.7, 5.0, "rod", "Oceanic Plasma Node");
+    this._placeLandmark(buildHazardWarningBollard("Stormhaven"), 5.80, 0.095, 0.2, 1.5, "bollard", "Warning Bollard");
+  }
+
+  // ---------------------------------------------------------------
+  // 9.6 RINGHAVEN (SATURN): 4 GOLDEN RINGS & ICE TERRACE BIOMES
+  // ---------------------------------------------------------------
+  _spawnRinghavenLandmarks() {
+    // Sector 1: Golden Ring Arc Pass (theta 0.20 - 1.40)
+    this._placeLandmark(buildRingTrackerStation(), 0.35, 0.155, 2.2, 4.5, "station", "Ring Tracker Alpha", 1.05);
+    this._placeLandmark(buildIceCrystalArch(), 0.70, -0.150, 1.9, 5.0, "arch", "Golden Ice Arch Alpha");
+    this._placeLandmark(buildMintCrystalCluster(1.1), 1.05, 0.140, 0.6, 2.8, "crystal", "Golden Ice Crystals Alpha");
+    this._placeLandmark(buildHazardWarningBollard("Ringhaven"), 1.25, -0.095, 0.2, 1.5, "bollard", "Warning Bollard");
+
+    // Sector 2: Butterscotch Glaciers (theta 1.50 - 2.90)
+    this._placeLandmark(buildRingTrackerStation(), 1.65, -0.160, 2.3, 4.8, "station", "Glacier Array Beta", 1.1);
+    this._placeLandmark(buildIceCrystalArch(), 2.05, 0.155, 1.9, 5.0, "arch", "Butterscotch Glacier Arch");
+    this._placeLandmark(buildMintCrystalCluster(1.2), 2.45, -0.145, 0.7, 3.0, "crystal", "Ice Shard Cluster Beta");
+    this._placeLandmark(buildHazardWarningBollard("Ringhaven"), 2.70, 0.095, 0.2, 1.5, "bollard", "Warning Bollard");
+
+    // Sector 3: Orbital Tracker Spire (theta 3.00 - 4.40)
+    this._placeLandmark(buildRingTrackerStation(), 3.15, 0.150, 2.2, 4.5, "station", "Deep Orbit Tracker Gamma", 1.0);
+    this._placeLandmark(buildIceCrystalArch(), 3.55, -0.155, 1.9, 5.0, "arch", "Orbital Arch Gamma");
+    this._placeLandmark(buildMintCrystalCluster(1.0), 3.90, 0.140, 0.6, 2.6, "crystal", "Ice Pinnacles Gamma");
+    this._placeLandmark(buildHazardWarningBollard("Ringhaven"), 4.15, -0.095, 0.2, 1.5, "bollard", "Warning Bollard");
+
+    // Sector 4: Cassini Rift Terrace (theta 4.50 - 6.10)
+    this._placeLandmark(buildRingTrackerStation(), 4.65, -0.155, 2.4, 4.8, "station", "Cassini Terrace Station", 1.1);
+    this._placeLandmark(buildIceCrystalArch(), 5.10, 0.150, 1.9, 5.0, "arch", "Cassini Rift Gateway Arch");
+    this._placeLandmark(buildMintCrystalCluster(1.3), 5.45, -0.145, 0.7, 3.2, "crystal", "Terrace Ice Shards");
+    this._placeLandmark(buildHazardWarningBollard("Ringhaven"), 5.80, 0.095, 0.2, 1.5, "bollard", "Warning Bollard");
+  }
+
+  // ---------------------------------------------------------------
+  // 9.7 FROSTVEIL (URANUS): 4 METHANE GLACIERS & CRYO-PINNACLES
+  // ---------------------------------------------------------------
+  _spawnFrostveilLandmarks() {
+    // Sector 1: Methane Ice Glaciers (theta 0.20 - 1.40)
+    this._placeLandmark(buildCryoDrill(), 0.35, -0.150, 1.4, 6.0, "drill", "Cryo-Drill Rig Alpha", 1.05);
+    this._placeLandmark(buildFrostPinnacle(), 0.70, 0.145, 0.9, 7.0, "pinnacle", "Methane Frost Pinnacle Alpha");
+    this._placeLandmark(buildMintCrystalCluster(1.1), 1.05, -0.140, 0.6, 2.8, "crystal", "Cryo Crystals Alpha");
+    this._placeLandmark(buildHazardWarningBollard("Frostveil"), 1.25, -0.095, 0.2, 1.5, "bollard", "Warning Bollard");
+
+    // Sector 2: Azure Cryo-Pinnacles (theta 1.50 - 2.90)
+    this._placeLandmark(buildFrostPinnacle(), 1.65, -0.155, 1.0, 8.0, "pinnacle", "Great Azure Pinnacle Beta", 1.15);
+    this._placeLandmark(buildCryoDrill(), 2.05, 0.150, 1.4, 6.0, "drill", "Glacial Sub-Surface Rig Beta");
+    this._placeLandmark(buildFrostPinnacle(), 2.45, -0.145, 0.9, 7.0, "pinnacle", "Frost Spire Beta");
+    this._placeLandmark(buildHazardWarningBollard("Frostveil"), 2.70, 0.095, 0.2, 1.5, "bollard", "Warning Bollard");
+
+    // Sector 3: Sub-Zero Survey Rig (theta 3.00 - 4.40)
+    this._placeLandmark(buildCryoDrill(), 3.15, 0.150, 1.4, 6.2, "drill", "Deep Cryo Rig Gamma", 1.1);
+    this._placeLandmark(buildFrostPinnacle(), 3.55, -0.150, 0.9, 7.2, "pinnacle", "Blizzard Pass Pinnacle");
+    this._placeLandmark(buildMintCrystalCluster(1.2), 3.90, 0.140, 0.6, 3.0, "crystal", "Sub-Zero Crystal Field");
+    this._placeLandmark(buildHazardWarningBollard("Frostveil"), 4.15, -0.095, 0.2, 1.5, "bollard", "Warning Bollard");
+
+    // Sector 4: Perpendicular Ring Gap (theta 4.50 - 6.10)
+    this._placeLandmark(buildFrostPinnacle(), 4.65, -0.155, 1.0, 7.8, "pinnacle", "Ring Gap Pinnacle Epsilon", 1.1);
+    this._placeLandmark(buildCryoDrill(), 5.10, 0.150, 1.4, 6.0, "drill", "Polar Extraction Rig");
+    this._placeLandmark(buildFrostPinnacle(), 5.45, -0.145, 0.9, 7.0, "pinnacle", "Glacial Ridge Pinnacle");
+    this._placeLandmark(buildHazardWarningBollard("Frostveil"), 5.80, 0.095, 0.2, 1.5, "bollard", "Warning Bollard");
+  }
+
+  // ---------------------------------------------------------------
+  // 9.8 THALASSA (NEPTUNE): 4 OCEANIC SHELVES & ABYSSAL MONOLITHS
+  // ---------------------------------------------------------------
+  _spawnThalassaLandmarks() {
+    // Sector 1: Supersonic Wave Ridge (theta 0.20 - 1.40)
+    this._placeLandmark(buildAbyssalBeacon(), 0.35, 0.145, 0.8, 5.5, "beacon", "Abyssal Sonic Beacon Alpha", 1.05);
+    this._placeLandmark(buildOceanicMonolith(), 0.70, -0.150, 1.2, 6.5, "monolith", "Oceanic Monolith Alpha");
+    this._placeLandmark(buildHazardWarningBollard("Thalassa"), 0.95, -0.095, 0.2, 1.5, "bollard", "Warning Bollard");
+    this._placeLandmark(buildAbyssalBeacon(), 1.25, -0.145, 0.8, 5.5, "beacon", "Navigational Beacon Beta");
+
+    // Sector 2: Sapphire Oceanic Shelf (theta 1.50 - 2.90)
+    this._placeLandmark(buildOceanicMonolith(), 1.65, 0.155, 1.3, 7.5, "monolith", "Great Sapphire Monolith", 1.15);
+    this._placeLandmark(buildAbyssalBeacon(), 2.05, -0.150, 0.8, 5.5, "beacon", "Offshore Sonic Rig Beta");
+    this._placeLandmark(buildOceanicMonolith(), 2.45, -0.155, 1.2, 6.5, "monolith", "Coastal Monolith Beta");
+    this._placeLandmark(buildHazardWarningBollard("Thalassa"), 2.75, 0.095, 0.2, 1.5, "bollard", "Warning Bollard");
+
+    // Sector 3: Oceanic Monolith Way (theta 3.00 - 4.40)
+    this._placeLandmark(buildOceanicMonolith(), 3.15, -0.150, 1.2, 6.5, "monolith", "Oceanic Colonnade Pillar 1");
+    this._placeLandmark(buildOceanicMonolith(), 3.45, 0.150, 1.2, 6.5, "monolith", "Oceanic Colonnade Pillar 2");
+    this._placeLandmark(buildAbyssalBeacon(), 3.80, -0.145, 0.8, 5.5, "beacon", "Abyssal Beacon Gamma");
+    this._placeLandmark(buildHazardWarningBollard("Thalassa"), 4.15, -0.095, 0.2, 1.5, "bollard", "Warning Bollard");
+
+    // Sector 4: The Deep Blue Abyss (theta 4.50 - 6.10)
+    this._placeLandmark(buildOceanicMonolith(), 4.65, 0.155, 1.3, 7.0, "monolith", "Abyssal Trench Monolith", 1.1);
+    this._placeLandmark(buildAbyssalBeacon(), 5.05, -0.150, 0.8, 5.5, "beacon", "Deep Oceanic Transmitter");
+    this._placeLandmark(buildOceanicMonolith(), 5.45, -0.150, 1.2, 6.5, "monolith", "Submerged Shelf Monolith");
+    this._placeLandmark(buildHazardWarningBollard("Thalassa"), 5.80, 0.095, 0.2, 1.5, "bollard", "Warning Bollard");
+  }
+
+  // ---------------------------------------------------------------
+  // 9.9 NOCTURNA (PLUTO): 4 NITROGEN PLAINS & STARLIGHT SPIRES
+  // ---------------------------------------------------------------
+  _spawnNocturnaLandmarks() {
+    // Sector 1: Frozen Nitrogen Plains (theta 0.20 - 1.40)
+    this._placeLandmark(buildRtgPowerPost(), 0.35, -0.145, 0.6, 4.0, "rtg", "RTG Power Post Alpha", 1.05);
+    this._placeLandmark(buildVoidIceSpire(), 0.70, 0.150, 0.8, 6.8, "spire", "Nitrogen Ice Spire Alpha");
+    this._placeLandmark(buildLeaningObelisk(7.0), 1.05, -0.155, 0.8, 7.0, "obelisk", "Dark Matter Obelisk Alpha");
+    this._placeLandmark(buildHazardWarningBollard("Nocturna"), 1.25, -0.095, 0.2, 1.5, "bollard", "Warning Bollard");
+
+    // Sector 2: Cold Starlight Spires (theta 1.50 - 2.90)
+    this._placeLandmark(buildVoidIceSpire(), 1.65, -0.155, 0.9, 7.8, "spire", "Great Starlight Spire Beta", 1.15);
+    this._placeLandmark(buildRtgPowerPost(), 2.05, 0.145, 0.6, 4.0, "rtg", "Outpost RTG Station Beta");
+    this._placeLandmark(buildVoidIceSpire(), 2.45, 0.150, 0.8, 6.8, "spire", "Crystalline Spire Beta");
+    this._placeLandmark(buildHazardWarningBollard("Nocturna"), 2.70, 0.095, 0.2, 1.5, "bollard", "Warning Bollard");
+
+    // Sector 3: Tombaugh Crater Rim (theta 3.00 - 4.40)
+    this._placeLandmark(buildRtgPowerPost(), 3.15, -0.145, 0.6, 4.2, "rtg", "Deep Space Power Post Gamma", 1.1);
+    this._placeLandmark(buildVoidIceSpire(), 3.55, 0.155, 0.8, 7.0, "spire", "Crater Rim Spire Gamma");
+    this._placeLandmark(buildLeaningObelisk(7.5), 3.90, -0.150, 0.8, 7.5, "obelisk", "Void Obelisk Gamma");
+    this._placeLandmark(buildHazardWarningBollard("Nocturna"), 4.15, -0.095, 0.2, 1.5, "bollard", "Warning Bollard");
+
+    // Sector 4: Infinite Obsidian Sea (theta 4.50 - 6.10)
+    this._placeLandmark(buildVoidIceSpire(), 4.65, -0.155, 0.9, 7.5, "spire", "Obsidian Sea Spire Delta", 1.1);
+    this._placeLandmark(buildRtgPowerPost(), 5.05, 0.145, 0.6, 4.0, "rtg", "Outer-Rim RTG Beacon");
+    this._placeLandmark(buildVoidIceSpire(), 5.45, 0.150, 0.8, 6.8, "spire", "Nitrogen Pinnacle Epsilon");
+    this._placeLandmark(buildHazardWarningBollard("Nocturna"), 5.80, 0.095, 0.2, 1.5, "bollard", "Warning Bollard");
+  }
+
+  // ---------------------------------------------------------------
+  // 9.10 PLANETARY RING SYSTEM (Ringhaven & Frostveil)
   // ---------------------------------------------------------------
   _spawnPlanetaryRings() {
     this.ringsGroup = new THREE.Group();
@@ -1400,7 +1600,7 @@ export class Planet {
 
     if (this.type === "Ringhaven") {
       // Magnificent Golden 3D Double-Sided Translucent Ring System
-      const ringGeo = new THREE.RingGeometry(82.0, 116.0, 64);
+      const ringGeo = new THREE.RingGeometry(this.baseRadius * 1.30, this.baseRadius * 1.85, 64);
       const ringMat = new THREE.MeshStandardMaterial({
         color: 0xF59E0B,
         emissive: 0xD97706,
@@ -1417,7 +1617,7 @@ export class Planet {
       this.ringsGroup.add(ringMesh);
 
       // Inner thin dust ring
-      const innerGeo = new THREE.RingGeometry(74.0, 79.0, 64);
+      const innerGeo = new THREE.RingGeometry(this.baseRadius * 1.15, this.baseRadius * 1.25, 64);
       const innerMat = new THREE.MeshStandardMaterial({
         color: 0xFDE68A,
         side: THREE.DoubleSide,
@@ -1430,7 +1630,7 @@ export class Planet {
 
     } else if (this.type === "Frostveil") {
       // Perpendicular Aquamarine Ring System (tilted 82 degrees like Uranus)
-      const ringGeo = new THREE.RingGeometry(80.0, 104.0, 64);
+      const ringGeo = new THREE.RingGeometry(this.baseRadius * 1.25, this.baseRadius * 1.70, 64);
       const ringMat = new THREE.MeshStandardMaterial({
         color: 0x38BDF8,
         emissive: 0x0284C7,
@@ -1448,23 +1648,117 @@ export class Planet {
     }
   }
 
+  // ---------------------------------------------------------------
+  // 9.11 DYNAMIC ATMOSPHERIC WISPS (ALIEN WORLDS)
+  // ---------------------------------------------------------------
+  _spawnAtmosphericWisps() {
+    this.atmosphericWispsGroup = new THREE.Group();
+    this.atmosphericWispsGroup.name = `Atmosphere_${this.type}`;
+    this.group.add(this.atmosphericWispsGroup);
+    this.atmosphericWisps = [];
+
+    let count = 12;
+    let particleColor = 0xffffff;
+    let particleSize = 1.6;
+    let particleOpacity = 0.55;
+
+    if (this.type === "Cinderfell") {
+      particleColor = 0xef4444; // Volcanic embers
+      particleSize = 1.2;
+      particleOpacity = 0.70;
+      count = 18;
+    } else if (this.type === "Aetheria") {
+      particleColor = 0xd97706; // Amber sulfuric smog
+      particleSize = 2.4;
+      particleOpacity = 0.45;
+      count = 14;
+    } else if (this.type === "Rustvale") {
+      particleColor = 0xea580c; // Terracotta dust puffs
+      particleSize = 2.2;
+      particleOpacity = 0.40;
+      count = 14;
+    } else if (this.type === "Stormhaven") {
+      particleColor = 0x38bdf8; // Ion sparks & atmospheric bands
+      particleSize = 1.8;
+      particleOpacity = 0.65;
+      count = 20;
+    } else if (this.type === "Ringhaven") {
+      particleColor = 0xfde68a; // Golden cosmic ice dust
+      particleSize = 1.6;
+      particleOpacity = 0.50;
+      count = 14;
+    } else if (this.type === "Frostveil") {
+      particleColor = 0x7dd3fc; // Cryo-blizzard plumes
+      particleSize = 2.0;
+      particleOpacity = 0.55;
+      count = 16;
+    } else if (this.type === "Thalassa") {
+      particleColor = 0x38bdf8; // Oceanic sea mist
+      particleSize = 2.2;
+      particleOpacity = 0.45;
+      count = 16;
+    } else if (this.type === "Nocturna") {
+      particleColor = 0xc084fc; // Amethyst void crystals
+      particleSize = 1.4;
+      particleOpacity = 0.60;
+      count = 16;
+    }
+
+    const mat = new THREE.MeshStandardMaterial({
+      color: particleColor,
+      roughness: 0.8,
+      metalness: 0.1,
+      transparent: true,
+      opacity: particleOpacity,
+      flatShading: true
+    });
+
+    for (let i = 0; i < count; i++) {
+      const geo = new THREE.IcosahedronGeometry(particleSize * (0.8 + (i % 3) * 0.25), 1);
+      const mesh = new THREE.Mesh(geo, mat);
+      const alt = this.baseRadius + 12.0 + (i % 4) * 3.5;
+      const phi = (i / count) * Math.PI * 0.8 + 0.1;
+      const theta = (i * 2.39996) % (Math.PI * 2.0);
+      const dir = new THREE.Vector3(
+        Math.sin(phi) * Math.cos(theta),
+        Math.cos(phi),
+        Math.sin(phi) * Math.sin(theta)
+      ).normalize();
+
+      mesh.position.copy(dir).multiplyScalar(alt);
+      const tiltX = Math.sin(i * 1.5) * 0.4;
+      const tiltZ = Math.cos(i * 1.8) * 0.4;
+      const orbitAxis = new THREE.Vector3(tiltX, 1.0, tiltZ).normalize();
+      const speed = 0.012 + (i % 3) * 0.005;
+
+      this.atmosphericWispsGroup.add(mesh);
+      this.atmosphericWisps.push({
+        mesh,
+        currentDir: dir,
+        orbitAxis,
+        orbitRadius: alt,
+        speed
+      });
+    }
+  }
+
   // Analytical Road Coordinates
   getRoadLat(theta) {
     if (this.type === "Rustvale") {
       // Mars: Dramatic canyon gorge winding around Olympus Mons
-      return 0.24 * Math.sin(theta * 3.5 + 0.5) + 0.09 * Math.cos(theta * 2.0);
+      return 0.24 * Math.sin(theta * 3.0 + 0.5) + 0.09 * Math.cos(theta * 2.0);
     } else if (this.type === "Cinderfell") {
       // Mercury: Volcanic caldera rim circuit
       return 0.18 * Math.sin(theta * 3.0 + 0.2) + 0.08 * Math.cos(theta * 4.0);
     } else if (this.type === "Stormhaven") {
       // Jupiter: Jovian equatorial atmospheric runway with wide sweeping curves
-      return 0.15 * Math.sin(theta * 2.5 + 0.4) + 0.06 * Math.cos(theta * 3.0);
+      return 0.16 * Math.sin(theta * 3.0 + 0.4) + 0.06 * Math.cos(theta * 2.0);
     } else if (this.type === "Ringhaven") {
       // Saturn: Broad ringway with panoramic view of planetary rings
       return 0.20 * Math.sin(theta * 3.0) + 0.08 * Math.cos(theta * 2.0);
     } else if (this.type === "Frostveil") {
       // Uranus: Glacier pass snaking between cryo-pinnacles
-      return 0.22 * Math.sin(theta * 3.5 - 0.3) + 0.08 * Math.cos(theta * 2.0);
+      return 0.22 * Math.sin(theta * 3.0 - 0.3) + 0.08 * Math.cos(theta * 2.0);
     } else if (this.type === "Thalassa") {
       // Neptune: Coastal archipelago oceanic causeway
       return 0.20 * Math.sin(theta * 3.0 + 0.6) + 0.09 * Math.cos(theta * 2.0);
@@ -1473,7 +1767,7 @@ export class Planet {
       return 0.22 * Math.sin(theta * 3.0 + 0.1) + 0.07 * Math.cos(theta * 2.0);
     } else if (this.type === "Aetheria") {
       // Venus: Rolling sulfuric dunes highway
-      return 0.19 * Math.sin(theta * 3.2 + 0.3) + 0.08 * Math.cos(theta * 2.0);
+      return 0.19 * Math.sin(theta * 3.0 + 0.3) + 0.08 * Math.cos(theta * 2.0);
     }
     // Oakhaven (Alpine Wilderness): Classical scenic mountain route (100% original untouched formula)
     return 0.22 * Math.sin(theta * 4.0 + 0.35) + 0.07 * Math.cos(theta * 2.0);
@@ -1481,21 +1775,21 @@ export class Planet {
 
   getRoadDLatDTheta(theta) {
     if (this.type === "Rustvale") {
-      return 0.24 * 3.5 * Math.cos(theta * 3.5 + 0.5) - 0.09 * 2.0 * Math.sin(theta * 2.0);
+      return 0.24 * 3.0 * Math.cos(theta * 3.0 + 0.5) - 0.09 * 2.0 * Math.sin(theta * 2.0);
     } else if (this.type === "Cinderfell") {
       return 0.18 * 3.0 * Math.cos(theta * 3.0 + 0.2) - 0.08 * 4.0 * Math.sin(theta * 4.0);
     } else if (this.type === "Stormhaven") {
-      return 0.15 * 2.5 * Math.cos(theta * 2.5 + 0.4) - 0.06 * 3.0 * Math.sin(theta * 3.0);
+      return 0.16 * 3.0 * Math.cos(theta * 3.0 + 0.4) - 0.06 * 2.0 * Math.sin(theta * 2.0);
     } else if (this.type === "Ringhaven") {
       return 0.20 * 3.0 * Math.cos(theta * 3.0) - 0.08 * 2.0 * Math.sin(theta * 2.0);
     } else if (this.type === "Frostveil") {
-      return 0.22 * 3.5 * Math.cos(theta * 3.5 - 0.3) - 0.08 * 2.0 * Math.sin(theta * 2.0);
+      return 0.22 * 3.0 * Math.cos(theta * 3.0 - 0.3) - 0.08 * 2.0 * Math.sin(theta * 2.0);
     } else if (this.type === "Thalassa") {
       return 0.20 * 3.0 * Math.cos(theta * 3.0 + 0.6) - 0.09 * 2.0 * Math.sin(theta * 2.0);
     } else if (this.type === "Nocturna") {
       return 0.22 * 3.0 * Math.cos(theta * 3.0 + 0.1) - 0.07 * 2.0 * Math.sin(theta * 2.0);
     } else if (this.type === "Aetheria") {
-      return 0.19 * 3.2 * Math.cos(theta * 3.2 + 0.3) - 0.08 * 2.0 * Math.sin(theta * 2.0);
+      return 0.19 * 3.0 * Math.cos(theta * 3.0 + 0.3) - 0.08 * 2.0 * Math.sin(theta * 2.0);
     }
     return 0.22 * 4.0 * Math.cos(theta * 4.0 + 0.35) - 0.07 * 2.0 * Math.sin(theta * 2.0);
   }
@@ -1578,7 +1872,7 @@ export class Planet {
       cloud.scale.set(s, s * 0.78, s);
 
       // Independent multi-orbital planes across the globe
-      const alt = this.baseRadius + 14.5 + (i % 5) * 2.2; // 79.5m - 88.5m altitude shells
+      const alt = this.baseRadius + 18.5 + (i % 5) * 3.2;
       const phi = (i / numClouds) * Math.PI * 0.85 + 0.15;
       const theta = (i * 2.39996) % (Math.PI * 2.0); // Golden ratio spacing
       const initDir = new THREE.Vector3(
@@ -1621,8 +1915,8 @@ export class Planet {
     const balloonColors = [0xff4444, 0x3388ff, 0xffbb00];
     for (let i = 0; i < 3; i++) {
       const angle = i * 2.1 + 0.8;
-      const bDist = this.baseRadius + 22.0;
-      const bH = 12.0 + i * 4.0;
+      const bDist = this.baseRadius + 28.0;
+      const bH = 16.0 + i * 5.0;
 
       const balloon = new THREE.Group();
       balloon.position.set(Math.cos(angle) * bDist, bH, Math.sin(angle) * bDist);
@@ -1721,6 +2015,16 @@ export class Planet {
     if (this.spireApexes && this.spireApexes.length > 0) {
       for (let i = 0; i < this.spireApexes.length; i++) {
         this.spireApexes[i].rotation.y += delta * 1.5;
+      }
+    }
+
+    // Animate Alien Atmospheric Wisps
+    if (this.atmosphericWisps && this.atmosphericWisps.length > 0) {
+      for (let i = 0; i < this.atmosphericWisps.length; i++) {
+        const w = this.atmosphericWisps[i];
+        w.currentDir.applyAxisAngle(w.orbitAxis, w.speed * delta);
+        w.mesh.position.copy(w.currentDir).multiplyScalar(w.orbitRadius);
+        w.mesh.rotation.y += delta * 0.25;
       }
     }
   }
