@@ -912,12 +912,12 @@
   <!-- Settings & Accessibility Modal -->
   <div class="modal-overlay hidden" id="settings-modal">
     <div class="glass-panel modal-card hud-interactive settings-card">
-      <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.12); padding-bottom: 12px; margin-bottom: 16px;">
-        <div>
-          <h2 style="font-size: 20px; margin: 0; text-align: left;">SETTINGS &amp; ACCESSIBILITY</h2>
-          <span style="font-size: 11px; color: var(--text-dim); letter-spacing: 0.5px; text-align: left; display: block;">Performance, Accessibility &amp; Controls</span>
+      <div class="settings-modal-header">
+        <div class="settings-header-text">
+          <h2 class="settings-modal-title">SETTINGS &amp; ACCESSIBILITY</h2>
+          <span class="settings-modal-sub">Performance, Accessibility &amp; Controls</span>
         </div>
-        <button class="btn-timber-action" id="btn-close-settings" type="button" style="padding: 6px 14px; font-size: 11px;">
+        <button class="settings-close-pill-btn" id="btn-close-settings" type="button" aria-label="Close Settings">
           <span>CLOSE</span>
         </button>
       </div>

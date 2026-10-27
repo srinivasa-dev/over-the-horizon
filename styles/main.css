@@ -593,13 +593,10 @@ body.camera-dragging * {
 }
 
 .modal-overlay {
-  position: absolute;
-  top: 0;
-  left: 0;
+  position: fixed;
+  inset: 0;
   width: 100%;
   height: 100%;
-  width: 100dvw;
-  height: 100dvh;
   z-index: 100;
   background: rgba(6, 8, 12, 0.85);
   backdrop-filter: blur(20px);
@@ -2425,16 +2422,57 @@ body:has(#welcome-modal:not(.hidden)) #mobile-controls {
 
 /* Extra Compact Phones (< 400px, e.g. iPhone SE / 375px) */
 @media (max-width: 400px) {
+  .carousel-brand-pill {
+    padding: 4px 8px;
+    gap: 5px;
+  }
+
+  .carousel-main-title {
+    font-size: 9.5px;
+    letter-spacing: 0.8px;
+  }
+
+  .carousel-compass-icon img {
+    width: 20px;
+    height: 20px;
+  }
+
+  .carousel-top-actions {
+    gap: 4px;
+  }
+
+  .btn-carousel-settings {
+    width: 32px;
+    height: 32px;
+  }
+
+  .btn-carousel-volume {
+    padding: 4px 6px;
+    font-size: 8.5px;
+  }
+
+  .btn-carousel-guide {
+    padding: 4px 8px;
+  }
+
   .carousel-mode-chip {
     padding: 6px 7px;
     font-size: 9px;
   }
+
   .carousel-mode-chip .mode-chip-dot {
     display: none;
   }
+
   .btn-carousel-drive {
     padding: 8px 12px;
     font-size: 11px;
+  }
+
+  .carousel-site-nav {
+    gap: 8px;
+    font-size: 10px;
+    margin-top: 6px;
   }
 }
 
@@ -2720,8 +2758,9 @@ body:has(#welcome-modal:not(.hidden)) #mobile-controls {
    National Park Field Handbook Modal (#about-modal)
    ----------------------------------------------------------------- */
 .handbook-container {
+  width: 100%;
   max-width: 820px;
-  width: 94vw;
+  box-sizing: border-box;
   max-height: 90vh;
   overflow-y: auto;
   position: relative;
@@ -3056,6 +3095,116 @@ body:has(#welcome-modal:not(.hidden)) #mobile-controls {
   }
 }
 
+@media (max-width: 480px) {
+  .handbook-container {
+    width: 100%;
+    max-height: 92vh;
+  }
+
+  .handbook-tabs-nav {
+    padding-left: 6px;
+    gap: 4px;
+  }
+
+  .handbook-tab-btn {
+    padding: 6px 9px;
+    font-size: 9.5px;
+    letter-spacing: 0.4px;
+    gap: 5px;
+  }
+
+  .handbook-tab-btn svg {
+    width: 12px;
+    height: 12px;
+  }
+
+  .handbook-binder {
+    padding: 12px 10px;
+    border-radius: 12px;
+    border-width: 2px;
+    gap: 10px;
+  }
+
+  .handbook-title {
+    font-size: 12.5px;
+    letter-spacing: 0.5px;
+  }
+
+  .handbook-sub {
+    font-size: 9.5px;
+  }
+
+  .park-stamp {
+    width: 28px;
+    height: 28px;
+  }
+
+  .park-stamp svg {
+    width: 18px;
+    height: 18px;
+  }
+
+  .page-header {
+    gap: 8px;
+    padding-bottom: 5px;
+  }
+
+  .handbook-section-title {
+    font-size: 8.5px;
+    letter-spacing: 0.8px;
+  }
+
+  .controls-keycaps-grid {
+    gap: 3px;
+  }
+
+  .keycap-item {
+    font-size: 10px;
+  }
+
+  .handbook-mode-card {
+    padding: 8px 10px;
+  }
+
+  .handbook-mode-header {
+    font-size: 11px;
+  }
+
+  .handbook-mode-card p {
+    font-size: 10px;
+    line-height: 1.4;
+  }
+
+  .rule-item {
+    font-size: 10px;
+  }
+
+  .dev-telemetry-grid {
+    grid-template-columns: 1fr 1fr;
+    gap: 6px;
+  }
+
+  .telemetry-card {
+    padding: 6px 8px;
+  }
+
+  .telemetry-val {
+    font-size: 14px;
+  }
+
+  .telemetry-lbl {
+    font-size: 8px;
+  }
+
+  .btn-timber-action {
+    min-height: 42px;
+    height: 42px;
+    font-size: 11.5px;
+    padding: 8px 14px;
+    margin-top: 6px;
+  }
+}
+
 .handbook-page {
   display: flex;
   flex-direction: column;
@@ -3378,30 +3527,111 @@ body:has(#welcome-modal:not(.hidden)) #mobile-controls {
 /* Settings Modal & Card */
 .settings-card {
   max-width: 560px;
-  width: 92vw;
+  width: min(94%, 560px);
   background: rgba(14, 18, 26, 0.96);
   border: 1px solid rgba(255, 255, 255, 0.12);
   border-radius: 18px;
-  padding: 24px;
+  padding: 22px;
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.85);
   touch-action: pan-y pinch-zoom;
+  box-sizing: border-box;
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
 }
+
+/* Dedicated Settings Header (No overlap on any screen width) */
+.settings-modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+  padding-bottom: 12px;
+  margin-bottom: 16px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.settings-header-text {
+  flex: 1;
+  min-width: 0;
+  text-align: left;
+}
+
+.settings-modal-title {
+  font-size: clamp(14px, 4vw, 18px);
+  font-weight: 900;
+  letter-spacing: 0.8px;
+  color: #FFFFFF;
+  margin: 0;
+  line-height: 1.25;
+}
+
+.settings-modal-sub {
+  font-size: clamp(10px, 2.6vw, 11px);
+  color: #94A3B8;
+  letter-spacing: 0.4px;
+  display: block;
+  margin-top: 3px;
+}
+
+.settings-close-pill-btn {
+  flex-shrink: 0;
+  width: auto;
+  min-height: unset;
+  height: 32px;
+  padding: 0 16px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #F59E0B 0%, #D97706 100%);
+  color: #07151D;
+  font-family: inherit;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.8px;
+  text-transform: uppercase;
+  border: 1px solid #FCD34D;
+  border-radius: 9999px;
+  cursor: pointer;
+  box-shadow: 0 2px 10px rgba(217, 119, 6, 0.35);
+  transition: all 0.15s ease;
+  touch-action: manipulation;
+  outline: none;
+}
+
+.settings-close-pill-btn:hover {
+  background: linear-gradient(135deg, #FBBF24 0%, #EA580C 100%);
+  color: #000000;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 14px rgba(217, 119, 6, 0.5);
+}
+
+.settings-close-pill-btn:active {
+  transform: translateY(1px);
+  box-shadow: 0 1px 4px rgba(217, 119, 6, 0.2);
+}
+
 .settings-sections-scroll {
-  max-height: 62vh;
+  max-height: calc(88vh - 74px);
   overflow-y: auto;
   padding-right: 6px;
   display: flex;
   flex-direction: column;
-  gap: 18px;
+  gap: 16px;
   touch-action: pan-y pinch-zoom;
   -webkit-overflow-scrolling: touch;
 }
+
 .setting-group {
   background: rgba(255, 255, 255, 0.03);
   border: 1px solid rgba(255, 255, 255, 0.06);
   border-radius: 12px;
-  padding: 16px;
+  padding: 14px 16px;
+  box-sizing: border-box;
 }
+
 .setting-label {
   font-size: 12px;
   font-weight: 800;
@@ -3410,16 +3640,19 @@ body:has(#welcome-modal:not(.hidden)) #mobile-controls {
   display: block;
   margin-bottom: 4px;
 }
+
 .setting-desc {
   font-size: 11px;
   color: #94A3B8;
-  line-height: 1.4;
+  line-height: 1.45;
   margin: 0 0 10px 0;
 }
+
 .setting-pill-row {
   display: flex;
   gap: 8px;
 }
+
 .setting-pill-btn {
   flex: 1;
   padding: 8px 12px;
@@ -3431,13 +3664,16 @@ body:has(#welcome-modal:not(.hidden)) #mobile-controls {
   color: #CBD5E1;
   cursor: pointer;
   transition: all 0.15s ease;
+  line-height: 1.3;
 }
+
 .setting-pill-btn.active {
   background: #2563EB;
   color: #FFFFFF;
   border-color: #3B82F6;
   box-shadow: 0 2px 8px rgba(37, 99, 235, 0.4);
 }
+
 .setting-toggle-btn {
   padding: 6px 16px;
   font-size: 11px;
@@ -3449,7 +3685,9 @@ body:has(#welcome-modal:not(.hidden)) #mobile-controls {
   color: #94A3B8;
   cursor: pointer;
   transition: all 0.15s ease;
+  flex-shrink: 0;
 }
+
 .setting-toggle-btn.active {
   background: #10B981;
   color: #FFFFFF;
@@ -3463,6 +3701,7 @@ body:has(#welcome-modal:not(.hidden)) #mobile-controls {
   grid-template-columns: 1fr 1fr;
   gap: 8px;
 }
+
 .rebind-item {
   display: flex;
   justify-content: space-between;
@@ -3474,14 +3713,17 @@ body:has(#welcome-modal:not(.hidden)) #mobile-controls {
   cursor: pointer;
   transition: border-color 0.15s ease;
 }
+
 .rebind-item:hover, .rebind-item.listening {
   border-color: #F5A623;
 }
+
 .rebind-label {
   font-size: 11px;
   font-weight: 600;
   color: #CBD5E1;
 }
+
 .rebind-key {
   font-family: monospace;
   font-size: 11px;
@@ -3491,10 +3733,88 @@ body:has(#welcome-modal:not(.hidden)) #mobile-controls {
   padding: 2px 8px;
   border-radius: 4px;
 }
+
 .rebind-item.listening .rebind-key {
   background: #F5A623;
   color: #090D16;
   animation: pulseHigh 0.5s infinite alternate;
+}
+
+/* Settings Modal Responsive Breakdown (< 520px phones) */
+@media (max-width: 520px) {
+  .settings-card {
+    padding: 16px 14px;
+    border-radius: 16px;
+    width: 100%;
+  }
+
+  .settings-modal-header {
+    gap: 8px;
+    padding-bottom: 10px;
+    margin-bottom: 12px;
+  }
+
+  .settings-close-pill-btn {
+    height: 28px;
+    padding: 0 12px;
+    font-size: 10px;
+    letter-spacing: 0.6px;
+  }
+
+  .settings-sections-scroll {
+    gap: 12px;
+    max-height: calc(88vh - 68px);
+    padding-right: 4px;
+  }
+
+  .setting-group {
+    padding: 12px 12px;
+    border-radius: 10px;
+  }
+
+  .setting-label {
+    font-size: 11px;
+    letter-spacing: 0.6px;
+  }
+
+  .setting-desc {
+    font-size: 10.5px;
+    line-height: 1.4;
+    margin: 0 0 8px 0;
+  }
+
+  .setting-pill-row {
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .setting-pill-btn {
+    padding: 7px 10px;
+    font-size: 10px;
+  }
+
+  .setting-toggle-btn {
+    padding: 5px 12px;
+    font-size: 10px;
+  }
+
+  .rebind-keys-grid {
+    grid-template-columns: 1fr;
+    gap: 6px;
+  }
+
+  .rebind-item {
+    padding: 8px 10px;
+  }
+
+  .rebind-label {
+    font-size: 10.5px;
+  }
+
+  .rebind-key {
+    font-size: 10px;
+    padding: 2px 6px;
+  }
 }
 
 /* Settings Menu Button */
