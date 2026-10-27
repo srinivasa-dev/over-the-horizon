@@ -6,7 +6,7 @@
   "main": "src/js/engine.js",
   "scripts": {
     "test": "node --test test/*.test.js",
-    "test:coverage": "node --test --experimental-test-coverage --test-coverage-include=\"src/js/**\" test/*.test.js",
+    "test:coverage": "node --test --experimental-test-coverage test/*.test.js",
     "lint": "node --check src/js/*.js test/*.test.js"
   },
   "keywords": [
