@@ -14,6 +14,7 @@ describe('Settings & Accessibility Manager', () => {
     assert.equal(mgr.get('graphicsQuality'), 'high');
     assert.equal(mgr.get('colorblindMode'), false);
     assert.equal(mgr.get('tiltSteering'), false);
+    assert.equal(mgr.get('invertTiltSteering'), false);
     assert.ok(mgr.get('keyBindings'));
     assert.equal(mgr.get('keyBindings').forward, 'KeyW');
     assert.equal(mgr.get('keyBindings').backward, 'KeyS');

@@ -46,6 +46,7 @@ class App {
     this.colorblindMode = settings.get('colorblindMode');
     this.graphicsQuality = settings.get('graphicsQuality');
     this.tiltSteering = settings.get('tiltSteering');
+    this.invertTiltSteering = settings.get('invertTiltSteering');
     this._updateKeyMapFromSettings(settings.get('keyBindings'));
 
     this.clock = new THREE.Clock();
@@ -86,6 +87,7 @@ class App {
       if (this.arcadeEngine) this.arcadeEngine.setColorblindMode(state.colorblindMode);
       this.setGraphicsQuality(state.graphicsQuality);
       this.tiltSteering = state.tiltSteering;
+      this.invertTiltSteering = state.invertTiltSteering;
       this._updateKeyMapFromSettings(state.keyBindings);
     });
 
@@ -976,9 +978,9 @@ class App {
       let tilt = 0;
       const orientation = window.orientation ?? (screen.orientation ? screen.orientation.angle : 0);
       if (orientation === 90) {
-        tilt = e.beta;
-      } else if (orientation === -90 || orientation === 270) {
         tilt = -e.beta;
+      } else if (orientation === -90 || orientation === 270) {
+        tilt = e.beta;
       } else if (orientation === 180) {
         tilt = -e.gamma;
       } else {
@@ -986,7 +988,8 @@ class App {
       }
       if (typeof tilt === 'number' && !isNaN(tilt)) {
         if (Math.abs(tilt) > 3) {
-          this.vehiclePhysics.inputs.tiltSteer = Math.max(-1, Math.min(1, tilt / 22));
+          const multiplier = this.invertTiltSteering ? -1 : 1;
+          this.vehiclePhysics.inputs.tiltSteer = Math.max(-1, Math.min(1, (tilt / 22) * multiplier));
         } else {
           this.vehiclePhysics.inputs.tiltSteer = 0;
         }

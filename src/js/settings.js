@@ -33,6 +33,7 @@ export class SettingsManager {
       reducedMotion: Boolean(prefersReducedMotion),
       colorblindMode: false,
       tiltSteering: false,
+      invertTiltSteering: false,
       keyBindings: DEFAULT_KEY_BINDINGS
     });
 

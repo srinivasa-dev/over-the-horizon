@@ -1048,6 +1048,16 @@ export class HUDController {
       });
     }
 
+    const tiltInvertToggle = document.getElementById('btn-tilt-invert-toggle');
+    if (tiltInvertToggle) {
+      tiltInvertToggle.addEventListener('click', () => {
+        const next = !settings.get('invertTiltSteering');
+        settings.set('invertTiltSteering', next);
+        this._updateSettingsUI();
+        this.showBanner('TILT STEERING', next ? 'Inverted Direction Enabled' : 'Standard Direction Restored');
+      });
+    }
+
     if (btnIos) {
       btnIos.addEventListener('click', async () => {
         const res = await settings.requestMotionPermission();
@@ -1125,6 +1135,14 @@ export class HUDController {
       tiltBtn.classList.toggle('active', Boolean(tilt));
       tiltBtn.textContent = tilt ? 'ON' : 'OFF';
       tiltBtn.setAttribute('aria-pressed', tilt ? 'true' : 'false');
+    }
+
+    const tiltInvert = settings.get('invertTiltSteering');
+    const tiltInvertBtn = document.getElementById('btn-tilt-invert-toggle');
+    if (tiltInvertBtn) {
+      tiltInvertBtn.classList.toggle('active', Boolean(tiltInvert));
+      tiltInvertBtn.textContent = tiltInvert ? 'ON' : 'OFF';
+      tiltInvertBtn.setAttribute('aria-pressed', tiltInvert ? 'true' : 'false');
     }
 
     const bindings = settings.get('keyBindings') || {};
