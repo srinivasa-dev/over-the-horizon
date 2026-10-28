@@ -976,9 +976,11 @@ class App {
       let tilt = 0;
       const orientation = window.orientation ?? (screen.orientation ? screen.orientation.angle : 0);
       if (orientation === 90) {
-        tilt = -e.beta;
-      } else if (orientation === -90 || orientation === 270) {
         tilt = e.beta;
+      } else if (orientation === -90 || orientation === 270) {
+        tilt = -e.beta;
+      } else if (orientation === 180) {
+        tilt = -e.gamma;
       } else {
         tilt = e.gamma;
       }

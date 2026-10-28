@@ -120,4 +120,21 @@ describe('Vehicle Physics Simulation Engine', () => {
       assert.ok(v.group.children.length > 0, `Chassis ${chassis} must have visual children`);
     }
   });
+
+  test('Tilt steering steers in the correct direction (positive right, negative left)', () => {
+    const planet = new Planet('Oakhaven');
+    const vehicle = new VehiclePhysics(planet, 'Overland');
+    vehicle.teleportToRoad(0.1);
+
+    // Tilt Right (+tiltSteer)
+    vehicle.inputs.tiltSteer = 0.8;
+    vehicle.update(0.1);
+    assert.ok(vehicle.steerAngle < 0, `Tilting right must steer vehicle right (negative steerAngle), got ${vehicle.steerAngle}`);
+
+    // Reset and Tilt Left (-tiltSteer)
+    vehicle.steerAngle = 0.0;
+    vehicle.inputs.tiltSteer = -0.8;
+    vehicle.update(0.1);
+    assert.ok(vehicle.steerAngle > 0, `Tilting left must steer vehicle left (positive steerAngle), got ${vehicle.steerAngle}`);
+  });
 });

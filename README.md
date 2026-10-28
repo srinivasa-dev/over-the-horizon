@@ -9,7 +9,7 @@
 ![Code License: GNU AGPLv3](https://img.shields.io/badge/Code_License-GNU_AGPLv3-blue.svg)
 ![CI: Passing](https://github.com/srinivasa-dev/over-the-horizon/actions/workflows/ci.yml/badge.svg)
 ![Coverage: 91%](https://img.shields.io/badge/Coverage-90.7%25_Lines-brightgreen.svg)
-![Tests: 31 Passing](https://img.shields.io/badge/Tests-31_Passing-success.svg)
+![Tests: 32 Passing](https://img.shields.io/badge/Tests-32_Passing-success.svg)
 ![Game Design & Assets: All Rights Reserved](https://img.shields.io/badge/Game_Design_%26_Assets-All_Rights_Reserved-crimson.svg)
 ![Technology: WebGL / Three.js](https://img.shields.io/badge/WebGL-Three.js_r160-blue.svg)
 ![Architecture: Zero--Build](https://img.shields.io/badge/Architecture-Zero--Build_HTML5-success.svg)
