@@ -2478,13 +2478,14 @@ export function buildTornadoFunnel() {
   const group = new THREE.Group();
   group.name = "TornadoVortex";
 
-  // Tiered stacked truncated cones for low-poly atmospheric funnel (35m tall)
+  // Tiered stacked truncated cones for low-poly atmospheric funnel (25.5m tall)
+  // Scaled proportionally to the 3m rover so it towers impressively without engulfing camera frustum
   const tiers = [
-    { yBottom: 0.0, yTop: 5.0, rBottom: 2.0, rTop: 4.2, color: 0x0369A1, emissive: 0x0284C7, emissiveIntensity: 0.65, opacity: 0.90 },
-    { yBottom: 5.0, yTop: 11.5, rBottom: 4.2, rTop: 7.8, color: 0x0284C7, emissive: 0x0EA5E9, emissiveIntensity: 0.75, opacity: 0.86 },
-    { yBottom: 11.5, yTop: 19.0, rBottom: 7.8, rTop: 12.2, color: 0x38BDF8, emissive: 0x38BDF8, emissiveIntensity: 0.80, opacity: 0.82 },
-    { yBottom: 19.0, yTop: 27.0, rBottom: 12.2, rTop: 17.5, color: 0x7DD3FC, emissive: 0x0284C7, emissiveIntensity: 0.70, opacity: 0.78 },
-    { yBottom: 27.0, yTop: 35.0, rBottom: 17.5, rTop: 23.5, color: 0xBAE6FD, emissive: 0x38BDF8, emissiveIntensity: 0.65, opacity: 0.74 }
+    { yBottom: 0.0, yTop: 4.0, rBottom: 1.4, rTop: 2.4, color: 0x0369A1, emissive: 0x0284C7, emissiveIntensity: 0.60, opacity: 0.85 },
+    { yBottom: 4.0, yTop: 9.0, rBottom: 2.4, rTop: 3.8, color: 0x0284C7, emissive: 0x0EA5E9, emissiveIntensity: 0.65, opacity: 0.80 },
+    { yBottom: 9.0, yTop: 14.5, rBottom: 3.8, rTop: 5.4, color: 0x38BDF8, emissive: 0x38BDF8, emissiveIntensity: 0.70, opacity: 0.75 },
+    { yBottom: 14.5, yTop: 20.0, rBottom: 5.4, rTop: 7.2, color: 0x7DD3FC, emissive: 0x0284C7, emissiveIntensity: 0.65, opacity: 0.70 },
+    { yBottom: 20.0, yTop: 25.5, rBottom: 7.2, rTop: 9.2, color: 0xBAE6FD, emissive: 0x38BDF8, emissiveIntensity: 0.60, opacity: 0.65 }
   ];
 
   const funnelTiers = [];
@@ -2502,13 +2503,13 @@ export function buildTornadoFunnel() {
       color: tier.color,
       emissive: tier.emissive,
       emissiveIntensity: tier.emissiveIntensity,
-      roughness: 0.3,
+      roughness: 0.35,
       metalness: 0.1,
       transparent: true,
       opacity: tier.opacity,
       side: THREE.DoubleSide,
       flatShading: true,
-      depthWrite: true
+      depthWrite: false
     });
     const mesh = new THREE.Mesh(geom, mat);
     mesh.position.y = tier.yBottom + height / 2;
@@ -2519,27 +2520,29 @@ export function buildTornadoFunnel() {
   });
 
   // Inner electric vortex core (radiant cyan spire)
-  const coreGeom = new THREE.CylinderGeometry(0.7, 0.25, 35.0, 5, 1, false);
+  const coreGeom = new THREE.CylinderGeometry(0.35, 0.15, 25.5, 5, 1, false);
   const coreMat = new THREE.MeshBasicMaterial({
     color: 0x67E8F9,
     transparent: true,
-    opacity: 0.92,
-    wireframe: true
+    opacity: 0.88,
+    wireframe: true,
+    depthWrite: false
   });
   const coreMesh = new THREE.Mesh(coreGeom, coreMat);
-  coreMesh.position.y = 17.5;
+  coreMesh.position.y = 12.75;
   group.add(coreMesh);
 
   // Swirling helical wind ribbons
   const ribbons = [];
-  const ribbonHeights = [3.5, 9.0, 15.5, 23.0, 30.5];
-  const ribbonRadii = [3.2, 6.2, 10.5, 15.5, 20.8];
+  const ribbonHeights = [2.8, 7.5, 12.5, 18.0, 23.5];
+  const ribbonRadii = [2.2, 3.6, 5.2, 7.0, 9.0];
   ribbonHeights.forEach((h, i) => {
-    const ringGeom = new THREE.TorusGeometry(ribbonRadii[i], 0.32, 4, 10);
+    const ringGeom = new THREE.TorusGeometry(ribbonRadii[i], 0.22, 4, 10);
     const ringMat = new THREE.MeshBasicMaterial({
       color: i % 2 === 0 ? 0x38BDF8 : 0xF0F9FF,
       transparent: true,
-      opacity: 0.82
+      opacity: 0.78,
+      depthWrite: false
     });
     const ring = new THREE.Mesh(ringGeom, ringMat);
     ring.rotation.x = Math.PI / 2 + (Math.random() - 0.5) * 0.4;
@@ -2554,12 +2557,12 @@ export function buildTornadoFunnel() {
   const debrisCount = 14;
   const matDebris = createMat(0x1E293B, 0.9, 0.1);
   for (let d = 0; d < debrisCount; d++) {
-    const size = 0.4 + Math.random() * 0.5;
+    const size = 0.3 + Math.random() * 0.35;
     const dGeom = new THREE.DodecahedronGeometry(size, 0);
     const dMesh = new THREE.Mesh(dGeom, matDebris);
-    const orbitRadius = 2.8 + Math.random() * 4.5;
+    const orbitRadius = 2.0 + Math.random() * 2.8;
     const startAngle = (d / debrisCount) * Math.PI * 2;
-    const heightOff = 0.3 + Math.random() * 2.6;
+    const heightOff = 0.2 + Math.random() * 2.0;
     dMesh.position.set(
       Math.cos(startAngle) * orbitRadius,
       heightOff,

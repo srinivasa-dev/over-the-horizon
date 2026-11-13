@@ -79,6 +79,7 @@ export class ArcadeEngine {
 
     // Celestial Cascade: Dynamic Salvo & Multi-Meteor Wave Director
     this.cascadeCountdown = 0.0;
+    this.tornadoCountdown = 0.0;
     this.cascadeLastSecond = 0;
     this.celestialQueue = [];
     this.celestialPatternTimer = 0.8;
@@ -142,8 +143,18 @@ export class ArcadeEngine {
       this.tornadoSurvivalTime = 0.0;
       this.suckInAnimation = null;
 
-      // Spawn initial chasing tornado
-      this._spawnTornado();
+      // 5-second escape launch countdown: twister touches down on far horizon
+      this.tornadoCountdown = 5.0;
+      this.tornadoLastSecond = 5;
+      if (this.hud) {
+        this.hud.showCountdown(5, "ATMOSPHERIC VORTEX TOUCHDOWN");
+      }
+      if (this.audio) {
+        this.audio.playCountdownTick(false);
+      }
+
+      // Spawn initial chasing tornado 68m-76m BEHIND the rover on the curved horizon
+      this._spawnTornado(false);
     } else {
       this.hearts = 3;
       this.maxHearts = 3;
@@ -185,6 +196,7 @@ export class ArcadeEngine {
     this.stationaryTimer = 0.0;
     this.celestialQueue = [];
     this.cascadeCountdown = 0.0;
+    this.tornadoCountdown = 0.0;
 
     if (this.vehiclePhysics) {
       this.vehiclePhysics.isSuckedIn = false;
@@ -780,19 +792,19 @@ export class ArcadeEngine {
   // ---------------------------------------------------------------
   // 5. TORNADO CHASE: ATMOSPHERIC FUNNEL PURSUIT & VORTEX SUCTION
   // ---------------------------------------------------------------
-  _spawnTornado(ahead = true) {
+  _spawnTornado(ahead = false) {
     if (!this.vehiclePhysics) return null;
     const mesh = buildTornadoFunnel();
     const carPos = this.vehiclePhysics.position || this.vehiclePhysics.chassisMesh?.position;
     if (!carPos) return null;
 
-    // Spawn directly in the forward line of sight (22m - 28m ahead)
-    // so it is immediately visible in front of the vehicle and towering into the sky
     const forward = this.vehiclePhysics.forward ? this.vehiclePhysics.forward.clone().normalize() : new THREE.Vector3(0, 0, 1);
     const right = this.vehiclePhysics.right ? this.vehiclePhysics.right.clone().normalize() : new THREE.Vector3(1, 0, 0);
 
-    const fwdDist = ahead ? (22.0 + Math.random() * 8.0) : (-12.0 + (Math.random() - 0.5) * 24.0);
-    const sideDist = (Math.random() - 0.5) * 14.0;
+    // If ahead is false (default for initial spawn), spawn 68m-76m BEHIND the rover far on the curved horizon
+    // If ahead is true (for secondary twisters after 45s), spawn 75m ahead on an intersecting flank
+    const fwdDist = ahead ? (75.0 + Math.random() * 10.0) : (-68.0 - Math.random() * 8.0);
+    const sideDist = ahead ? (Math.random() > 0.5 ? 14.0 : -14.0) : ((Math.random() - 0.5) * 6.0);
 
     const spawnDir = carPos.clone()
       .add(forward.clone().multiplyScalar(fwdDist))
@@ -809,11 +821,44 @@ export class ArcadeEngine {
     const tornado = {
       mesh,
       dir: spawnDir,
-      speed: 21.0,
+      speed: 14.0, // Initial pursuit speed (m/s) allowing car (~18 m/s) to maintain lead
       wobbleOffset: Math.random() * Math.PI * 2
     };
     this.tornados.push(tornado);
     return tornado;
+  }
+
+  _animateTornadoMesh(t, dt) {
+    if (!t.mesh || !t.mesh.userData) return;
+    t.mesh.userData.time = (t.mesh.userData.time || 0.0) + dt;
+    const uTime = t.mesh.userData.time;
+
+    // Spin funnel tiers
+    if (t.mesh.userData.funnelTiers) {
+      t.mesh.userData.funnelTiers.forEach(tier => {
+        tier.mesh.rotation.y += tier.spinSpeed * dt;
+        tier.mesh.position.x = Math.sin(uTime * 3.2 + tier.mesh.position.y * 0.25) * 0.35;
+        tier.mesh.position.z = Math.cos(uTime * 2.8 + tier.mesh.position.y * 0.25) * 0.35;
+      });
+    }
+
+    // Spin wind ribbons
+    if (t.mesh.userData.ribbons) {
+      t.mesh.userData.ribbons.forEach(ribbon => {
+        ribbon.mesh.rotation.z += ribbon.rotSpeed * dt;
+      });
+    }
+
+    // Orbit debris chunks around base
+    if (t.mesh.userData.debris) {
+      t.mesh.userData.debris.forEach(deb => {
+        deb.angle += deb.orbitSpeed * dt;
+        deb.mesh.position.x = Math.cos(deb.angle) * deb.orbitRadius;
+        deb.mesh.position.z = Math.sin(deb.angle) * deb.orbitRadius;
+        deb.mesh.rotation.x += deb.rotX * dt;
+        deb.mesh.rotation.y += deb.rotY * dt;
+      });
+    }
   }
 
   _updateTornados(dt, carPos) {
@@ -827,37 +872,7 @@ export class ArcadeEngine {
       if (!t.mesh) continue;
 
       // 1. Animate visual components (spin, ribbons, orbiting debris)
-      if (t.mesh.userData) {
-        t.mesh.userData.time = (t.mesh.userData.time || 0.0) + dt;
-        const uTime = t.mesh.userData.time;
-
-        // Spin funnel tiers
-        if (t.mesh.userData.funnelTiers) {
-          t.mesh.userData.funnelTiers.forEach(tier => {
-            tier.mesh.rotation.y += tier.spinSpeed * dt;
-            tier.mesh.position.x = Math.sin(uTime * 3.2 + tier.mesh.position.y * 0.25) * 0.45;
-            tier.mesh.position.z = Math.cos(uTime * 2.8 + tier.mesh.position.y * 0.25) * 0.45;
-          });
-        }
-
-        // Spin wind ribbons
-        if (t.mesh.userData.ribbons) {
-          t.mesh.userData.ribbons.forEach(ribbon => {
-            ribbon.mesh.rotation.z += ribbon.rotSpeed * dt;
-          });
-        }
-
-        // Orbit debris chunks around base
-        if (t.mesh.userData.debris) {
-          t.mesh.userData.debris.forEach(deb => {
-            deb.angle += deb.orbitSpeed * dt;
-            deb.mesh.position.x = Math.cos(deb.angle) * deb.orbitRadius;
-            deb.mesh.position.z = Math.sin(deb.angle) * deb.orbitRadius;
-            deb.mesh.rotation.x += deb.rotX * dt;
-            deb.mesh.rotation.y += deb.rotY * dt;
-          });
-        }
-      }
+      this._animateTornadoMesh(t, dt);
 
       // 2. Geodesic spherical pursuit navigation
       const angleToCar = t.dir.angleTo(carDir);
@@ -872,8 +887,8 @@ export class ArcadeEngine {
         t.mesh.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), t.dir);
       }
 
-      // Accelerate tornado gradually over survival time (up to 26.5 m/s)
-      t.speed = Math.min(26.5, 21.0 + this.tornadoSurvivalTime * 0.14);
+      // Accelerate tornado gradually over survival time (from 13.5 up to 19.5 m/s)
+      t.speed = Math.min(19.5, 13.5 + this.tornadoSurvivalTime * 0.08);
 
       // 3. Distance check to player rover
       const dist = carPos.distanceTo(t.mesh.position);
@@ -881,22 +896,21 @@ export class ArcadeEngine {
         minDistance = dist;
       }
 
-      // Proximity Roar and Warning (< 34m)
-      if (dist < 34.0) {
-        const proximityIntensity = Math.min(1.0, 1.0 - (dist / 34.0));
+      // Proximity Roar and Warning (< 28m)
+      if (dist < 28.0) {
+        const proximityIntensity = Math.min(1.0, 1.0 - (dist / 28.0));
         if (typeof this.audio?.playTornadoRoar === 'function') {
           this.audio.playTornadoRoar(proximityIntensity);
         }
-        this.cameraShake = Math.max(this.cameraShake, proximityIntensity * 0.45);
+        this.cameraShake = Math.max(this.cameraShake, proximityIntensity * 0.18);
       }
 
-      // Gravitational Wind Suction (< 18m)
-      if (dist < 18.0 && !this.suckInAnimation && !this.isGameOver) {
-        const suctionFactor = (1.0 - dist / 18.0);
-        const suctionForce = suctionFactor * 16.0; // Acceleration pull
-        const pullVector = t.mesh.position.clone().sub(carPos).normalize();
-        if (this.vehiclePhysics.velocity) {
-          this.vehiclePhysics.velocity.addScaledVector(pullVector, suctionForce * dt);
+      // Gravitational Wind Suction Drag (< 14m)
+      if (dist < 14.0 && !this.suckInAnimation && !this.isGameOver) {
+        const dragFactor = (1.0 - dist / 14.0);
+        const dragAmount = dragFactor * 7.0 * dt;
+        if (this.vehiclePhysics.velocityForward > 0) {
+          this.vehiclePhysics.velocityForward = Math.max(0.0, this.vehiclePhysics.velocityForward - dragAmount);
         }
       }
 
@@ -909,7 +923,7 @@ export class ArcadeEngine {
 
     // Update HUD Proximity Indicator
     if (this.hud) {
-      if (minDistance < 35.0 && !this.isGameOver && !this.suckInAnimation) {
+      if (minDistance < 60.0 && !this.isGameOver && !this.suckInAnimation) {
         this.hud.showTornadoWarning(Math.round(minDistance));
       } else {
         this.hud.hideTornadoWarning();
@@ -1237,6 +1251,7 @@ export class ArcadeEngine {
 
         if (this.cascadeCountdown <= 0.0) {
           this.cascadeCountdown = 0.0;
+    this.tornadoCountdown = 0.0;
           this.hud?.hideCountdown();
           this.addToast("RADAR LOCK DETECTED!", "METEOR SALVO ACTIVE!", "#F59E0B");
         }
@@ -1311,22 +1326,59 @@ export class ArcadeEngine {
     // MODE 3: Tornado Chase (Single-Life Permadeath Pursuit)
     if (this.activeMode === "tornado") {
       this.lockonWarning = false;
+
+      // Handle 5-second escape launch countdown: twister waits on far horizon
+      if (this.tornadoCountdown > 0.0) {
+        this.tornadoCountdown -= dt;
+        const currentSec = Math.ceil(this.tornadoCountdown);
+        if (currentSec !== this.tornadoLastSecond && currentSec > 0) {
+          this.tornadoLastSecond = currentSec;
+          this.hud?.showCountdown(currentSec, "ATMOSPHERIC VORTEX TOUCHDOWN");
+          if (this.audio) {
+            this.audio.playCountdownTick(false);
+          }
+        }
+
+        // Animate twister swirling in place on the horizon without advancing toward rover
+        for (let i = 0; i < this.tornados.length; i++) {
+          this._animateTornadoMesh(this.tornados[i], dt);
+        }
+
+        if (this.tornadoCountdown <= 0.0) {
+          this.tornadoCountdown = 0.0;
+          this.hud?.hideCountdown();
+          this.addToast("TOUCHDOWN CONFIRMED!", "VORTEX PURSUIT ENGAGED! HIT THE GAS!", "#38BDF8");
+          if (this.audio) {
+            this.audio.playCountdownTick(true);
+          }
+        }
+
+        // Return early: tornado holds position on far horizon until countdown completes!
+        if (this.hud) {
+          this.hud.updateArcadeStats({
+            mode: this.activeMode,
+            hearts: this.hearts,
+            score: this.score,
+            highScore: this.highScore,
+            combo: 1,
+            comboProgress: 0,
+            toasts: this.toasts,
+            lockonWarning: false
+          });
+        }
+        return;
+      }
+
       this.tornadoSurvivalTime += dt;
 
       // Distance & speed-based score accumulation
       const speedScore = Math.round(carSpeed * dt * 0.8);
       this.score += Math.round(dt * 20 * this.comboMultiplier) + speedScore;
 
-      // Spawn 2nd flanking tornado after 20 seconds of survival
-      if (this.tornadoSurvivalTime > 20.0 && this.tornados.length < 2) {
-        this._spawnTornado(false);
-        this.addToast("TWISTER ESCALATION!", "SECOND TORNADO FUNNEL TOUCHDOWN!", "#EF4444");
-      }
-
-      // Spawn 3rd tornado after 42 seconds of survival
-      if (this.tornadoSurvivalTime > 42.0 && this.tornados.length < 3) {
+      // Spawn 2nd flanking tornado after 35 seconds of survival
+      if (this.tornadoSurvivalTime > 35.0 && this.tornados.length < 2) {
         this._spawnTornado(true);
-        this.addToast("EXTREME VORTEX!", "THIRD TORNADO FUNNEL SIGHTED AHEAD!", "#EF4444");
+        this.addToast("TWISTER ESCALATION!", "SECOND TORNADO FUNNEL INTERCEPTING!", "#EF4444");
       }
 
       this._updateTornados(dt, carPos);

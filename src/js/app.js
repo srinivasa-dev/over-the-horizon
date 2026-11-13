@@ -531,7 +531,8 @@ class App {
     if (this.hud && this.hud.currentMode !== gameMode) {
       this.hud.setGameMode(gameMode);
     }
-    if (this.arcadeEngine) {
+    // Only engage active arcade mode simulation if game has been launched
+    if (this.arcadeEngine && this.isGameStarted) {
       if (gameMode === "cascade" || gameMode === "tornado") {
         this.vehiclePhysics.teleportToRoad();
       }

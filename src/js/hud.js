@@ -527,7 +527,7 @@ export class HUDController {
     }
   }
 
-  updateCountdown(seconds) {
+  updateCountdown(seconds, subtitleText) {
     if (!this.countdownOverlay) {
       this.countdownOverlay = document.getElementById('arcade-countdown-overlay');
     }
@@ -536,15 +536,23 @@ export class HUDController {
       const numEl = this.countdownOverlay.querySelector('.countdown-number');
       const subEl = this.countdownOverlay.querySelector('.countdown-sub');
       if (numEl) {
-        numEl.textContent = seconds > 0 ? seconds : 'IMPACTS!';
+        numEl.textContent = seconds > 0 ? seconds : 'ESCAPE!';
         numEl.classList.remove('pulse');
         void numEl.offsetWidth;
         numEl.classList.add('pulse');
       }
       if (subEl) {
-        subEl.textContent = seconds > 0 ? 'CALIBRATING ORBITAL TRAJECTORIES' : 'METEORS INCOMING!';
+        if (subtitleText) {
+          subEl.textContent = subtitleText;
+        } else {
+          subEl.textContent = seconds > 0 ? 'CALIBRATING ORBITAL TRAJECTORIES' : 'METEORS INCOMING!';
+        }
       }
     }
+  }
+
+  showCountdown(seconds, subtitleText) {
+    this.updateCountdown(seconds, subtitleText);
   }
 
   hideCountdown() {
@@ -566,11 +574,14 @@ export class HUDController {
       const alertEl = this.tornadoWarningPill.querySelector('.tornado-alert-status');
       if (distEl) distEl.textContent = `${distanceM}m`;
       if (alertEl) {
-        if (distanceM <= 18) {
-          alertEl.textContent = 'SUCTION CRITICAL!';
+        if (distanceM <= 15) {
+          alertEl.textContent = 'SUCTION WARNING! BOOST!';
           this.tornadoWarningPill.classList.add('suction-danger');
+        } else if (distanceM <= 25) {
+          alertEl.textContent = 'TWISTER CLOSING IN';
+          this.tornadoWarningPill.classList.remove('suction-danger');
         } else {
-          alertEl.textContent = 'TWISTER PROXIMITY';
+          alertEl.textContent = 'TWISTER PURSUING';
           this.tornadoWarningPill.classList.remove('suction-danger');
         }
       }

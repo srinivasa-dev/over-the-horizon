@@ -74,6 +74,7 @@ describe('Arcade Simulation & Survival Modes', () => {
     assert.equal(engine.active, true);
     assert.equal(engine.hearts, 1, 'Tornado mode must provide exactly 1 life');
     assert.equal(engine.maxHearts, 1, 'Tornado mode maxHearts must be 1');
+    assert.equal(engine.tornadoCountdown, 5.0, 'Tornado mode must start with 5-second countdown');
     assert.equal(engine.tornados.length, 1, 'Initial pursuing tornado must spawn');
 
     const tornado = engine.tornados[0];
@@ -81,9 +82,15 @@ describe('Arcade Simulation & Survival Modes', () => {
     assert.ok(tornado.dir, 'Tornado must have a spherical surface direction vector');
     assert.ok(tornado.speed >= 14.0, 'Tornado speed must be at least 14 m/s');
 
-    // Run updates to verify pursuit kinematics
+    // Stepping during countdown decreases countdown timer while tornado waits
+    engine.update(0.1);
+    assert.ok(engine.tornadoCountdown < 5.0, 'Countdown timer must decrement during update');
+    assert.equal(engine.tornadoSurvivalTime, 0.0, 'Survival time must not advance during countdown');
+
+    // Fast-forward past countdown to activate active pursuit
+    engine.tornadoCountdown = 0.0;
     engine.update(0.05);
-    assert.ok(engine.tornadoSurvivalTime > 0.0);
+    assert.ok(engine.tornadoSurvivalTime > 0.0, 'Survival time must advance once countdown finishes');
     assert.ok(engine.score >= 0);
 
     engine.stop();
@@ -94,6 +101,9 @@ describe('Arcade Simulation & Survival Modes', () => {
   test('Critical tornado suction initiates sucked-in vortex animation and permadeath', () => {
     const engine = new ArcadeEngine(scene, planet, vehicle, mockAudio, mockHud);
     engine.start('tornado');
+
+    // Bypass countdown to test active critical proximity suction
+    engine.tornadoCountdown = 0.0;
 
     const tornado = engine.tornados[0];
     // Position tornado directly on top of car (< 4.2m)
