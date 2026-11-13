@@ -551,6 +551,7 @@ export class VehiclePhysics {
   // 5. MAIN KINEMATIC & 2D DYNAMICS STEP
   // ---------------------------------------------------------------
   update(dt) {
+    if (this.isSuckedIn) return;
     if (dt <= 0 || dt > 0.1) dt = 0.016; // Clamp spike frame rates
 
     // 1. Process Autopilot or Manual Inputs

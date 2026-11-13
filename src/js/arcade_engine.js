@@ -1,6 +1,6 @@
 // =================================================================
-// OVER THE HORIZON: Tri-Mode Arcade Engine & Planetary Crossroad Suite
-// Implements Celestial Cascade (Falling Hazards) & Crossy Odyssey (Crossing Traffic)
+// OVER THE HORIZON: Tri-Mode Arcade Engine & Planetary Simulation Suite
+// Implements Celestial Cascade (Falling Hazards) & Tornado Chase (Atmospheric Funnel Pursuit)
 // =================================================================
 import * as THREE from 'three';
 import {
@@ -8,14 +8,8 @@ import {
   buildStardustShard,
   buildCelestialAstrolabeReticle,
   buildStarlightAuroraPillar,
-  buildRollingBoulder,
-  buildCrossingCart,
-  buildAlpineWildlife,
-  buildRoadHazardStripes,
-  buildHazardWarningBollard,
-  buildCrossingSignboard,
-  buildCrossroadTrack,
-  buildRepairWrench
+  buildRepairWrench,
+  buildTornadoFunnel
 } from './models.js';
 
 // Safe Storage Helpers to prevent SecurityError exceptions in Chrome on iOS / private browsing
@@ -41,7 +35,7 @@ export class ArcadeEngine {
     this.audio = audio;
     this.hud = hud;
 
-    // Active mode: "cosy", "cascade", "crossy"
+    // Active mode: "cosy", "cascade", "tornado"
     this.activeMode = "cosy";
     this.active = false;
     this.isGameOver = false;
@@ -70,14 +64,12 @@ export class ArcadeEngine {
     // Entity pools
     this.meteors = [];
     this.shards = [];
-    this.boulders = [];
-    this.crossingCarts = [];
-    this.wildlife = [];
-    this.crossingZones = [];
-    this.signboards = [];
-    this.crossroadTracks = [];
-    this.advanceRockfalls = [];
     this.activeWrench = null;
+
+    // Tornado Chase Mode Entities & State
+    this.tornados = [];
+    this.tornadoSurvivalTime = 0.0;
+    this.suckInAnimation = null;
 
     // Stationary Punisher Tracking (Cascade mode)
     this.stationaryTimer = 0.0;
@@ -86,6 +78,8 @@ export class ArcadeEngine {
     this.stationaryStrikeTimer = 0.4;
 
     // Celestial Cascade: Dynamic Salvo & Multi-Meteor Wave Director
+    this.cascadeCountdown = 0.0;
+    this.cascadeLastSecond = 0;
     this.celestialQueue = [];
     this.celestialPatternTimer = 0.8;
     this.celestialPatternIndex = 0;
@@ -93,11 +87,6 @@ export class ArcadeEngine {
 
     // Universal Repair Wrench cooldown
     this.wrenchCooldownTimer = 8.0;
-
-    // Crossy Odyssey 2.5: Orchestrated Highway Encounter Director
-    this.crossyEncounterTimer = 1.6;
-    this.crossyEncounterIndex = 0;
-    this.crossySequence = ["crossroad", "rockfall", "crossroad", "wildlife"];
 
     // Impact blast particle system
     this._initImpactParticles();
@@ -110,9 +99,8 @@ export class ArcadeEngine {
     this.stop(); // Clear any existing objects
 
     this.activeMode = mode;
-    this.active = (mode === "cascade" || mode === "crossy");
+    this.active = (mode === "cascade" || mode === "tornado");
     this.isGameOver = false;
-    this.hearts = 3;
     this.score = 0;
     this.comboMultiplier = 1;
     this.comboCount = 0;
@@ -126,18 +114,40 @@ export class ArcadeEngine {
     this.lockonWarning = false;
     this.stationaryAlertCooldown = 0.0;
     this.stationaryStrikeTimer = 0.4;
-
-    // Celestial Cascade Salvo Reset
-    this.celestialQueue = [];
-    this.celestialPatternTimer = 0.8;
-    this.celestialPatternIndex = 0;
     this.wrenchCooldownTimer = 10.0;
 
-    // Crossy Odyssey Director Reset
-    this.crossyEncounterTimer = 1.4;
-    this.crossyEncounterIndex = 0;
-
     this.arcadeGroup.visible = true;
+
+    if (mode === "cascade") {
+      this.hearts = 3;
+      this.maxHearts = 3;
+      this.celestialQueue = [];
+      this.celestialPatternTimer = 0.8;
+      this.celestialPatternIndex = 0;
+
+      // 5-Second Start Countdown
+      this.cascadeCountdown = 5.0;
+      this.cascadeLastSecond = 5;
+      if (this.hud) {
+        this.hud.showCountdown(5);
+      }
+      if (this.audio) {
+        this.audio.playCountdownTick(false);
+      }
+    } else if (mode === "tornado") {
+      // Single life only ("no life to this only one life you get")
+      this.hearts = 1;
+      this.maxHearts = 1;
+      this.tornados = [];
+      this.tornadoSurvivalTime = 0.0;
+      this.suckInAnimation = null;
+
+      // Spawn initial chasing tornado
+      this._spawnTornado();
+    } else {
+      this.hearts = 3;
+      this.maxHearts = 3;
+    }
 
     if (this.hud) {
       this.hud.updateArcadeStats({
@@ -152,11 +162,19 @@ export class ArcadeEngine {
     }
 
     if (this.active) {
-      const modeName = mode === "cascade" ? "CELESTIAL CASCADE" : "CROSSY ODYSSEY";
-      const modeSub = mode === "cascade"
-        ? "T3 Intercept Sky Hazards active! Do NOT stay stationary!"
-        : "Structured crossroads, slope rockfalls & wildlife corridors!";
-      this.hud?.showBanner(modeName, modeSub, 3500);
+      if (mode === "cascade") {
+        this.hud?.showBanner(
+          "CELESTIAL CASCADE",
+          "5s radar countdown active! Prepare to evade orbital meteor strikes!",
+          3800
+        );
+      } else if (mode === "tornado") {
+        this.hud?.showBanner(
+          "TORNADO CHASE",
+          "Relentless twister detected! Gravitational suction active. 1 LIFE ONLY!",
+          4000
+        );
+      }
     }
   }
 
@@ -166,6 +184,22 @@ export class ArcadeEngine {
     this.lockonWarning = false;
     this.stationaryTimer = 0.0;
     this.celestialQueue = [];
+    this.cascadeCountdown = 0.0;
+
+    if (this.vehiclePhysics) {
+      this.vehiclePhysics.isSuckedIn = false;
+      const vMesh = this.vehiclePhysics.group || this.vehiclePhysics.chassisMesh || this.vehiclePhysics.mesh;
+      if (vMesh) {
+        vMesh.scale.set(1, 1, 1);
+        vMesh.visible = true;
+      }
+    }
+    this.suckInAnimation = null;
+
+    if (this.hud) {
+      this.hud.hideCountdown();
+      this.hud.hideTornadoWarning();
+    }
 
     // Remove and cleanup all active meteors
     for (const m of this.meteors) {
@@ -181,54 +215,11 @@ export class ArcadeEngine {
     }
     this.shards = [];
 
-    // Remove boulders
-    for (const b of this.boulders) {
-      if (b.mesh) this.arcadeGroup.remove(b.mesh);
-    }
-    this.boulders = [];
-
-    // Remove carts
-    for (const c of this.crossingCarts) {
-      if (c.mesh) this.arcadeGroup.remove(c.mesh);
-    }
-    this.crossingCarts = [];
-
-    // Remove wildlife
-    for (const w of this.wildlife) {
-      if (w.mesh) this.arcadeGroup.remove(w.mesh);
-    }
-    this.wildlife = [];
-
-    // Remove crossing zones decals & bollards
-    for (const z of this.crossingZones) {
-      if (z.stripes) this.arcadeGroup.remove(z.stripes);
-      if (z.track) this.arcadeGroup.remove(z.track);
-      if (z.bollardL) this.arcadeGroup.remove(z.bollardL);
-      if (z.bollardR) this.arcadeGroup.remove(z.bollardR);
-      if (z.bollardL2) this.arcadeGroup.remove(z.bollardL2);
-      if (z.bollardR2) this.arcadeGroup.remove(z.bollardR2);
-    }
-    this.crossingZones = [];
-
-    // Remove roadside signboards
-    for (const s of this.signboards) {
-      if (s.mesh) this.arcadeGroup.remove(s.mesh);
-    }
-    this.signboards = [];
-
-    // Remove crossroad tracks
-    for (const t of this.crossroadTracks) {
+    // Remove tornados
+    for (const t of this.tornados) {
       if (t.mesh) this.arcadeGroup.remove(t.mesh);
     }
-    this.crossroadTracks = [];
-
-    // Remove advance rockfall warnings
-    for (const r of this.advanceRockfalls) {
-      if (r.pebbles) {
-        for (const p of r.pebbles) this.arcadeGroup.remove(p);
-      }
-    }
-    this.advanceRockfalls = [];
+    this.tornados = [];
 
     // Remove wrench
     if (this.activeWrench && this.activeWrench.mesh) {
@@ -787,441 +778,198 @@ export class ArcadeEngine {
   }
 
   // ---------------------------------------------------------------
-  // 5. CROSSY ODYSSEY 2.5: ORCHESTRATED HIGHWAY ENCOUNTER DIRECTOR
+  // 5. TORNADO CHASE: ATMOSPHERIC FUNNEL PURSUIT & VORTEX SUCTION
   // ---------------------------------------------------------------
-  _triggerCrossroadEncounter() {
-    const planetType = this.planet.type || "Oakhaven";
-    const carPos = this.vehiclePhysics.position;
-    const carFwd = this.vehiclePhysics.forward;
-    const carRight = this.vehiclePhysics.right;
-    const carSpeed = this.vehiclePhysics.getSpeedKmh();
+  _spawnTornado() {
+    if (!this.vehiclePhysics) return null;
+    const mesh = buildTornadoFunnel();
+    const carPos = this.vehiclePhysics.position || this.vehiclePhysics.chassisMesh?.position;
+    if (!carPos) return null;
 
-    const lead = 30.0 + Math.min(22.0, (carSpeed / 100.0) * 16.0);
-    const targetCenter = carPos.clone().add(carFwd.clone().multiplyScalar(lead));
-    const centerPlacement = this.planet.getSurfacePlacement(targetCenter.clone().normalize(), 0.02);
+    // Place tornado at distance ~45m-58m away from car along planetary surface
+    const backward = this.vehiclePhysics.forward ? this.vehiclePhysics.forward.clone().negate().normalize() : new THREE.Vector3(0, 0, -1);
+    const side = this.vehiclePhysics.right ? this.vehiclePhysics.right.clone().multiplyScalar(Math.random() > 0.5 ? 1 : -1) : new THREE.Vector3(1, 0, 0);
 
-    // 1. Advance Roadside Signboard (13m before junction)
-    const signPos = carPos.clone().add(carFwd.clone().multiplyScalar(lead - 13.0)).add(carRight.clone().multiplyScalar(3.2));
-    const signPlacement = this.planet.getSurfacePlacement(signPos.clone().normalize(), 0.0);
-    const signboard = buildCrossingSignboard(planetType, "crossing");
-    signboard.position.copy(signPlacement.position);
-    signboard.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), signPlacement.normal);
-    this.arcadeGroup.add(signboard);
-    this.signboards.push({ mesh: signboard, pos: signPlacement.position.clone(), life: 10.0 });
+    const spawnDir = carPos.clone()
+      .add(backward.clone().multiplyScalar(46.0 + Math.random() * 12.0))
+      .add(side.clone().multiplyScalar(14.0 + Math.random() * 12.0))
+      .normalize();
 
-    // 2. Road crossing zone with visible crossroad track & zebra stripes
-    this._spawnCrossingZone(centerPlacement.position, centerPlacement.normal, carRight, carFwd);
+    const terrainRadius = this.planet ? this.planet.getTerrainRadiusAt(spawnDir) : 115.0;
+    const pos = spawnDir.clone().multiplyScalar(terrainRadius);
+    mesh.position.copy(pos);
+    mesh.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), spawnDir);
 
-    // 3. Audio & HUD alert
-    this.audio.playTrafficHorn();
-    this.addToast("JUNCTION CROSSING • 30M", "Watch for Crossing Haul Convoys", "#38BDF8");
+    this.arcadeGroup.add(mesh);
 
-    // 4. Structured 2-vehicle convoy crossing perpendicular across intersection
-    const side = Math.random() < 0.5 ? -1.0 : 1.0;
-    const convoyCount = 2;
-    const crossDir = carRight.clone().multiplyScalar(-side).normalize();
-    const speed = 7.5 + Math.random() * 3.0;
-
-    for (let k = 0; k < convoyCount; k++) {
-      const spawnPos = targetCenter.clone()
-        .add(carRight.clone().multiplyScalar(side * (26.0 + k * 4.8)));
-
-      const placement = this.planet.getSurfacePlacement(spawnPos.clone().normalize(), 0.0);
-      const cartMesh = buildCrossingCart(planetType);
-      cartMesh.position.copy(placement.position);
-      this.arcadeGroup.add(cartMesh);
-
-      const cartFwd = crossDir.clone();
-      const cartUp = placement.normal.clone();
-      const cartMatrix = new THREE.Matrix4().lookAt(
-        new THREE.Vector3(0, 0, 0),
-        cartFwd,
-        cartUp
-      );
-      cartMesh.quaternion.setFromRotationMatrix(cartMatrix);
-
-      this.crossingCarts.push({
-        mesh: cartMesh,
-        pos: placement.position.clone(),
-        crossDir: crossDir,
-        speed: speed,
-        life: 8.5,
-        hasDodged: false
-      });
-    }
-  }
-
-  _spawnCrossingZone(roadPos, normal, rightDir, roadFwd) {
-    const planetType = this.planet.type || "Oakhaven";
-
-    // 1. Crossroad Secondary Dirt/Gravel Track Decal (Spans 54m perpendicular)
-    const track = buildCrossroadTrack(planetType);
-    track.position.copy(roadPos);
-    const trackMat = new THREE.Matrix4().makeBasis(rightDir, normal, roadFwd);
-    track.quaternion.setFromRotationMatrix(trackMat);
-    this.arcadeGroup.add(track);
-
-    // 2. Road Hazard Zebra Stripes Decal
-    const stripes = buildRoadHazardStripes(planetType);
-    stripes.position.copy(roadPos);
-    stripes.quaternion.setFromRotationMatrix(trackMat);
-    this.arcadeGroup.add(stripes);
-
-    // 3. 4 Corner Warning Bollards with synchronized beacons
-    const makeBollard = (offsetFwd, offsetRight) => {
-      const b = buildHazardWarningBollard(planetType);
-      const pos = roadPos.clone().add(roadFwd.clone().multiplyScalar(offsetFwd)).add(rightDir.clone().multiplyScalar(offsetRight));
-      const place = this.planet.getSurfacePlacement(pos.clone().normalize(), 0.0);
-      b.position.copy(place.position);
-      b.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), place.normal);
-      this.arcadeGroup.add(b);
-      return b;
+    const tornado = {
+      mesh,
+      dir: spawnDir,
+      speed: 14.5,
+      wobbleOffset: Math.random() * Math.PI * 2
     };
-
-    const bL = makeBollard(-2.5, -3.2);
-    const bR = makeBollard(-2.5, 3.2);
-    const bL2 = makeBollard(2.5, -3.2);
-    const bR2 = makeBollard(2.5, 3.2);
-
-    this.crossingZones.push({
-      pos: roadPos.clone(),
-      roadFwd: roadFwd.clone(),
-      stripes: stripes,
-      track: track,
-      bollardL: bL,
-      bollardR: bR,
-      bollardL2: bL2,
-      bollardR2: bR2,
-      cleared: false,
-      life: 9.0
-    });
+    this.tornados.push(tornado);
+    return tornado;
   }
 
-  _updateCrossingZones(dt, carPos) {
-    const now = Date.now();
-    for (let i = this.crossingZones.length - 1; i >= 0; i--) {
-      const z = this.crossingZones[i];
-      z.life -= dt;
+  _updateTornados(dt, carPos) {
+    if (!this.vehiclePhysics) return;
+    const carDir = carPos.clone().normalize();
+    const planetRadius = this.planet ? this.planet.radius : 115.0;
+    let minDistance = 999.0;
 
-      // Pulse warning bollard beacon lights
-      const beaconLit = Math.sin(now * 0.016) > 0;
-      if (z.bollardL?.beacon) z.bollardL.beacon.material.opacity = beaconLit ? 1.0 : 0.25;
-      if (z.bollardR?.beacon) z.bollardR.beacon.material.opacity = beaconLit ? 1.0 : 0.25;
-      if (z.bollardL2?.beacon) z.bollardL2.beacon.material.opacity = beaconLit ? 1.0 : 0.25;
-      if (z.bollardR2?.beacon) z.bollardR2.beacon.material.opacity = beaconLit ? 1.0 : 0.25;
+    for (let i = 0; i < this.tornados.length; i++) {
+      const t = this.tornados[i];
+      if (!t.mesh) continue;
 
-      // Check if vehicle has passed beyond the crossing line
-      const toCar = carPos.clone().sub(z.pos);
-      const fwdDot = toCar.dot(z.roadFwd);
+      // 1. Animate visual components (spin, ribbons, orbiting debris)
+      if (t.mesh.userData) {
+        t.mesh.userData.time = (t.mesh.userData.time || 0.0) + dt;
+        const uTime = t.mesh.userData.time;
 
-      if (!z.cleared && fwdDot > 2.5 && fwdDot < 12.0) {
-        z.cleared = true;
-        this.triggerLaneCleared();
-      }
+        // Spin funnel tiers
+        if (t.mesh.userData.funnelTiers) {
+          t.mesh.userData.funnelTiers.forEach(tier => {
+            tier.mesh.rotation.y += tier.spinSpeed * dt;
+            tier.mesh.position.x = Math.sin(uTime * 3.2 + tier.mesh.position.y * 0.25) * 0.45;
+            tier.mesh.position.z = Math.cos(uTime * 2.8 + tier.mesh.position.y * 0.25) * 0.45;
+          });
+        }
 
-      // Expire zone once well behind the car or lifetime elapsed
-      if (z.life <= 0.0 || fwdDot > 20.0) {
-        if (z.stripes) this.arcadeGroup.remove(z.stripes);
-        if (z.track) this.arcadeGroup.remove(z.track);
-        if (z.bollardL) this.arcadeGroup.remove(z.bollardL);
-        if (z.bollardR) this.arcadeGroup.remove(z.bollardR);
-        if (z.bollardL2) this.arcadeGroup.remove(z.bollardL2);
-        if (z.bollardR2) this.arcadeGroup.remove(z.bollardR2);
-        this.crossingZones.splice(i, 1);
-      }
-    }
-  }
+        // Spin wind ribbons
+        if (t.mesh.userData.ribbons) {
+          t.mesh.userData.ribbons.forEach(ribbon => {
+            ribbon.mesh.rotation.z += ribbon.rotSpeed * dt;
+          });
+        }
 
-  _updateCrossingCarts(dt, carPos) {
-    for (let i = this.crossingCarts.length - 1; i >= 0; i--) {
-      const c = this.crossingCarts[i];
-      c.life -= dt;
-      if (c.life <= 0.0) {
-        this.arcadeGroup.remove(c.mesh);
-        this.crossingCarts.splice(i, 1);
-        continue;
-      }
-
-      // Advance along crossing route
-      c.pos.add(c.crossDir.clone().multiplyScalar(c.speed * dt));
-      const placement = this.planet.getSurfacePlacement(c.pos.clone().normalize(), 0.05);
-      c.pos.copy(placement.position);
-      c.mesh.position.copy(c.pos);
-
-      // Re-orient to surface
-      const cartMatrix = new THREE.Matrix4().lookAt(
-        new THREE.Vector3(0, 0, 0),
-        c.crossDir,
-        placement.normal
-      );
-      c.mesh.quaternion.setFromRotationMatrix(cartMatrix);
-
-      // Rotate wheels if present
-      if (c.mesh.wheels) {
-        for (const w of c.mesh.wheels) {
-          w.rotation.x += dt * c.speed * 2.2;
+        // Orbit debris chunks around base
+        if (t.mesh.userData.debris) {
+          t.mesh.userData.debris.forEach(deb => {
+            deb.angle += deb.orbitSpeed * dt;
+            deb.mesh.position.x = Math.cos(deb.angle) * deb.orbitRadius;
+            deb.mesh.position.z = Math.sin(deb.angle) * deb.orbitRadius;
+            deb.mesh.rotation.x += deb.rotX * dt;
+            deb.mesh.rotation.y += deb.rotY * dt;
+          });
         }
       }
 
-      // Precision vehicle footprint collision check
-      const vehDist = this._getDistanceToVehicle(c.pos);
-      if (vehDist.surfaceDist <= 1.25) {
-        this.takeDamage("CONVOY COLLISION!");
-      } else if (!c.hasDodged && vehDist.surfaceDist <= 2.80) {
-        c.hasDodged = true;
-        this.triggerCleanCross("CONVOY WEAVE! +120", 120);
+      // 2. Geodesic spherical pursuit navigation
+      const angleToCar = t.dir.angleTo(carDir);
+      if (angleToCar > 0.001) {
+        const rotAxis = new THREE.Vector3().crossVectors(t.dir, carDir).normalize();
+        const stepAngle = (t.speed / planetRadius) * dt;
+        const actualAngle = Math.min(stepAngle, angleToCar);
+        t.dir.applyAxisAngle(rotAxis, actualAngle).normalize();
+
+        const terrainRadius = this.planet ? this.planet.getTerrainRadiusAt(t.dir) : 115.0;
+        t.mesh.position.copy(t.dir).multiplyScalar(terrainRadius);
+        t.mesh.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), t.dir);
       }
-    }
-  }
 
-  // ---------------------------------------------------------------
-  // 5b. MOUNTAIN ROCKFALL CHUTE (Slope-Accurate Gravity Avalanche)
-  // ---------------------------------------------------------------
-  _triggerRockfallEncounter() {
-    const planetType = this.planet.type || "Oakhaven";
-    const carPos = this.vehiclePhysics.position;
-    const carFwd = this.vehiclePhysics.forward;
-    const carRight = this.vehiclePhysics.right;
-    const carSpeed = this.vehiclePhysics.getSpeedKmh();
+      // Accelerate tornado gradually over survival time (up to 21.5 m/s)
+      t.speed = Math.min(21.5, 14.5 + this.tornadoSurvivalTime * 0.12);
 
-    const lead = 28.0 + Math.min(20.0, (carSpeed / 100.0) * 14.0);
-    const targetRoadPos = carPos.clone().add(carFwd.clone().multiplyScalar(lead));
+      // 3. Distance check to player rover
+      const dist = carPos.distanceTo(t.mesh.position);
+      if (dist < minDistance) {
+        minDistance = dist;
+      }
 
-    // Sample terrain elevation on left slope vs right slope to find uphill side
-    const testPosL = targetRoadPos.clone().add(carRight.clone().multiplyScalar(-24.0));
-    const testPosR = targetRoadPos.clone().add(carRight.clone().multiplyScalar(24.0));
-    const hL = this.planet.getTerrainRadiusAt(testPosL.clone().normalize());
-    const hR = this.planet.getTerrainRadiusAt(testPosR.clone().normalize());
-    const uphillSide = (hL >= hR) ? -1.0 : 1.0;
+      // Proximity Roar and Warning (< 34m)
+      if (dist < 34.0) {
+        const proximityIntensity = Math.min(1.0, 1.0 - (dist / 34.0));
+        this.audio?.playTornadoRoar(proximityIntensity);
+        this.cameraShake = Math.max(this.cameraShake, proximityIntensity * 0.45);
+      }
 
-    // 1. Advance Roadside Signboard: "CAUTION: ROCKFALL ZONE"
-    const signPos = carPos.clone().add(carFwd.clone().multiplyScalar(lead - 13.0)).add(carRight.clone().multiplyScalar(-uphillSide * 3.2));
-    const signPlacement = this.planet.getSurfacePlacement(signPos.clone().normalize(), 0.0);
-    const signboard = buildCrossingSignboard(planetType, "rockfall");
-    signboard.position.copy(signPlacement.position);
-    signboard.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), signPlacement.normal);
-    this.arcadeGroup.add(signboard);
-    this.signboards.push({ mesh: signboard, pos: signPlacement.position.clone(), life: 9.0 });
-
-    // 2. Audio & HUD alert
-    this.audio.playBoulderRumbleSound();
-    this.addToast("ROCKFALL ALERT! • 30M", "Uphill Slopes Active — Prepare to Weave", "#F5A623");
-
-    // 3. Advance warning pebbles & dust tumbling down upper hillside
-    const pebbleMeshes = [];
-    const matPebble = new THREE.MeshBasicMaterial({ color: 0x78716C });
-    for (let p = 0; p < 4; p++) {
-      const pMesh = new THREE.Mesh(new THREE.DodecahedronGeometry(0.22 + p * 0.06, 0), matPebble);
-      const spawnPebble = targetRoadPos.clone().add(carRight.clone().multiplyScalar(uphillSide * (18.0 + p * 3.0)));
-      const placeP = this.planet.getSurfacePlacement(spawnPebble.clone().normalize(), 0.15);
-      pMesh.position.copy(placeP.position);
-      this.arcadeGroup.add(pMesh);
-      pebbleMeshes.push(pMesh);
-    }
-
-    this.advanceRockfalls.push({
-      targetRoadPos: targetRoadPos.clone(),
-      uphillSide: uphillSide,
-      delay: 1.25,
-      pebbles: pebbleMeshes,
-      planetType: planetType
-    });
-  }
-
-  _updateAdvanceRockfalls(dt, carPos) {
-    for (let i = this.advanceRockfalls.length - 1; i >= 0; i--) {
-      const r = this.advanceRockfalls[i];
-      r.delay -= dt;
-
-      // Animate warning pebbles rolling down
-      if (r.pebbles) {
-        for (let p = 0; p < r.pebbles.length; p++) {
-          const mesh = r.pebbles[p];
-          mesh.rotation.x += dt * 8.0;
-          mesh.rotation.y += dt * 6.0;
+      // Gravitational Wind Suction (< 18m)
+      if (dist < 18.0 && !this.suckInAnimation && !this.isGameOver) {
+        const suctionFactor = (1.0 - dist / 18.0);
+        const suctionForce = suctionFactor * 16.0; // Acceleration pull
+        const pullVector = t.mesh.position.clone().sub(carPos).normalize();
+        if (this.vehiclePhysics.velocity) {
+          this.vehiclePhysics.velocity.addScaledVector(pullVector, suctionForce * dt);
         }
       }
 
-      if (r.delay <= 0.0) {
-        // Remove pebbles
-        if (r.pebbles) {
-          for (const p of r.pebbles) this.arcadeGroup.remove(p);
-        }
+      // Critical Contact: Sucked in (< 4.2m)!
+      if (dist < 4.2 && !this.suckInAnimation && !this.isGameOver) {
+        this._triggerTornadoSuckIn(t);
+        return;
+      }
+    }
 
-        // Spawn actual rolling boulder(s) tumbling down the slope
-        this._spawnBoulder(r.targetRoadPos, r.uphillSide, r.planetType);
-        this.advanceRockfalls.splice(i, 1);
+    // Update HUD Proximity Indicator
+    if (this.hud) {
+      if (minDistance < 35.0 && !this.isGameOver && !this.suckInAnimation) {
+        this.hud.showTornadoWarning(Math.round(minDistance));
+      } else {
+        this.hud.hideTornadoWarning();
       }
     }
   }
 
-  _spawnBoulder(targetRoadPos, uphillSide, planetType = "Oakhaven") {
-    const carRight = this.vehiclePhysics.right;
-    const count = Math.random() < 0.65 ? 2 : 1;
+  _triggerTornadoSuckIn(tornado) {
+    if (this.suckInAnimation || this.isGameOver) return;
+    this.vehiclePhysics.isSuckedIn = true;
+    const chassis = this.vehiclePhysics.group || this.vehiclePhysics.chassisMesh || this.vehiclePhysics.mesh;
+    this.suckInAnimation = {
+      active: true,
+      timer: 0.0,
+      duration: 1.85,
+      tornadoPos: tornado.mesh.position.clone(),
+      tornadoDir: tornado.dir.clone(),
+      startCarPos: chassis ? chassis.position.clone() : tornado.mesh.position.clone(),
+      tornado
+    };
+    this.cameraShake = 1.0;
+    this.audio?.playTornadoSuckIn();
+    this.hud?.showBanner("CRITICAL SUCTION!", "ROVER SUCKED INTO TORNADO VORTEX!", 2500);
+  }
 
-    for (let k = 0; k < count; k++) {
-      const spawnPos = targetRoadPos.clone().add(carRight.clone().multiplyScalar(uphillSide * (22.0 + k * 5.0)));
-      const spawnPlacement = this.planet.getSurfacePlacement(spawnPos.clone().normalize(), 0.95);
-      const boulderMesh = buildRollingBoulder(planetType, this.colorblindMode);
-      boulderMesh.position.copy(spawnPlacement.position);
-      this.arcadeGroup.add(boulderMesh);
+  _updateSuckInAnimation(dt) {
+    if (!this.suckInAnimation) return;
+    const anim = this.suckInAnimation;
+    anim.timer += dt;
+    const progress = Math.min(1.0, anim.timer / anim.duration);
+    const easeProgress = Math.pow(progress, 0.85);
 
-      // Roll trajectory naturally rolls downhill from uphillSide towards opposite side (-uphillSide)
-      const rollDir = carRight.clone().multiplyScalar(-uphillSide).normalize();
-      const rollSpeed = 8.5 + Math.random() * 4.5;
+    const chassis = this.vehiclePhysics.group || this.vehiclePhysics.chassisMesh || this.vehiclePhysics.mesh;
 
-      this.boulders.push({
-        mesh: boulderMesh,
-        pos: spawnPlacement.position.clone(),
-        rollDir: rollDir,
-        speed: rollSpeed,
-        life: 6.8,
-        hasDodged: false
-      });
+    // Spiraling upward into the funnel
+    const upNormal = anim.tornadoDir;
+    const liftHeight = easeProgress * 22.0; // 0m -> 22m up
+    const spiralAngle = anim.timer * 15.0; // Rapid spiral rotation
+    const spiralRadius = THREE.MathUtils.lerp(3.2, 0.4, progress);
+
+    // Tangent vectors perpendicular to upNormal
+    const arb = Math.abs(upNormal.y) < 0.9 ? new THREE.Vector3(0, 1, 0) : new THREE.Vector3(1, 0, 0);
+    const tX = new THREE.Vector3().crossVectors(upNormal, arb).normalize();
+    const tZ = new THREE.Vector3().crossVectors(upNormal, tX).normalize();
+
+    const spiralOffset = tX.clone().multiplyScalar(Math.cos(spiralAngle) * spiralRadius)
+      .add(tZ.clone().multiplyScalar(Math.sin(spiralAngle) * spiralRadius))
+      .add(upNormal.clone().multiplyScalar(liftHeight));
+
+    const newPos = anim.tornadoPos.clone().add(spiralOffset);
+    if (chassis) {
+      chassis.position.copy(newPos);
+      chassis.rotation.x += dt * 18.0;
+      chassis.rotation.y += dt * 24.0;
+      chassis.rotation.z += dt * 16.0;
+      const currentScale = Math.max(0.05, 1.0 - progress * 0.95);
+      chassis.scale.setScalar(currentScale);
     }
-  }
 
-  _updateBoulders(dt, carPos) {
-    for (let i = this.boulders.length - 1; i >= 0; i--) {
-      const b = this.boulders[i];
-      b.life -= dt;
-      if (b.life <= 0.0) {
-        this.arcadeGroup.remove(b.mesh);
-        this.boulders.splice(i, 1);
-        continue;
-      }
+    this.cameraShake = THREE.MathUtils.lerp(0.8, 0.2, progress);
 
-      // Advance boulder along sphere surface
-      b.pos.add(b.rollDir.clone().multiplyScalar(b.speed * dt));
-      const placement = this.planet.getSurfacePlacement(b.pos.clone().normalize(), 0.95);
-      b.pos.copy(placement.position);
-      b.mesh.position.copy(b.pos);
-
-      // Roll mesh rotation around axis perpendicular to travel & normal
-      const rollAxis = new THREE.Vector3().crossVectors(b.rollDir, placement.normal).normalize();
-      b.mesh.rotateOnWorldAxis(rollAxis, b.speed * dt * 0.95);
-
-      // Precision vehicle footprint collision check with car
-      const vehDist = this._getDistanceToVehicle(b.pos);
-      if (vehDist.surfaceDist <= 1.15) {
-        this.takeDamage("BOULDER CRUNCH!");
-      } else if (!b.hasDodged && vehDist.surfaceDist <= 2.65) {
-        b.hasDodged = true;
-        this.triggerCleanCross("BOULDER WEAVE! +100", 100);
-      }
-    }
-  }
-
-  // ---------------------------------------------------------------
-  // 5c. CROSSING WILDLIFE & DUNE SKITTER DRONES
-  // ---------------------------------------------------------------
-  _triggerWildlifeEncounter() {
-    const planetType = this.planet.type || "Oakhaven";
-    const carPos = this.vehiclePhysics.position;
-    const carFwd = this.vehiclePhysics.forward;
-    const carRight = this.vehiclePhysics.right;
-    const carSpeed = this.vehiclePhysics.getSpeedKmh();
-
-    const side = Math.random() < 0.5 ? -1.0 : 1.0;
-    const lead = 24.0 + Math.min(18.0, (carSpeed / 100.0) * 14.0);
-
-    const targetCenter = carPos.clone().add(carFwd.clone().multiplyScalar(lead));
-    const spawnPos = targetCenter.clone().add(carRight.clone().multiplyScalar(side * 24.0));
-
-    // Roadside signboard: "WILDLIFE CROSSING"
-    const signPos = carPos.clone().add(carFwd.clone().multiplyScalar(lead - 12.0)).add(carRight.clone().multiplyScalar(-side * 3.2));
-    const signPlacement = this.planet.getSurfacePlacement(signPos.clone().normalize(), 0.0);
-    const signboard = buildCrossingSignboard(planetType, "wildlife");
-    signboard.position.copy(signPlacement.position);
-    signboard.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), signPlacement.normal);
-    this.arcadeGroup.add(signboard);
-    this.signboards.push({ mesh: signboard, pos: signPlacement.position.clone(), life: 8.5 });
-
-    const placement = this.planet.getSurfacePlacement(spawnPos.clone().normalize(), 0.0);
-    const creatureMesh = buildAlpineWildlife(planetType);
-    creatureMesh.position.copy(placement.position);
-    this.arcadeGroup.add(creatureMesh);
-
-    // Swift crossing sprint across road
-    const crossDir = carRight.clone().multiplyScalar(-side).normalize();
-    const speed = 9.0 + Math.random() * 3.5;
-
-    const crMatrix = new THREE.Matrix4().lookAt(
-      new THREE.Vector3(0, 0, 0),
-      crossDir,
-      placement.normal
-    );
-    creatureMesh.quaternion.setFromRotationMatrix(crMatrix);
-
-    this.wildlife.push({
-      mesh: creatureMesh,
-      pos: placement.position.clone(),
-      crossDir: crossDir,
-      speed: speed,
-      life: 7.0,
-      animTime: 0.0,
-      hasDodged: false
-    });
-
-    this.addToast("WILDLIFE CROSSING!", "Swift Animal Crossing Trail", "#10B981");
-  }
-
-  _updateWildlife(dt, carPos) {
-    const isEarth = (this.planet.type === "Oakhaven");
-    for (let i = this.wildlife.length - 1; i >= 0; i--) {
-      const w = this.wildlife[i];
-      w.life -= dt;
-      w.animTime += dt;
-      if (w.life <= 0.0) {
-        this.arcadeGroup.remove(w.mesh);
-        this.wildlife.splice(i, 1);
-        continue;
-      }
-
-      // Advance sprint along surface
-      w.pos.add(w.crossDir.clone().multiplyScalar(w.speed * dt));
-      const placement = this.planet.getSurfacePlacement(w.pos.clone().normalize(), 0.05);
-      w.pos.copy(placement.position);
-      w.mesh.position.copy(w.pos);
-
-      // Re-orient to surface
-      const crMatrix = new THREE.Matrix4().lookAt(
-        new THREE.Vector3(0, 0, 0),
-        w.crossDir,
-        placement.normal
-      );
-      w.mesh.quaternion.setFromRotationMatrix(crMatrix);
-
-      // Animate trotting / scuttling legs
-      if (w.mesh.legs && w.mesh.legs.length >= 4) {
-        const legPhase = w.animTime * 14.0;
-        w.mesh.legs[0].rotation.x = Math.sin(legPhase) * 0.45;
-        w.mesh.legs[1].rotation.x = -Math.sin(legPhase) * 0.45;
-        w.mesh.legs[2].rotation.x = -Math.sin(legPhase) * 0.45;
-        w.mesh.legs[3].rotation.x = Math.sin(legPhase) * 0.45;
-      }
-
-      // Precision vehicle footprint collision check
-      const vehDist = this._getDistanceToVehicle(w.pos);
-      if (vehDist.surfaceDist <= 0.85) {
-        const hazardName = isEarth ? "BIGHORN RAM IMPACT!" : "SKITTER DRONE IMPACT!";
-        this.takeDamage(hazardName);
-      } else if (!w.hasDodged && vehDist.surfaceDist <= 2.50) {
-        w.hasDodged = true;
-        const dodgeName = isEarth ? "WILDLIFE SLALOM! +150" : "DRONE SLALOM! +150";
-        this.triggerCleanCross(dodgeName, 150);
-      }
-    }
-  }
-
-  _updateSignboards(dt, carPos) {
-    for (let i = this.signboards.length - 1; i >= 0; i--) {
-      const s = this.signboards[i];
-      s.life -= dt;
-      if (s.life <= 0.0 || carPos.distanceTo(s.pos) > 45.0) {
-        this.arcadeGroup.remove(s.mesh);
-        this.signboards.splice(i, 1);
-      }
+    if (progress >= 1.0) {
+      this.suckInAnimation = null;
+      if (chassis) chassis.visible = false;
+      this.hearts = 0;
+      this.triggerGameOver("SUCKED INTO TORNADO VORTEX");
     }
   }
 
@@ -1354,10 +1102,10 @@ export class ArcadeEngine {
     }
   }
 
-  triggerGameOver() {
+  triggerGameOver(reason = "SIGNAL TERMINATED") {
     this.isGameOver = true;
     this.lockonWarning = false;
-    this.audio.playGameOverSound();
+    this.audio?.playGameOverSound();
 
     let rank = "C";
     if (this.score >= 5000) rank = "S (MASTER)";
@@ -1367,12 +1115,15 @@ export class ArcadeEngine {
     const isNewHigh = (this.score >= this.highScore && this.score > 0);
 
     if (this.hud && this.hud.showGameOverModal) {
+      this.hud.hideCountdown();
+      this.hud.hideTornadoWarning();
       this.hud.showGameOverModal({
-        modeName: this.activeMode === "cascade" ? "Celestial Cascade" : "Crossy Odyssey",
+        modeName: this.activeMode === "cascade" ? "Celestial Cascade" : "Tornado Chase",
         score: this.score,
         highScore: this.highScore,
         rank: rank,
-        isNewHighScore: isNewHigh
+        isNewHighScore: isNewHigh,
+        reason: reason
       });
     }
   }
@@ -1400,7 +1151,20 @@ export class ArcadeEngine {
   // 8. MAIN ENGINE TICK LOOP
   // ---------------------------------------------------------------
   update(dt, carPos) {
-    if (!this.active || this.isGameOver) return;
+    if (!this.active) return;
+
+    // 1. If suck-in animation is active, handle it exclusively
+    if (this.suckInAnimation) {
+      this._updateSuckInAnimation(dt);
+      if (this.cameraShake > 0.0) {
+        this.cameraShake = Math.max(0.0, this.cameraShake - dt * 1.5);
+      }
+      return;
+    }
+
+    if (this.isGameOver) return;
+
+    if (dt <= 0 || dt > 0.1) dt = 0.016;
 
     // Decay camera shake smoothly
     if (this.cameraShake > 0.0) {
@@ -1411,13 +1175,11 @@ export class ArcadeEngine {
     if (this.invulnerableTimer > 0.0) {
       this.invulnerableTimer = Math.max(0.0, this.invulnerableTimer - dt);
       const isVisible = Math.floor(this.invulnerableTimer * 14.0) % 2 === 0;
-      if (this.vehiclePhysics && this.vehiclePhysics.mesh) {
-        this.vehiclePhysics.mesh.visible = isVisible;
-      }
+      const mesh = this.vehiclePhysics?.group || this.vehiclePhysics?.chassisMesh || this.vehiclePhysics?.mesh;
+      if (mesh) mesh.visible = isVisible;
     } else {
-      if (this.vehiclePhysics && this.vehiclePhysics.mesh) {
-        this.vehiclePhysics.mesh.visible = true;
-      }
+      const mesh = this.vehiclePhysics?.group || this.vehiclePhysics?.chassisMesh || this.vehiclePhysics?.mesh;
+      if (mesh && !mesh.visible) mesh.visible = true;
     }
 
     // Decay combo multiplier timer
@@ -1441,10 +1203,40 @@ export class ArcadeEngine {
     // Update blast particles
     this._updateBlastFX(dt);
 
+    if (!carPos) {
+      carPos = this.vehiclePhysics?.position || this.vehiclePhysics?.chassisMesh?.position;
+    }
+    if (!carPos) return;
+
     const carSpeed = this.vehiclePhysics ? this.vehiclePhysics.getSpeedKmh() : 0.0;
 
     // MODE 2: Celestial Cascade logic
     if (this.activeMode === "cascade") {
+      // 5-second countdown handling
+      if (this.cascadeCountdown > 0.0) {
+        this.cascadeCountdown -= dt;
+        const currentSec = Math.ceil(this.cascadeCountdown);
+        if (currentSec !== this.cascadeLastSecond) {
+          this.cascadeLastSecond = currentSec;
+          if (currentSec > 0) {
+            this.hud?.updateCountdown(currentSec);
+            this.audio?.playCountdownTick(false);
+          } else {
+            this.hud?.updateCountdown(0);
+            this.audio?.playCountdownTick(true);
+          }
+        }
+
+        if (this.cascadeCountdown <= 0.0) {
+          this.cascadeCountdown = 0.0;
+          this.hud?.hideCountdown();
+          this.addToast("RADAR LOCK DETECTED!", "METEOR SALVO ACTIVE!", "#F59E0B");
+        }
+
+        // Return early during countdown: hazards not yet active
+        return;
+      }
+
       // 1. Process enqueued staggered salvo meteors
       for (let i = this.celestialQueue.length - 1; i >= 0; i--) {
         const item = this.celestialQueue[i];
@@ -1462,7 +1254,7 @@ export class ArcadeEngine {
           this.lockonWarning = true;
           this.stationaryAlertCooldown -= dt;
           if (this.stationaryAlertCooldown <= 0.0) {
-            this.audio.playStationaryLockonAlert();
+            this.audio?.playStationaryLockonAlert();
             this.addToast("IMMOBILE VEHICLE DETECTED!", "STATIONARY LOCK-ON ACTIVE! MOVE NOW!", "#EF4444");
             this.stationaryAlertCooldown = 1.4;
           }
@@ -1496,46 +1288,35 @@ export class ArcadeEngine {
 
       this._updateMeteors(dt, carPos);
       this._updateShards(dt, carPos);
-    }
 
-    // MODE 3: Crossy Odyssey logic (Orchestrated Highway & Trail Encounter Director)
-    if (this.activeMode === "crossy") {
-      this.lockonWarning = false;
-
-      this.crossyEncounterTimer -= dt;
-      if (this.crossyEncounterTimer <= 0.0) {
-        const encounterType = this.crossySequence[this.crossyEncounterIndex % this.crossySequence.length];
-        this.crossyEncounterIndex++;
-
-        if (encounterType === "crossroad") {
-          this._triggerCrossroadEncounter();
-        } else if (encounterType === "rockfall") {
-          this._triggerRockfallEncounter();
-        } else if (encounterType === "wildlife") {
-          this._triggerWildlifeEncounter();
+      // Heart recovery repair wrench (only in cascade)
+      if (this.hearts < this.maxHearts) {
+        this.wrenchCooldownTimer -= dt;
+        if (this.wrenchCooldownTimer <= 0.0) {
+          this._spawnRepairWrench();
+          this.wrenchCooldownTimer = 18.0;
         }
-
-        const difficulty = Math.min(1.0, this.score / 6000.0);
-        this.crossyEncounterTimer = (4.8 - difficulty * 1.5) + (Math.random() - 0.5) * 1.2;
       }
-
-      this._updateAdvanceRockfalls(dt, carPos);
-      this._updateBoulders(dt, carPos);
-      this._updateCrossingCarts(dt, carPos);
-      this._updateCrossingZones(dt, carPos);
-      this._updateWildlife(dt, carPos);
-      this._updateSignboards(dt, carPos);
+      this._updateRepairWrench(dt, carPos);
     }
 
-    // Heart recovery repair wrench
-    if (this.hearts < this.maxHearts) {
-      this.wrenchCooldownTimer -= dt;
-      if (this.wrenchCooldownTimer <= 0.0) {
-        this._spawnRepairWrench();
-        this.wrenchCooldownTimer = 18.0;
+    // MODE 3: Tornado Chase (Single-Life Permadeath Pursuit)
+    if (this.activeMode === "tornado") {
+      this.lockonWarning = false;
+      this.tornadoSurvivalTime += dt;
+
+      // Distance & speed-based score accumulation
+      const speedScore = Math.round(carSpeed * dt * 0.8);
+      this.score += Math.round(dt * 20 * this.comboMultiplier) + speedScore;
+
+      // Spawn 2nd flanking tornado after 32 seconds of survival
+      if (this.tornadoSurvivalTime > 32.0 && this.tornados.length < 2) {
+        this._spawnTornado();
+        this.addToast("TWISTER ESCALATION!", "SECOND TORNADO FUNNEL TOUCHDOWN!", "#EF4444");
       }
+
+      this._updateTornados(dt, carPos);
     }
-    this._updateRepairWrench(dt, carPos);
 
     // Update HUD Stats
     if (this.hud) {

@@ -116,7 +116,8 @@ describe('3D Diorama & Vehicle Procedural Models', () => {
       () => Models.buildRoadHazardStripes('Oakhaven'),
       () => Models.buildHazardWarningBollard('Oakhaven'),
       () => Models.buildCrossingSignboard('Oakhaven', 'crossing'),
-      () => Models.buildCrossroadTrack('Oakhaven')
+      () => Models.buildCrossroadTrack('Oakhaven'),
+      Models.buildTornadoFunnel
     ];
 
     for (const factory of accessoryBuilders) {

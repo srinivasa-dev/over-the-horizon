@@ -52,7 +52,11 @@ export class HUDController {
     // Mode cards
     this.cardCosy = document.getElementById('card-mode-cosy');
     this.cardCascade = document.getElementById('card-mode-cascade');
-    this.cardCrossy = document.getElementById('card-mode-crossy');
+    this.cardTornado = document.getElementById('card-mode-tornado');
+
+    // Overlays
+    this.countdownOverlay = document.getElementById('arcade-countdown-overlay');
+    this.tornadoWarningPill = document.getElementById('tornado-proximity-warning');
 
     this.bannerTimeout = null;
     this.lastRenderedToasts = "";
@@ -110,8 +114,8 @@ export class HUDController {
     if (this.cardCascade) {
       this.cardCascade.addEventListener('click', () => this.setGameMode("cascade"));
     }
-    if (this.cardCrossy) {
-      this.cardCrossy.addEventListener('click', () => this.setGameMode("crossy"));
+    if (this.cardTornado) {
+      this.cardTornado.addEventListener('click', () => this.setGameMode("tornado"));
     }
 
     // 4. Welcome Modal Controls
@@ -260,7 +264,7 @@ export class HUDController {
       const score = this.goFinalScore ? this.goFinalScore.textContent : '0';
       const rank = this.goRank ? this.goRank.textContent : 'RANK A';
       const planet = this.app.currentPlanetType || 'Oakhaven';
-      const mode = this.app.gameMode === 'cascade' ? 'Celestial Cascade' : (this.app.gameMode === 'crossy' ? 'Crossy Odyssey' : 'Cosy Cruise');
+      const mode = this.app.gameMode === 'cascade' ? 'Celestial Cascade' : (this.app.gameMode === 'tornado' ? 'Tornado Chase' : 'Cosy Cruise');
       const shareText = `Over The Horizon — Planetary Driving Odyssey\nScore: ${score} pts (${rank})\nPlanet: ${planet} | Mode: ${mode}\nPlay free in your browser: https://overthehorizon.srinivasa.dev`;
       
       if (navigator.share) {
@@ -359,7 +363,7 @@ export class HUDController {
     // Update Mode Cards Active State
     if (this.cardCosy) this.cardCosy.classList.toggle('active', mode === "cosy");
     if (this.cardCascade) this.cardCascade.classList.toggle('active', mode === "cascade");
-    if (this.cardCrossy) this.cardCrossy.classList.toggle('active', mode === "crossy");
+    if (this.cardTornado) this.cardTornado.classList.toggle('active', mode === "tornado");
 
     const MODE_DESCS = {
       "cosy": {
@@ -369,13 +373,13 @@ export class HUDController {
       },
       "cascade": {
         title: "ORBITAL HAZARD SURVIVAL",
-        tagline: "Astrolabe Reticles • Falling Stars • Multipliers",
-        text: "Sacred astrolabes spin beneath plunging stellar bodies. Dodge incoming impacts, collect fallen stardust shards, and build 5x combo multipliers before shields deplete."
+        tagline: "5-Second Countdown • Falling Stars • Multipliers",
+        text: "Starts with an audible 5-second radar lock countdown. Dodge incoming stellar impacts, collect fallen stardust shards, and build 5x combo multipliers before shields deplete."
       },
-      "crossy": {
-        title: "TRAFFIC SLALOM & BOULDER HAZARD",
-        tagline: "Crossing Convoys • Slalom Lines • Clean Weaves",
-        text: "Slalom through crossing planetary transport convoys and dodge rolling mountain boulders down steep slopes. Thread intersections cleanly for weave score streaks."
+      "tornado": {
+        title: "ATMOSPHERIC TWISTER PURSUIT",
+        tagline: "Relentless Twisters • Gravitational Pull • Permadeath",
+        text: "Chasing atmospheric tornados hunt your rover across the planetary surface. If sucked into the funnel vortex, your vehicle is destroyed. No respawns: 1 life only!"
       }
     };
 
@@ -392,7 +396,7 @@ export class HUDController {
 
     const startBtnText = document.getElementById('btn-start-text');
     const startBtn = document.getElementById('btn-start-game');
-    const label = mode === "cosy" ? "LAUNCH COSY CRUISE" : (mode === "cascade" ? "LAUNCH CELESTIAL CASCADE" : "LAUNCH CROSSY ODYSSEY");
+    const label = mode === "cosy" ? "LAUNCH COSY CRUISE" : (mode === "cascade" ? "LAUNCH CELESTIAL CASCADE" : "LAUNCH TORNADO CHASE");
     if (startBtnText) {
       startBtnText.textContent = "DRIVE";
     }
@@ -431,6 +435,13 @@ export class HUDController {
       const heartSpans = this.arcadeHearts.querySelectorAll('.heart-icon');
       heartSpans.forEach((span, idx) => {
         span.innerHTML = ICONS.ui.shield || ICONS.ui.heart;
+        // In Tornado Chase mode: only 1 life is available
+        if (mode === 'tornado' && idx > 0) {
+          span.style.display = 'none';
+        } else {
+          span.style.display = '';
+        }
+
         if (idx < hearts) {
           span.classList.remove('lost');
         } else {
@@ -439,9 +450,9 @@ export class HUDController {
       });
     }
 
-    // Danger vignette warning if on last heart
+    // Danger vignette warning if on last heart (only for multi-heart modes)
     if (this.dangerVignette) {
-      if (hearts === 1) {
+      if (mode !== 'tornado' && hearts === 1) {
         this.dangerVignette.classList.add('danger-high');
       } else {
         this.dangerVignette.classList.remove('danger-high');
@@ -500,6 +511,78 @@ export class HUDController {
   hideGameOverModal() {
     if (this.gameOverModal) {
       this.gameOverModal.classList.add('hidden');
+    }
+  }
+
+  showCountdown(seconds) {
+    if (!this.countdownOverlay) {
+      this.countdownOverlay = document.getElementById('arcade-countdown-overlay');
+    }
+    if (this.countdownOverlay) {
+      this.countdownOverlay.classList.remove('hidden');
+      const numEl = this.countdownOverlay.querySelector('.countdown-number');
+      const subEl = this.countdownOverlay.querySelector('.countdown-sub');
+      if (numEl) numEl.textContent = seconds > 0 ? seconds : 'IMPACTS!';
+      if (subEl) subEl.textContent = 'METEOR SALVO RADAR LOCK';
+    }
+  }
+
+  updateCountdown(seconds) {
+    if (!this.countdownOverlay) {
+      this.countdownOverlay = document.getElementById('arcade-countdown-overlay');
+    }
+    if (this.countdownOverlay) {
+      this.countdownOverlay.classList.remove('hidden');
+      const numEl = this.countdownOverlay.querySelector('.countdown-number');
+      const subEl = this.countdownOverlay.querySelector('.countdown-sub');
+      if (numEl) {
+        numEl.textContent = seconds > 0 ? seconds : 'IMPACTS!';
+        numEl.classList.remove('pulse');
+        void numEl.offsetWidth;
+        numEl.classList.add('pulse');
+      }
+      if (subEl) {
+        subEl.textContent = seconds > 0 ? 'CALIBRATING ORBITAL TRAJECTORIES' : 'METEORS INCOMING!';
+      }
+    }
+  }
+
+  hideCountdown() {
+    if (!this.countdownOverlay) {
+      this.countdownOverlay = document.getElementById('arcade-countdown-overlay');
+    }
+    if (this.countdownOverlay) {
+      this.countdownOverlay.classList.add('hidden');
+    }
+  }
+
+  showTornadoWarning(distanceM) {
+    if (!this.tornadoWarningPill) {
+      this.tornadoWarningPill = document.getElementById('tornado-proximity-warning');
+    }
+    if (this.tornadoWarningPill) {
+      this.tornadoWarningPill.classList.remove('hidden');
+      const distEl = this.tornadoWarningPill.querySelector('.tornado-dist-text');
+      const alertEl = this.tornadoWarningPill.querySelector('.tornado-alert-status');
+      if (distEl) distEl.textContent = `${distanceM}m`;
+      if (alertEl) {
+        if (distanceM <= 18) {
+          alertEl.textContent = 'SUCTION CRITICAL!';
+          this.tornadoWarningPill.classList.add('suction-danger');
+        } else {
+          alertEl.textContent = 'TWISTER PROXIMITY';
+          this.tornadoWarningPill.classList.remove('suction-danger');
+        }
+      }
+    }
+  }
+
+  hideTornadoWarning() {
+    if (!this.tornadoWarningPill) {
+      this.tornadoWarningPill = document.getElementById('tornado-proximity-warning');
+    }
+    if (this.tornadoWarningPill) {
+      this.tornadoWarningPill.classList.add('hidden');
     }
   }
 
@@ -951,11 +1034,11 @@ export class HUDController {
   _initVectorIcons() {
     const cosySvg = document.getElementById('icon-mode-cosy');
     const cascadeSvg = document.getElementById('icon-mode-cascade');
-    const crossySvg = document.getElementById('icon-mode-crossy');
+    const tornadoSvg = document.getElementById('icon-mode-tornado');
 
     if (cosySvg) cosySvg.innerHTML = ICONS.modes.cosy;
     if (cascadeSvg) cascadeSvg.innerHTML = ICONS.modes.cascade;
-    if (crossySvg) crossySvg.innerHTML = ICONS.modes.crossy;
+    if (tornadoSvg) tornadoSvg.innerHTML = ICONS.modes.tornado;
 
     PLANET_KEYS.forEach(p => {
       const orb = document.getElementById(`orb-${p}`);

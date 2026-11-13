@@ -1414,6 +1414,125 @@ export class AudioManager {
     });
   }
 
+  playCountdownTick(isFinal = false) {
+    if (!this.ctx || this.isMuted) return;
+    const t = this.ctx.currentTime;
+    if (!isFinal) {
+      // Crisp 587Hz tick blip
+      const osc = this.ctx.createOscillator();
+      const gain = this.ctx.createGain();
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(587.33, t);
+      gain.gain.setValueAtTime(0.28, t);
+      gain.gain.exponentialRampToValueAtTime(0.001, t + 0.18);
+      osc.connect(gain);
+      gain.connect(this.sfxGain || this.masterGain);
+      osc.start(t);
+      osc.stop(t + 0.20);
+    } else {
+      // Energetic double launch chime (880Hz and 1318.5Hz)
+      [880.0, 1318.5].forEach((freq, idx) => {
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(freq, t + idx * 0.05);
+        gain.gain.setValueAtTime(0.32, t + idx * 0.05);
+        gain.gain.exponentialRampToValueAtTime(0.001, t + idx * 0.05 + 0.45);
+        osc.connect(gain);
+        gain.connect(this.sfxGain || this.masterGain);
+        osc.start(t + idx * 0.05);
+        osc.stop(t + idx * 0.05 + 0.50);
+      });
+    }
+  }
+
+  playTornadoRoar(intensity = 0.5) {
+    if (!this.ctx || this.isMuted) return;
+    if (this._lastTornadoRoar && (this.ctx.currentTime - this._lastTornadoRoar < 0.2)) return;
+    this._lastTornadoRoar = this.ctx.currentTime;
+
+    const t = this.ctx.currentTime;
+    const dur = 0.35;
+    const bufferSize = Math.floor(this.ctx.sampleRate * dur);
+    const noiseBuffer = this.ctx.createBuffer(1, bufferSize, this.ctx.sampleRate);
+    const data = noiseBuffer.getChannelData(0);
+    for (let i = 0; i < bufferSize; i++) {
+      data[i] = (Math.random() * 2 - 1) * 0.8;
+    }
+
+    const noise = this.ctx.createBufferSource();
+    noise.buffer = noiseBuffer;
+
+    const filter = this.ctx.createBiquadFilter();
+    filter.type = 'bandpass';
+    filter.frequency.setValueAtTime(140 + intensity * 260, t);
+    filter.Q.setValueAtTime(1.8, t);
+
+    const gain = this.ctx.createGain();
+    const targetGain = Math.min(0.35, 0.10 + intensity * 0.25);
+    gain.gain.setValueAtTime(targetGain, t);
+    gain.gain.exponentialRampToValueAtTime(0.001, t + dur);
+
+    noise.connect(filter);
+    filter.connect(gain);
+    gain.connect(this.sfxGain || this.masterGain);
+
+    noise.start(t);
+  }
+
+  playTornadoSuckIn() {
+    if (!this.ctx || this.isMuted) return;
+    const t = this.ctx.currentTime;
+
+    // 1. Violent ascending swirl whistle
+    const osc = this.ctx.createOscillator();
+    const gain = this.ctx.createGain();
+    osc.type = 'sawtooth';
+    osc.frequency.setValueAtTime(120, t);
+    osc.frequency.exponentialRampToValueAtTime(1200, t + 1.2);
+
+    const filter = this.ctx.createBiquadFilter();
+    filter.type = 'lowpass';
+    filter.frequency.setValueAtTime(400, t);
+    filter.frequency.exponentialRampToValueAtTime(2400, t + 1.0);
+
+    gain.gain.setValueAtTime(0.0, t);
+    gain.gain.linearRampToValueAtTime(0.35, t + 0.2);
+    gain.gain.exponentialRampToValueAtTime(0.001, t + 1.5);
+
+    osc.connect(filter);
+    filter.connect(gain);
+    gain.connect(this.sfxGain || this.masterGain);
+    osc.start(t);
+    osc.stop(t + 1.6);
+
+    // 2. High-speed rushing vortex noise
+    const dur = 1.6;
+    const bufferSize = Math.floor(this.ctx.sampleRate * dur);
+    const noiseBuffer = this.ctx.createBuffer(1, bufferSize, this.ctx.sampleRate);
+    const data = noiseBuffer.getChannelData(0);
+    for (let i = 0; i < bufferSize; i++) {
+      data[i] = (Math.random() * 2 - 1);
+    }
+    const noise = this.ctx.createBufferSource();
+    noise.buffer = noiseBuffer;
+
+    const noiseFilter = this.ctx.createBiquadFilter();
+    noiseFilter.type = 'bandpass';
+    noiseFilter.frequency.setValueAtTime(200, t);
+    noiseFilter.frequency.exponentialRampToValueAtTime(1800, t + 1.2);
+    noiseFilter.Q.setValueAtTime(2.5, t);
+
+    const noiseGain = this.ctx.createGain();
+    noiseGain.gain.setValueAtTime(0.3, t);
+    noiseGain.gain.exponentialRampToValueAtTime(0.001, t + dur);
+
+    noise.connect(noiseFilter);
+    noiseFilter.connect(noiseGain);
+    noiseGain.connect(this.sfxGain || this.masterGain);
+    noise.start(t);
+  }
+
   playTrafficHorn() {
     if (!this.ctx || this.isMuted) return;
     const t = this.ctx.currentTime;

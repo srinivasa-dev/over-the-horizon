@@ -26,13 +26,15 @@ export const ICONS = {
         <polygon points="14,2 16,10 24,14 16,18 14,26 12,18 4,14 12,10" fill="#FDE047" opacity="0.65" />
       </svg>
     `,
-    crossy: `
+    tornado: `
       <svg viewBox="0 0 28 28" class="svg-icon mode-svg" fill="none">
-        <rect x="3" y="4" width="22" height="20" rx="4" fill="#334155" stroke="#475569" stroke-width="1.4" />
-        <line x1="14" y1="4" x2="14" y2="24" stroke="#FBBF24" stroke-width="2" stroke-dasharray="3 2" />
-        <circle cx="8" cy="14" r="3.5" fill="#EF4444" stroke="#DC2626" stroke-width="1" />
-        <circle cx="20" cy="10" r="3" fill="#64748B" stroke="#94A3B8" stroke-width="1" />
-        <line x1="4" y1="14" x2="24" y2="14" stroke="#E2E8F0" stroke-width="1.2" opacity="0.5" />
+        <path d="M4 5h20" stroke="#38BDF8" stroke-width="2.2" stroke-linecap="round" />
+        <path d="M6 10h16" stroke="#E2E8F0" stroke-width="2" stroke-linecap="round" />
+        <path d="M8 15h12" stroke="#94A3B8" stroke-width="2" stroke-linecap="round" />
+        <path d="M11 20h6" stroke="#F59E0B" stroke-width="2.2" stroke-linecap="round" />
+        <path d="M13 25h2" stroke="#EF4444" stroke-width="2.5" stroke-linecap="round" />
+        <path d="M5 6c4 3 14 3 18 0" stroke="#0284C7" stroke-width="1.2" opacity="0.6" />
+        <path d="M7 11c3 2.5 11 2.5 14 0" stroke="#64748B" stroke-width="1.2" opacity="0.6" />
       </svg>
     `
   },

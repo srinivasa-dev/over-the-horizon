@@ -25,7 +25,7 @@ class App {
     this.currentVehicleType = "Overland";
     this.currentCameraMode = 0; // 0: Chase POV, 1: Diorama View, 2: Cockpit POV, 3: Drone View
     this.atmosphereHour = 18.25; // Golden Hour default
-    this.gameMode = "cosy"; // "cosy", "cascade", or "crossy"
+    this.gameMode = "cosy"; // "cosy", "cascade", or "tornado"
     this.isGameStarted = false;
     this.menuOrbitAngle = 0;
 
@@ -514,7 +514,7 @@ class App {
   setGameMode(gameMode) {
     this.gameMode = gameMode;
     if (this.arcadeEngine) {
-      if (gameMode === "cascade" || gameMode === "crossy") {
+      if (gameMode === "cascade" || gameMode === "tornado") {
         this.vehiclePhysics.teleportToRoad();
       }
       this.arcadeEngine.start(gameMode);

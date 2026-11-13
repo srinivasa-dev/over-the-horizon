@@ -265,6 +265,26 @@
     <!-- Arcade Floating Notification Toasts -->
     <div class="arcade-toast-container" id="arcade-toast-container"></div>
 
+    <!-- Arcade 5-Second Launch Countdown Overlay (Celestial Cascade) -->
+    <div class="arcade-countdown-overlay hidden" id="arcade-countdown-overlay" aria-live="assertive">
+      <div class="countdown-card">
+        <div class="countdown-sub">METEOR SALVO RADAR LOCK</div>
+        <div class="countdown-number">5</div>
+        <div class="countdown-hint">HOLD THROTTLE • READY EVASIVE MANEUVERS</div>
+      </div>
+    </div>
+
+    <!-- Tornado Proximity & Suction Indicator -->
+    <div class="tornado-proximity-warning hidden" id="tornado-proximity-warning">
+      <span class="tornado-pulsar">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2">
+          <path d="M4 6h16M6 11h12M8 16h8M11 21h2" stroke-linecap="round"/>
+        </svg>
+      </span>
+      <span class="tornado-alert-status">TWISTER PROXIMITY</span>
+      <span class="tornado-dist-text">42m</span>
+    </div>
+
     <!-- Center Banner Notification -->
     <div class="glass-panel banner-container" id="banner-notification">
       <div class="banner-title" id="banner-title">EXPEDITION COMMENCED</div>
@@ -544,9 +564,9 @@
               <span class="mode-chip-dot"></span>
               <span class="mode-chip-text"><span class="mode-prefix">Celestial </span>Cascade</span>
             </button>
-            <button class="carousel-mode-chip" id="card-mode-crossy" role="tab" type="button" aria-selected="false" data-mode="crossy">
+            <button class="carousel-mode-chip" id="card-mode-tornado" role="tab" type="button" aria-selected="false" data-mode="tornado">
               <span class="mode-chip-dot"></span>
-              <span class="mode-chip-text"><span class="mode-prefix">Crossy </span>Odyssey</span>
+              <span class="mode-chip-text"><span class="mode-prefix">Tornado </span>Chase</span>
             </button>
           </div>
 

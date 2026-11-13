@@ -4,7 +4,7 @@ import { ICONS } from '../src/js/icons.js';
 
 describe('UI Icon Graphics Library', () => {
   test('Mode vector icons are defined with valid SVG markup', () => {
-    const requiredModes = ['cosy', 'cascade', 'crossy'];
+    const requiredModes = ['cosy', 'cascade', 'tornado'];
     for (const mode of requiredModes) {
       assert.ok(ICONS.modes[mode], `Missing mode icon: ${mode}`);
       assert.ok(ICONS.modes[mode].includes('<svg'), `Mode ${mode} should contain <svg tag`);
