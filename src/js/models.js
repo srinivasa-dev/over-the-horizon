@@ -2472,18 +2472,19 @@ export function buildCrossroadTrack(planetType = "Oakhaven") {
 
 /**
  * Builds a procedural 3D low-poly atmospheric tornado vortex with stacked conical tiers,
- * wind spiral ribbons, and orbiting ground debris chunks.
+ * vibrant glowing wind ribbons, electric core lightning spire, and orbiting ground debris chunks.
  */
 export function buildTornadoFunnel() {
   const group = new THREE.Group();
   group.name = "TornadoVortex";
 
-  // Tiered stacked truncated cones for low-poly atmospheric funnel
+  // Tiered stacked truncated cones for low-poly atmospheric funnel (35m tall)
   const tiers = [
-    { yBottom: 0.0, yTop: 4.5, rBottom: 1.6, rTop: 3.2, color: 0x475569, opacity: 0.88 },
-    { yBottom: 4.5, yTop: 10.0, rBottom: 3.2, rTop: 6.0, color: 0x64748B, opacity: 0.82 },
-    { yBottom: 10.0, yTop: 16.5, rBottom: 6.0, rTop: 10.2, color: 0x94A3B8, opacity: 0.78 },
-    { yBottom: 16.5, yTop: 24.0, rBottom: 10.2, rTop: 15.5, color: 0xCBD5E1, opacity: 0.72 }
+    { yBottom: 0.0, yTop: 5.0, rBottom: 2.0, rTop: 4.2, color: 0x0369A1, emissive: 0x0284C7, emissiveIntensity: 0.65, opacity: 0.90 },
+    { yBottom: 5.0, yTop: 11.5, rBottom: 4.2, rTop: 7.8, color: 0x0284C7, emissive: 0x0EA5E9, emissiveIntensity: 0.75, opacity: 0.86 },
+    { yBottom: 11.5, yTop: 19.0, rBottom: 7.8, rTop: 12.2, color: 0x38BDF8, emissive: 0x38BDF8, emissiveIntensity: 0.80, opacity: 0.82 },
+    { yBottom: 19.0, yTop: 27.0, rBottom: 12.2, rTop: 17.5, color: 0x7DD3FC, emissive: 0x0284C7, emissiveIntensity: 0.70, opacity: 0.78 },
+    { yBottom: 27.0, yTop: 35.0, rBottom: 17.5, rTop: 23.5, color: 0xBAE6FD, emissive: 0x38BDF8, emissiveIntensity: 0.65, opacity: 0.74 }
   ];
 
   const funnelTiers = [];
@@ -2497,64 +2498,68 @@ export function buildTornadoFunnel() {
       2,
       true // open-ended cylinder
     );
-    const mat = new THREE.MeshLambertMaterial({
+    const mat = new THREE.MeshStandardMaterial({
       color: tier.color,
+      emissive: tier.emissive,
+      emissiveIntensity: tier.emissiveIntensity,
+      roughness: 0.3,
+      metalness: 0.1,
       transparent: true,
       opacity: tier.opacity,
       side: THREE.DoubleSide,
       flatShading: true,
-      depthWrite: false
+      depthWrite: true
     });
     const mesh = new THREE.Mesh(geom, mat);
     mesh.position.y = tier.yBottom + height / 2;
     mesh.castShadow = false;
     mesh.receiveShadow = false;
     group.add(mesh);
-    funnelTiers.push({ mesh, spinSpeed: (idx % 2 === 0 ? 1 : -1) * (3.5 + idx * 0.8) });
+    funnelTiers.push({ mesh, spinSpeed: (idx % 2 === 0 ? 1 : -1) * (3.8 + idx * 0.9) });
   });
 
   // Inner electric vortex core (radiant cyan spire)
-  const coreGeom = new THREE.CylinderGeometry(0.5, 0.2, 24.0, 5, 1, false);
+  const coreGeom = new THREE.CylinderGeometry(0.7, 0.25, 35.0, 5, 1, false);
   const coreMat = new THREE.MeshBasicMaterial({
-    color: 0x38BDF8,
+    color: 0x67E8F9,
     transparent: true,
-    opacity: 0.85,
+    opacity: 0.92,
     wireframe: true
   });
   const coreMesh = new THREE.Mesh(coreGeom, coreMat);
-  coreMesh.position.y = 12.0;
+  coreMesh.position.y = 17.5;
   group.add(coreMesh);
 
   // Swirling helical wind ribbons
   const ribbons = [];
-  const ribbonHeights = [3.0, 7.5, 13.0, 19.0];
-  const ribbonRadii = [2.8, 5.2, 8.8, 13.5];
+  const ribbonHeights = [3.5, 9.0, 15.5, 23.0, 30.5];
+  const ribbonRadii = [3.2, 6.2, 10.5, 15.5, 20.8];
   ribbonHeights.forEach((h, i) => {
-    const ringGeom = new THREE.TorusGeometry(ribbonRadii[i], 0.22, 4, 8);
+    const ringGeom = new THREE.TorusGeometry(ribbonRadii[i], 0.32, 4, 10);
     const ringMat = new THREE.MeshBasicMaterial({
-      color: i % 2 === 0 ? 0x0EA5E9 : 0xF1F5F9,
+      color: i % 2 === 0 ? 0x38BDF8 : 0xF0F9FF,
       transparent: true,
-      opacity: 0.75
+      opacity: 0.82
     });
     const ring = new THREE.Mesh(ringGeom, ringMat);
     ring.rotation.x = Math.PI / 2 + (Math.random() - 0.5) * 0.4;
     ring.rotation.y = (Math.random() - 0.5) * 0.4;
     ring.position.y = h;
     group.add(ring);
-    ribbons.push({ mesh: ring, rotSpeed: 4.5 + i * 1.2 });
+    ribbons.push({ mesh: ring, rotSpeed: 4.8 + i * 1.4 });
   });
 
   // Base orbiting ground debris chunks (rocks, dirt clods)
   const debris = [];
-  const debrisCount = 10;
-  const matDebris = createMat(0x334155, 0.9, 0.1);
+  const debrisCount = 14;
+  const matDebris = createMat(0x1E293B, 0.9, 0.1);
   for (let d = 0; d < debrisCount; d++) {
-    const size = 0.35 + Math.random() * 0.45;
+    const size = 0.4 + Math.random() * 0.5;
     const dGeom = new THREE.DodecahedronGeometry(size, 0);
     const dMesh = new THREE.Mesh(dGeom, matDebris);
-    const orbitRadius = 2.4 + Math.random() * 3.2;
+    const orbitRadius = 2.8 + Math.random() * 4.5;
     const startAngle = (d / debrisCount) * Math.PI * 2;
-    const heightOff = 0.2 + Math.random() * 1.8;
+    const heightOff = 0.3 + Math.random() * 2.6;
     dMesh.position.set(
       Math.cos(startAngle) * orbitRadius,
       heightOff,
@@ -2565,7 +2570,7 @@ export function buildTornadoFunnel() {
       mesh: dMesh,
       orbitRadius,
       angle: startAngle,
-      orbitSpeed: 5.0 + Math.random() * 3.5,
+      orbitSpeed: 5.5 + Math.random() * 4.0,
       heightOff,
       rotX: (Math.random() - 0.5) * 8.0,
       rotY: (Math.random() - 0.5) * 8.0

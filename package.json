@@ -1,6 +1,6 @@
 {
   "name": "over-the-horizon-engine",
-  "version": "2.5.8",
+  "version": "2.5.9",
   "description": "Deterministic spherical gravity physics engine, procedural icosphere terrain pipeline, and WebGL numerical simulation framework",
   "type": "module",
   "main": "src/js/engine.js",

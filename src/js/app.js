@@ -98,6 +98,21 @@ class App {
     // Expose global references for testing & inspection
     window.app = this;
     window.game = this;
+
+    // Support URL parameters for direct mode testing & deep links
+    try {
+      const urlParams = new URLSearchParams(window.location.search);
+      const reqMode = urlParams.get('mode');
+      if (reqMode && ["cosy", "cascade", "tornado"].includes(reqMode)) {
+        this.setGameMode(reqMode);
+      }
+      if (urlParams.get('start') === 'true') {
+        const welcomeModal = document.getElementById('welcome-modal');
+        if (welcomeModal) welcomeModal.classList.add('hidden');
+        if (this.hud) this.hud.hideWelcomeModal();
+        this.startGame();
+      }
+    } catch (_) {}
   }
 
   // ---------------------------------------------------------------
@@ -513,6 +528,9 @@ class App {
 
   setGameMode(gameMode) {
     this.gameMode = gameMode;
+    if (this.hud && this.hud.currentMode !== gameMode) {
+      this.hud.setGameMode(gameMode);
+    }
     if (this.arcadeEngine) {
       if (gameMode === "cascade" || gameMode === "tornado") {
         this.vehiclePhysics.teleportToRoad();

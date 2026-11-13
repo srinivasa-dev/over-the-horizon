@@ -197,8 +197,8 @@ export class ArcadeEngine {
     this.suckInAnimation = null;
 
     if (this.hud) {
-      this.hud.hideCountdown();
-      this.hud.hideTornadoWarning();
+      if (typeof this.hud.hideCountdown === 'function') this.hud.hideCountdown();
+      if (typeof this.hud.hideTornadoWarning === 'function') this.hud.hideTornadoWarning();
     }
 
     // Remove and cleanup all active meteors
@@ -780,19 +780,23 @@ export class ArcadeEngine {
   // ---------------------------------------------------------------
   // 5. TORNADO CHASE: ATMOSPHERIC FUNNEL PURSUIT & VORTEX SUCTION
   // ---------------------------------------------------------------
-  _spawnTornado() {
+  _spawnTornado(ahead = true) {
     if (!this.vehiclePhysics) return null;
     const mesh = buildTornadoFunnel();
     const carPos = this.vehiclePhysics.position || this.vehiclePhysics.chassisMesh?.position;
     if (!carPos) return null;
 
-    // Place tornado at distance ~45m-58m away from car along planetary surface
-    const backward = this.vehiclePhysics.forward ? this.vehiclePhysics.forward.clone().negate().normalize() : new THREE.Vector3(0, 0, -1);
-    const side = this.vehiclePhysics.right ? this.vehiclePhysics.right.clone().multiplyScalar(Math.random() > 0.5 ? 1 : -1) : new THREE.Vector3(1, 0, 0);
+    // Spawn directly in the forward line of sight (22m - 28m ahead)
+    // so it is immediately visible in front of the vehicle and towering into the sky
+    const forward = this.vehiclePhysics.forward ? this.vehiclePhysics.forward.clone().normalize() : new THREE.Vector3(0, 0, 1);
+    const right = this.vehiclePhysics.right ? this.vehiclePhysics.right.clone().normalize() : new THREE.Vector3(1, 0, 0);
+
+    const fwdDist = ahead ? (22.0 + Math.random() * 8.0) : (-12.0 + (Math.random() - 0.5) * 24.0);
+    const sideDist = (Math.random() - 0.5) * 14.0;
 
     const spawnDir = carPos.clone()
-      .add(backward.clone().multiplyScalar(46.0 + Math.random() * 12.0))
-      .add(side.clone().multiplyScalar(14.0 + Math.random() * 12.0))
+      .add(forward.clone().multiplyScalar(fwdDist))
+      .add(right.clone().multiplyScalar(sideDist))
       .normalize();
 
     const terrainRadius = this.planet ? this.planet.getTerrainRadiusAt(spawnDir) : 115.0;
@@ -805,7 +809,7 @@ export class ArcadeEngine {
     const tornado = {
       mesh,
       dir: spawnDir,
-      speed: 14.5,
+      speed: 21.0,
       wobbleOffset: Math.random() * Math.PI * 2
     };
     this.tornados.push(tornado);
@@ -868,8 +872,8 @@ export class ArcadeEngine {
         t.mesh.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), t.dir);
       }
 
-      // Accelerate tornado gradually over survival time (up to 21.5 m/s)
-      t.speed = Math.min(21.5, 14.5 + this.tornadoSurvivalTime * 0.12);
+      // Accelerate tornado gradually over survival time (up to 26.5 m/s)
+      t.speed = Math.min(26.5, 21.0 + this.tornadoSurvivalTime * 0.14);
 
       // 3. Distance check to player rover
       const dist = carPos.distanceTo(t.mesh.position);
@@ -1309,10 +1313,16 @@ export class ArcadeEngine {
       const speedScore = Math.round(carSpeed * dt * 0.8);
       this.score += Math.round(dt * 20 * this.comboMultiplier) + speedScore;
 
-      // Spawn 2nd flanking tornado after 32 seconds of survival
-      if (this.tornadoSurvivalTime > 32.0 && this.tornados.length < 2) {
-        this._spawnTornado();
+      // Spawn 2nd flanking tornado after 20 seconds of survival
+      if (this.tornadoSurvivalTime > 20.0 && this.tornados.length < 2) {
+        this._spawnTornado(false);
         this.addToast("TWISTER ESCALATION!", "SECOND TORNADO FUNNEL TOUCHDOWN!", "#EF4444");
+      }
+
+      // Spawn 3rd tornado after 42 seconds of survival
+      if (this.tornadoSurvivalTime > 42.0 && this.tornados.length < 3) {
+        this._spawnTornado(true);
+        this.addToast("EXTREME VORTEX!", "THIRD TORNADO FUNNEL SIGHTED AHEAD!", "#EF4444");
       }
 
       this._updateTornados(dt, carPos);
