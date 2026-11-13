@@ -819,7 +819,7 @@ export class ArcadeEngine {
   _updateTornados(dt, carPos) {
     if (!this.vehiclePhysics) return;
     const carDir = carPos.clone().normalize();
-    const planetRadius = this.planet ? this.planet.radius : 115.0;
+    const planetRadius = (this.planet?.baseRadius || this.planet?.radius || 115.0);
     let minDistance = 999.0;
 
     for (let i = 0; i < this.tornados.length; i++) {
@@ -884,7 +884,9 @@ export class ArcadeEngine {
       // Proximity Roar and Warning (< 34m)
       if (dist < 34.0) {
         const proximityIntensity = Math.min(1.0, 1.0 - (dist / 34.0));
-        this.audio?.playTornadoRoar(proximityIntensity);
+        if (typeof this.audio?.playTornadoRoar === 'function') {
+          this.audio.playTornadoRoar(proximityIntensity);
+        }
         this.cameraShake = Math.max(this.cameraShake, proximityIntensity * 0.45);
       }
 
@@ -929,7 +931,9 @@ export class ArcadeEngine {
       tornado
     };
     this.cameraShake = 1.0;
-    this.audio?.playTornadoSuckIn();
+    if (typeof this.audio?.playTornadoSuckIn === 'function') {
+      this.audio.playTornadoSuckIn();
+    }
     this.hud?.showBanner("CRITICAL SUCTION!", "ROVER SUCKED INTO TORNADO VORTEX!", 2500);
   }
 

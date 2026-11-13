@@ -52,6 +52,7 @@ export class Planet {
     this.planetType = type;
     const defaultRadius = PLANET_CONFIGS[type]?.radius || 115.0;
     this.baseRadius = (baseRadius && baseRadius !== 65.0) ? baseRadius : defaultRadius;
+    this.radius = this.baseRadius;
     this.circumference = 2.0 * Math.PI * this.baseRadius;
     this.group = new THREE.Group();
     this.group.name = `Planet_${type}`;
