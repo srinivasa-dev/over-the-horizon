@@ -9,7 +9,7 @@
 ![Code License: GNU AGPLv3](https://img.shields.io/badge/Code_License-GNU_AGPLv3-blue.svg)
 ![CI: Passing](https://github.com/srinivasa-dev/over-the-horizon/actions/workflows/ci.yml/badge.svg)
 ![Coverage: 91%](https://img.shields.io/badge/Coverage-90.7%25_Lines-brightgreen.svg)
-![Tests: 32 Passing](https://img.shields.io/badge/Tests-32_Passing-success.svg)
+![Tests: 36 Passing](https://img.shields.io/badge/Tests-36_Passing-success.svg)
 ![Game Design & Assets: All Rights Reserved](https://img.shields.io/badge/Game_Design_%26_Assets-All_Rights_Reserved-crimson.svg)
 ![Technology: WebGL / Three.js](https://img.shields.io/badge/WebGL-Three.js_r160-blue.svg)
 ![Architecture: Zero--Build](https://img.shields.io/badge/Architecture-Zero--Build_HTML5-success.svg)
@@ -18,7 +18,7 @@
 
 **3D Spherical Gravity Physics Engine, Procedural Geometry Pipeline & 9-Planet Simulation**
 
-[Play Online](#quick-start) • [Solar System](#the-9-planet-solar-system) • [Game Modes](#tri-mode-arcade-suite) • [Controls](#controls-guide) • [Architecture](docs/ARCHITECTURE.md) • [Contributing](CONTRIBUTING.md)
+[Play Online Live](https://srinivasa-dev.github.io/over-the-horizon/) • [Solar System](#the-9-planet-solar-system) • [Game Modes](#tri-mode-arcade-suite) • [Controls](#controls-guide) • [Architecture](docs/ARCHITECTURE.md) • [Contributing](CONTRIBUTING.md)
 
 </div>
 
@@ -129,26 +129,31 @@ On touch screens, an on-screen virtual steering pad and tactile action buttons (
 
 ---
 
+## Live Deployment & Quick Play
+
+- **Official WebGL Live Game**: [https://srinivasa-dev.github.io/over-the-horizon/](https://srinivasa-dev.github.io/over-the-horizon/)
+
+Runs directly in any modern mobile or desktop web browser with zero installation or build steps.
+
+---
+
 ## Quick Start (Zero Build Required)
 
 Because **Over The Horizon** uses native HTML5 Import Maps and ES6 modules, no build tools or package managers are required.
 
 ### 1. Clone the Repository
 ```bash
-git clone https://github.com/your-username/over-the-horizon.git
+git clone https://github.com/srinivasa-dev/over-the-horizon.git
 cd over-the-horizon
 ```
 
 ### 2. Launch Local Static HTTP Server
 ```bash
-# Using Python 3 (built into macOS and Linux)
+# Using npm
+npm start
+
+# Or using Python 3
 python3 -m http.server 8080
-
-# Or using Node.js
-npx serve -l 8080 .
-
-# Or using PHP
-php -S localhost:8080
 ```
 
 ### 3. Open in Browser
@@ -169,7 +174,7 @@ over-the-horizon/
 ├── libs/                    # Zero-installation vendor libraries (Three.js r128)
 ├── src/js/                  # Game engine ES modules
 │   ├── app.js               # Main game coordinator, loop, & camera controller
-│   ├── arcade_engine.js     # Tri-mode logic (Cosy Cruise, Cascade, Crossy)
+│   ├── arcade_engine.js     # Tri-mode logic (Cosy Cruise, Celestial Cascade, Tornado Chase)
 │   ├── audio.js             # Procedural Web Audio synthesizer (engine, nitro, chime)
 │   ├── hud.js               # Telemetry cluster, solar orrery menu, & modal coordinator
 │   ├── icons.js             # Crisp vector SVG icon library (zero emojis)
